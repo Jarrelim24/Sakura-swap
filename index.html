@@ -69,11 +69,11 @@ svg.ic{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;strok
 .side-support img{width:74px;height:74px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--pink)}
 .side-support strong{display:block;font-size:15.5px;margin-top:9px}
 .side-support p{color:var(--muted);font-size:12.5px;font-weight:500;margin:5px 0 12px;line-height:1.55}
-.side-support .btn{min-height:44px;font-size:14px}
+.side-support .btn{min-height:46px;font-size:14px}
 .side-meta{font-size:12px;color:var(--faint);font-weight:600;text-align:center;line-height:1.6}
 .side-meta .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:1px}
 /* Three-dot button: only shown on mobile (see media query below) */
-.nav-toggle{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);align-items:center;justify-content:center;cursor:pointer;padding:0;flex:none;margin-left:auto}
+.nav-toggle{display:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);align-items:center;justify-content:center;cursor:pointer;padding:0;flex:none;margin-left:auto}
 .nav-toggle:hover{border-color:var(--pink);color:var(--pink-dark)}
 .nav-toggle svg{width:20px;height:20px;display:block}
 /* ===== Top bar ===== */
@@ -86,30 +86,32 @@ svg.ic{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;strok
 .net-badge.live .dot{background:var(--green)}
 .net-badge.error .dot{background:var(--red)}
 .side-actions{display:flex;align-items:center;gap:8px}
-.side-actions .wallet-pill{flex:1;justify-content:center}
+.side-actions .wallet-pill{flex:none}
 .theme-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:none;transition:border-color .15s}
 .theme-btn:hover{border-color:var(--pink)}
 .theme-btn svg{width:18px;height:18px}
 .theme-btn .ic-sun{display:none}
 :root[data-theme="light"] .theme-btn .ic-sun{display:block}
 :root[data-theme="light"] .theme-btn .ic-moon{display:none}
-.wallet-pill{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#FF5CA8,#FF3D7F);border:1px solid transparent;border-radius:999px;padding:5px 13px 5px 6px;font-weight:800;font-size:13px;cursor:pointer;color:#fff;transition:opacity .15s;min-height:40px;box-shadow:0 8px 20px rgba(255,61,127,.30);white-space:nowrap}
+.wallet-pill{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#FF5CA8,#FF3D7F);border:1px solid transparent;border-radius:999px;padding:4px 12px 4px 5px;font-weight:800;font-size:12.5px;cursor:pointer;color:#fff;transition:opacity .15s;min-height:40px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 16px rgba(255,61,127,.26);white-space:nowrap}
 .wallet-pill:hover{opacity:.92}
-.wallet-pill .wico{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.wallet-pill .wico{width:21px;height:21px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .wallet-pill .wico svg{width:13px;height:13px}
 .wallet-pill.connected{background:var(--surface);color:var(--ink);border-color:var(--line2);box-shadow:var(--shadow)}
 .wallet-pill.connected .wico{background:var(--pink-pale);color:var(--pink-dark)}
 /* ===== Buttons ===== */
-.btn{border:0;cursor:pointer;border-radius:12px;padding:12px 20px;font-weight:700;font-size:15px;display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:background .15s,border-color .15s,opacity .15s;min-height:52px;width:100%}
+.btn{border:0;cursor:pointer;border-radius:14px;padding:12px 22px;font-weight:700;font-size:15px;display:inline-flex;align-items:center;gap:8px;justify-content:center;text-align:center;line-height:1.25;letter-spacing:.01em;transition:background .15s,border-color .15s,opacity .15s,filter .15s;min-height:52px;width:100%}
+.btn-md{min-height:46px;padding:10px 18px;font-size:14px;width:auto}
+.btn-sm{min-height:38px;padding:7px 15px;font-size:13px;width:auto;border-radius:12px}
 .btn:active{transform:scale(.99)}
-.btn-primary{background:linear-gradient(135deg,#FF5CA8,#FF3D7F);color:var(--btn-ink);box-shadow:0 10px 24px rgba(255,61,127,.28)}
-.btn-primary:hover{opacity:.93}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn-primary{background:linear-gradient(135deg,#FF5CA8,#FF3D7F);color:var(--btn-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 10px 24px rgba(255,61,127,.28)}
+.btn-primary:hover{filter:brightness(1.06)}
 .btn-ghost{background:var(--surface);border:1px solid var(--line2);color:var(--ink);width:auto}
-.btn-ghost:hover{border-color:var(--pink);color:var(--pink-dark)}
+.btn-ghost:hover{border-color:var(--pink);color:var(--pink-dark);background:var(--surface2)}
 .btn-soft{background:var(--pink-pale);color:var(--pink-dark);width:auto}
 .btn-soft:hover{background:var(--pink-soft)}
-.icon-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line2);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:border-color .15s;flex:none}
+.icon-btn{width:40px;height:40px;min-height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:border-color .15s;flex:none}
 .icon-btn:hover{border-color:var(--pink);color:var(--pink-dark)}
 /* ===== Page heads (one per view) ===== */
 .page-head{padding:28px 0 4px;max-width:640px}
@@ -133,7 +135,7 @@ body[data-view="home"] #homeHero,body[data-view="home"] #homeBelow{display:block
 .hero-tag{color:#fff;font-size:21px;font-weight:800;margin:10px 0 0;letter-spacing:.01em}
 .hero-sub{color:#F6DCE9;font-size:14.5px;font-weight:500;margin:8px 0 0;line-height:1.65}
 .hero-btns{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
-.hero-btns .btn{width:auto;min-height:50px;padding:12px 24px}
+.hero-btns .btn{width:auto;padding:12px 26px}
 .hero-btns .btn-ghost{background:rgba(8,6,8,.55);color:#fff;border-color:rgba(255,158,199,.5)}
 .hero-btns .btn-ghost:hover{color:#FFB9D6;border-color:#FF5CA8}
 /* ===== Feature cards (Home) ===== */
@@ -214,14 +216,16 @@ body[data-view="analytics"] .panel-positions{display:none}
 .tbox .tb-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .tbox label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .tbox .bal{font-size:12.5px;color:var(--faint);font-weight:600;text-align:right}
-.tbox .bal button{border:0;background:none;color:var(--pink-dark);font-weight:800;cursor:pointer;padding:4px 2px;min-height:32px;font-size:12.5px}
+.tbox .bal button{border:0;background:var(--pink-pale);color:var(--pink-dark);font-weight:800;cursor:pointer;padding:5px 11px;min-height:30px;font-size:12px;border-radius:999px;margin-left:5px;transition:background .15s,transform .08s ease-out}
+.tbox .bal button:hover{background:var(--pink-soft)}
+.tbox .bal button:active{transform:scale(.93)}
 .tbox .tb-row{display:flex;align-items:center;gap:10px;margin-top:6px;min-width:0}
 .tbox .tb-row>*{min-width:0}
 .tbox input{flex:1 1 auto;width:100%;min-width:0;border:0;background:transparent;outline:none;font-size:26px;font-weight:800;color:var(--ink);letter-spacing:-.02em;padding:0}
 .tbox input::placeholder{color:var(--faint)}
 .tbox .usd{font-size:12.5px;color:var(--faint);font-weight:600;margin-top:2px;min-height:18px}
 .token-btn{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:6px 12px 6px 6px;font-weight:700;font-size:15px;cursor:pointer;color:var(--ink);flex:none;min-height:44px;transition:border-color .15s}
-.token-btn:hover{border-color:var(--pink)}
+.token-btn:hover{border-color:var(--pink);background:var(--surface2)}
 .token-btn svg{width:15px;height:15px;color:var(--muted)}
 .tav{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex:none;overflow:hidden;position:relative}
 .tav img{width:100%;height:100%;object-fit:cover;object-position:top}
@@ -240,7 +244,9 @@ body[data-view="analytics"] .panel-positions{display:none}
 .details .drow.bad strong{color:var(--red)}
 .rate-line{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:13.5px;font-weight:600;margin-top:12px}
 .rate-line span{min-width:0;overflow-wrap:anywhere}
-.rate-line button{border:0;background:none;cursor:pointer;color:var(--pink-dark);font-weight:800;padding:4px;min-height:32px;display:flex;align-items:center}
+.rate-line button{border:1px solid var(--line2);background:var(--surface);border-radius:9px;cursor:pointer;color:var(--pink-dark);font-weight:800;padding:0;width:32px;height:32px;min-height:32px;display:flex;align-items:center;justify-content:center;flex:none;transition:border-color .15s,transform .08s ease-out}
+.rate-line button:hover{border-color:var(--pink)}
+.rate-line button:active{transform:scale(.9)}
 .form-err{display:none;background:color-mix(in srgb,var(--red) 10%, var(--surface));border:1px solid color-mix(in srgb,var(--red) 40%, var(--surface));color:var(--red);border-radius:10px;padding:10px 13px;font-size:13.5px;font-weight:600;margin:12px 0 0;line-height:1.5}
 .form-err.show{display:block}
 .form-note{font-size:12.5px;color:var(--faint);font-weight:500;margin:10px 0 0;line-height:1.55}
@@ -253,10 +259,10 @@ body[data-view="analytics"] .panel-positions{display:none}
 .set-panel h3{font-size:14.5px;margin-bottom:4px}
 .set-panel p{font-size:12.5px;color:var(--muted);margin:0 0 10px;font-weight:500}
 .slip-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.slip-row button{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:7px 13px;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;min-height:38px}
+.slip-row button{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;min-height:36px}
 .slip-row button.sel{border-color:var(--pink);background:var(--pink-pale);color:var(--pink-dark)}
 .slip-custom{display:flex;align-items:center;gap:4px;border:1px solid var(--line2);border-radius:999px;padding:0 12px;background:var(--surface)}
-.slip-custom input{width:52px;border:0;outline:none;background:transparent;font-weight:700;font-size:13.5px;color:var(--ink);min-height:38px;padding:0}
+.slip-custom input{width:52px;border:0;outline:none;background:transparent;font-weight:700;font-size:13.5px;color:var(--ink);min-height:36px;padding:0}
 .slip-custom span{font-weight:700;font-size:13px;color:var(--muted)}
 .deadline-row{display:flex;align-items:center;gap:8px;margin-top:4px}
 .deadline-row input{width:76px;border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font-weight:700;color:var(--ink);background:var(--surface);min-height:40px}
@@ -285,7 +291,7 @@ body[data-view="analytics"] .panel-positions{display:none}
 .field input,.field select{width:100%;border:1px solid var(--line2);border-radius:12px;padding:11px 13px;font-weight:700;font-size:15px;color:var(--ink);background:var(--surface);min-height:46px;outline:none}
 .field input:focus,.field select:focus{border-color:var(--pink)}
 .quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.quick-row button{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:700;font-size:12.5px;color:var(--muted);cursor:pointer;min-height:34px}
+.quick-row button{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;min-height:36px}
 .quick-row button:hover{border-color:var(--pink);color:var(--pink-dark)}
 .amt-sym{font-weight:800;font-size:15px;color:var(--muted);flex:none;padding:0 6px}
 .sub-head{font-size:15px;margin:20px 0 4px}
@@ -298,7 +304,7 @@ body[data-view="analytics"] .panel-positions{display:none}
 .ord-status.failed{background:color-mix(in srgb,var(--red) 11%, var(--surface));color:var(--red);border:1px solid color-mix(in srgb,var(--red) 40%, var(--surface))}
 .ord-status.off{background:var(--surface3);color:var(--muted);border:1px solid var(--line2)}
 .ord-actions{margin-top:9px;display:flex;gap:8px}
-.ord-actions button{border:1px solid var(--line2);background:var(--surface);border-radius:9px;padding:7px 13px;font-weight:700;font-size:12.5px;color:var(--ink);cursor:pointer;min-height:36px}
+.ord-actions button{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;min-height:36px}
 .ord-actions button:hover{border-color:var(--red);color:var(--red)}
 /* USD rate bar */
 .usd-rate-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;color:var(--muted);box-shadow:var(--shadow);width:fit-content;max-width:100%}
@@ -318,14 +324,14 @@ body[data-view="analytics"] .panel-positions{display:none}
 .mc-ticks{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--faint);padding:0 1px}
 .mc-ticks span.cur{color:var(--pink-dark)}
 .amt-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-.amt-quick button{border:1px solid var(--line2);background:var(--surface2);border-radius:10px;padding:10px 4px;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;min-height:44px}
+.amt-quick button{border:1px solid var(--line2);background:var(--surface2);border-radius:12px;padding:10px 4px;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;min-height:44px}
 .amt-quick button:hover{border-color:var(--pink);color:var(--pink-dark)}
 .exact-row{display:flex;align-items:center;gap:12px;margin-top:14px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
 .exact-row .ex-main{flex:1;min-width:0}
 .exact-row .ex-main strong{font-size:13px;letter-spacing:.06em;display:block}
 .exact-row .ex-main span{font-size:12px;color:var(--muted);font-weight:500;display:block;line-height:1.5}
 .exact-row .ex-state{font-weight:800;font-size:13px;color:var(--muted);flex:none}
-.create-order-btn{font-size:16.5px;min-height:56px;margin-top:14px}
+.create-order-btn{font-size:16px;min-height:52px;margin-top:14px}
 /* Pool info */
 .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .kv-grid div{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
@@ -335,7 +341,7 @@ body[data-view="analytics"] .panel-positions{display:none}
 .addr-row:last-child{border-bottom:0}
 .addr-row .mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--muted);word-break:break-all;min-width:0}
 .addr-row .sp{flex:1}
-.mini-btn{border:1px solid var(--line2);background:var(--surface);border-radius:8px;width:36px;height:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);padding:0;flex:none}
+.mini-btn{border:1px solid var(--line2);background:var(--surface);border-radius:50%;width:36px;height:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);padding:0;flex:none}
 .mini-btn:hover{border-color:var(--pink);color:var(--pink-dark)}
 .mini-btn svg{width:15px;height:15px}
 .lock-note{display:flex;gap:10px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:500;margin-top:12px;line-height:1.55}
@@ -419,9 +425,9 @@ body[data-view="analytics"] .panel-positions{display:none}
 .holding-row .h-nums{text-align:right;min-width:110px}
 .holding-row .h-nums strong{font-size:15px;display:block}
 .holding-row .h-nums span{color:var(--muted);font-size:12.5px;font-weight:600;display:block}
-.holding-row .btn{width:auto;min-height:42px;padding:9px 18px;font-size:14px;flex:none}
+.holding-row .btn{width:auto;min-height:40px;padding:8px 16px;font-size:13.5px;flex:none}
 .holding-row .h-fail{color:var(--red);font-weight:700}
-.pf-retry-btn{border:1px solid var(--line2);background:var(--surface);color:var(--pink-dark);border-radius:999px;padding:8px 16px;font-weight:800;font-size:13px;cursor:pointer;min-height:40px;flex:none}
+.pf-retry-btn{border:1px solid var(--line2);background:var(--surface);color:var(--pink-dark);border-radius:999px;padding:7px 15px;font-weight:800;font-size:13px;cursor:pointer;min-height:38px;flex:none}
 .pf-retry-btn:hover{border-color:var(--pink)}
 /* Portfolio — which Loop RPC is answering (primary vs fallback vs down) */
 .pf-rpc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.5}
@@ -432,7 +438,7 @@ body[data-view="analytics"] .panel-positions{display:none}
 .pf-rpc.bad{color:var(--red);border-color:color-mix(in srgb,var(--red) 40%, var(--surface))}
 .pf-rpc strong{color:var(--ink)}
 .pf-rpc.bad strong{color:var(--red)}
-.pf-rpc .pf-retry-btn{margin-left:auto;min-height:36px;padding:6px 14px}
+.pf-rpc .pf-retry-btn{margin-left:auto}
 #portfolioSection{padding-bottom:28px}
 /* Portfolio — Jupiter-style header: wallet identity, tabs, Net Worth */
 .pf-idrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -449,15 +455,15 @@ body[data-view="analytics"] .panel-positions{display:none}
 /* Results card: leave room for the sticky header when scrolled into view */
 #pfResults{scroll-margin-top:84px}
 .pf-watch-row{display:flex;gap:10px;flex-wrap:wrap}
-.pf-watch-row input{flex:1 1 260px;min-width:0;border:1px solid var(--line2);border-radius:12px;padding:11px 13px;font-weight:600;font-size:14.5px;color:var(--ink);background:var(--surface);min-height:48px;outline:none;font-family:ui-monospace,Menlo,monospace}
+.pf-watch-row input{flex:1 1 260px;min-width:0;border:1px solid var(--line2);border-radius:12px;padding:11px 13px;font-weight:600;font-size:14.5px;color:var(--ink);background:var(--surface);min-height:46px;outline:none;font-family:ui-monospace,Menlo,monospace}
 .pf-watch-row input:focus{border-color:var(--pink)}
-.pf-watch-row .btn{width:auto;flex:none;min-height:48px}
+.pf-watch-row .btn{width:auto;flex:none;min-height:46px}
 .pf-watch-banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid color-mix(in srgb,var(--gold) 45%, var(--surface));background:color-mix(in srgb,var(--gold) 9%, var(--surface));border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:500;line-height:1.55;margin-top:14px}
 .pf-watch-banner[hidden]{display:none}
 .pf-watch-banner span{flex:1;min-width:200px}
 .pf-watch-banner .mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;word-break:break-all}
 .pf-watch-banner .btn{min-height:40px;padding:8px 15px;font-size:13px;flex:none}
-.pf-copy{width:38px;height:38px;min-height:38px}
+.pf-copy{width:36px;height:36px;min-height:36px}
 .pf-tabs{display:flex;gap:2px 20px;flex-wrap:wrap;margin-top:18px;border-bottom:1px solid var(--line)}
 .pf-tabs button{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:15px;padding:9px 2px 11px;cursor:pointer;min-height:44px;position:relative;border-radius:0}
 .pf-tabs button:hover{color:var(--ink)}
@@ -483,7 +489,7 @@ body[data-view="analytics"] .panel-positions{display:none}
 .pf-panel .card + .card{margin-top:20px}
 .pf-addr-box{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px;flex-wrap:wrap}
 .pf-addr-box code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;word-break:break-all;flex:1;min-width:200px;color:var(--ink)}
-.pf-addr-box .btn{width:auto;min-height:42px;padding:9px 16px;font-size:13.5px;flex:none}
+.pf-addr-box .btn{width:auto;min-height:40px;padding:8px 16px;font-size:13.5px;flex:none}
 .star-btn{width:40px;height:40px;min-height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--surface);color:var(--faint);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:none;transition:border-color .15s,color .15s}
 .star-btn:hover{border-color:var(--gold);color:var(--gold)}
 .star-btn.on{color:var(--gold);border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%, var(--surface))}
@@ -554,14 +560,14 @@ footer .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:
    and a light ripple — the same feel as the big DEX apps, kept cheap. */
 button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 :focus-visible{outline:2px solid var(--pink);outline-offset:2px}
-.btn{position:relative;overflow:hidden;transition:background .15s,border-color .15s,opacity .15s,transform .08s ease-out,box-shadow .18s ease-out}
+.btn{position:relative;overflow:hidden;transition:background .15s,border-color .15s,opacity .15s,filter .15s,transform .08s ease-out,box-shadow .18s ease-out}
 .btn:active{transform:scale(.97)}
 .btn-primary:active{box-shadow:0 4px 16px rgba(255,61,127,.5)}
-.btn-buy{background:linear-gradient(135deg,#2BD97B,#0EA968);color:#fff;box-shadow:0 10px 24px rgba(14,169,104,.32)}
-.btn-buy:hover{opacity:.93}
+.btn-buy{background:linear-gradient(135deg,#2BD97B,#0EA968);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 24px rgba(14,169,104,.32)}
+.btn-buy:hover{filter:brightness(1.05)}
 .btn-buy:active{box-shadow:0 0 0 5px rgba(43,217,123,.32),0 6px 16px rgba(14,169,104,.45)}
-.btn-sell{background:linear-gradient(135deg,#F6465D,#E0243B);color:#fff;box-shadow:0 10px 24px rgba(230,36,59,.30)}
-.btn-sell:hover{opacity:.93}
+.btn-sell{background:linear-gradient(135deg,#F6465D,#E0243B);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 24px rgba(230,36,59,.30)}
+.btn-sell:hover{filter:brightness(1.05)}
 .btn-sell:active{box-shadow:0 0 0 5px rgba(246,70,93,.32),0 6px 16px rgba(230,36,59,.45)}
 .btn-buy:disabled,.btn-sell:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
 .ripple{position:absolute;border-radius:999px;background:rgba(255,255,255,.45);transform:translate(-50%,-50%) scale(0);animation:rippleGo .45s ease-out forwards;pointer-events:none;z-index:1}
@@ -590,6 +596,11 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .pool-card{transition:border-color .15s,transform .08s ease-out}
 .token-row{transition:background .15s,transform .08s ease-out}
 .token-row:active{transform:scale(.99)}
+/* Premium finish: inset-lit segmented controls, slim scrollbars */
+.mode-tabs,.dir-row{box-shadow:inset 0 1px 3px color-mix(in srgb,var(--ink) 8%, transparent)}
+.modal::-webkit-scrollbar,.sidebar::-webkit-scrollbar,.main-nav::-webkit-scrollbar{width:8px;height:8px}
+.modal::-webkit-scrollbar-thumb,.sidebar::-webkit-scrollbar-thumb,.main-nav::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px}
+.modal::-webkit-scrollbar-track,.sidebar::-webkit-scrollbar-track,.main-nav::-webkit-scrollbar-track{background:transparent}
 /* Smooth view & panel transitions (light fade-up, disabled on reduced motion) */
 .view-in{animation:viewIn .22s ease-out}
 .pf-panel:not([hidden]){animation:viewIn .2s ease-out}
@@ -619,7 +630,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   .side-actions{flex:none;gap:6px}
   .side-actions .wallet-pill{flex:none;font-size:12.5px;min-height:38px;padding:4px 11px 4px 5px}
   .side-actions .wallet-pill .wico{width:20px;height:20px}
-  .side-actions .theme-btn{width:36px;height:36px}
+  .side-actions .theme-btn{width:38px;height:38px}
   .nav-toggle{display:flex;width:38px;height:38px;margin-left:0}
   .main-nav{display:none;position:absolute;top:calc(100% + 1px);left:0;right:0;z-index:90;background:var(--side);border-bottom:1px solid var(--line);box-shadow:var(--shadow-lg);padding:10px 16px 14px;flex-direction:column;gap:4px;max-height:calc(100vh - 76px);overflow-y:auto}
   .sidebar.nav-open .main-nav{display:flex}
@@ -655,10 +666,10 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   .side-brand{font-size:16px;gap:7px}
   .side-brand img{width:28px;height:28px}
   .side-actions{gap:5px}
-  .side-actions .theme-btn{width:34px;height:34px}
+  .side-actions .theme-btn{width:36px;height:36px}
   .wallet-pill{font-size:12px;padding:3px 10px 3px 4px;min-height:36px;gap:5px}
   .wallet-pill .wico{width:19px;height:19px}
-  .nav-toggle{width:34px;height:34px}
+  .nav-toggle{width:36px;height:36px}
   .feat-grid{grid-template-columns:repeat(2,1fr)}
   .stats-grid{grid-template-columns:1fr 1fr}
   .mode-tabs button{font-size:12px}
@@ -992,8 +1003,8 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="form-err" id="dcaErr"></div>
         <button class="btn btn-primary create-order-btn" id="dcaAction" type="button">Create DCA Plan</button>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button type="button" class="btn btn-ghost" id="dcaShowChart" style="flex:1;min-height:46px;font-size:14px">Show Chart</button>
-          <button type="button" class="btn btn-ghost" id="dcaShowHistory" style="flex:1;min-height:46px;font-size:14px">Show History</button>
+          <button type="button" class="btn btn-ghost btn-md" id="dcaShowChart" style="flex:1">Show Chart</button>
+          <button type="button" class="btn btn-ghost btn-md" id="dcaShowHistory" style="flex:1">Show History</button>
         </div>
         <button class="btn btn-soft" id="dcaBackBtn" type="button" style="margin-top:10px">← Back to Swap</button>
         <h3 class="sub-head">Active Plan</h3>
@@ -1106,7 +1117,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
     <div class="home-grid">
       <section class="card" aria-label="Featured liquidity pools">
-        <div class="card-head"><h2>Liquidity Pools</h2><button type="button" class="btn btn-soft" data-goto="pools" style="min-height:38px;padding:7px 14px;font-size:13px">All Pools →</button></div>
+        <div class="card-head"><h2>Liquidity Pools</h2><button type="button" class="btn btn-soft btn-sm" data-goto="pools">All Pools →</button></div>
         <p class="card-desc">Uniswap V2 pools of tokens that have graduated. Provide liquidity and earn a share of the pool's trading fees.</p>
         <div id="homePools"><div class="empty-note">Loading pools from the chain…</div></div>
       </section>
@@ -1278,7 +1289,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div id="pfPositions"><div class="empty-note">Connect your wallet to see your LP.</div></div>
       </section>
       <section class="card" aria-label="Your token locks">
-        <div class="card-head"><h2>Token Locks</h2><button type="button" class="btn btn-soft" data-goto="locker" style="min-height:38px;padding:7px 14px;font-size:13px">Open Locker →</button></div>
+        <div class="card-head"><h2>Token Locks</h2><button type="button" class="btn btn-soft btn-sm" data-goto="locker">Open Locker →</button></div>
         <p class="card-desc">Tokens you locked in the Sakura Token Locker. They stay yours — they just cannot move until the unlock time, and they count toward your net worth above.</p>
         <div id="pfLocks"><div class="empty-note">Connect your wallet to see your locks.</div></div>
       </section>
