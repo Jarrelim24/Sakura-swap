@@ -242,6 +242,8 @@ body[data-view="analytics"] .panel-positions{display:none}
 .form-err{display:none;background:color-mix(in srgb,var(--red) 10%, var(--surface));border:1px solid color-mix(in srgb,var(--red) 40%, var(--surface));color:var(--red);border-radius:10px;padding:10px 13px;font-size:13.5px;font-weight:600;margin:12px 0 0;line-height:1.5}
 .form-err.show{display:block}
 .form-note{font-size:12.5px;color:var(--faint);font-weight:500;margin:10px 0 0;line-height:1.55}
+.thin-warn{display:none;background:color-mix(in srgb,var(--gold) 13%, var(--surface));border:1px solid color-mix(in srgb,var(--gold) 45%, var(--surface));color:var(--ink);border-radius:10px;padding:10px 13px;font-size:13.5px;font-weight:700;margin:12px 0 0;line-height:1.5}
+.thin-warn.show{display:block}
 /* Settings popover */
 .set-wrap{position:relative}
 .set-panel{position:absolute;right:0;top:calc(100% + 8px);width:300px;max-width:86vw;background:var(--surface);border:1px solid var(--line2);border-radius:14px;box-shadow:var(--shadow-lg);padding:16px;z-index:50;display:none}
@@ -735,7 +737,7 @@ footer .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:
               <div class="mev-row">
                 <div>
                   <h3>Anti-MEV Protection</h3>
-                  <p>Caps slippage at 0.5%, blocks swaps with price impact above 5%, shortens the swap deadline to 2 minutes, and re-checks the price right before your transaction is sent.</p>
+                  <p>On by default. Caps slippage at 0.5%, blocks swaps with price impact above 5%, and shortens the swap deadline to 2 minutes. Every swap — with Anti-MEV on or off — is also re-quoted fresh and simulated right before your transaction is sent.</p>
                 </div>
                 <label class="switch" aria-label="Toggle Anti-MEV Protection"><input type="checkbox" id="mevToggle" checked/><span class="switch-track"></span></label>
               </div>
@@ -796,9 +798,10 @@ footer .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:
           <div class="drow"><span>Route</span><strong id="dRoute"></strong></div>
         </div>
 
+        <div class="thin-warn" id="thinPoolWarn" role="alert">Thin pool — price moves fast, consider smaller amount or higher slippage</div>
         <div class="form-err" id="swapErr"></div>
         <button class="btn btn-primary" id="swapAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note">Swaps run through Sakura's Uniswap V2 router on Loop Network. Some pools use the fee-split router (the 0.3% pool fee is split: 0.20% stays in the pool · 0.05% creator · 0.05% platform); older pools use the standard V2 router with the full 0.3% fee inside the pool.</p>
+        <p class="form-note">Swaps run through Sakura's Uniswap V2 router on Loop Network. Some pools use the fee-split router (the 0.3% pool fee is split: 0.20% stays in the pool · 0.05% creator · 0.05% platform); older pools use the standard V2 router with the full 0.3% fee inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown.</p>
       </div>
 
       <!-- LIMIT MODE -->
@@ -2745,7 +2748,10 @@ function updateSwap(){
     el('dRoute').textContent = 'LOOP → ' + pair.symbol + ' · ' + (pair.vintage === 'legacy' ? 'legacy' : 'fee-split') + ' router';
     if(state.swap.from === 'LOOP') el('dRoute').textContent = 'LOOP → ' + pair.symbol + ' · ' + (pair.vintage === 'legacy' ? 'legacy' : 'fee-split') + ' router';
     else el('dRoute').textContent = pair.symbol + ' → LOOP · ' + (pair.vintage === 'legacy' ? 'legacy' : 'fee-split') + ' router';
-  } else det.style.display = 'none';
+    /* Thin pool warning: above 1% price impact the price can move between
+       quote and confirmation, so say so plainly (exact wording matters). */
+    el('thinPoolWarn').classList.toggle('show', impact > 1);
+  } else { det.style.display = 'none'; el('thinPoolWarn').classList.remove('show'); }
   showErr('swapErr', err);
   /* Action button */
   var btn = el('swapAction');
@@ -2970,8 +2976,14 @@ var PAIR_ABI = [
 var FACTORY_ABI = ['function getPair(address,address) view returns (address)'];
 var ROUTER_ABI = [
   'function getAmountsOut(uint256,address[]) view returns (uint256[])',
-  'function swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256) payable returns (uint256[])',
-  'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256) returns (uint256[])',
+  /* ALL swaps use the SupportingFeeOnTransferTokens variants — never the
+     plain swapExactETHForTokens / swapExactTokensForETH. Launchpad tokens
+     can carry a creator tax / transfer fee; the plain functions measure the
+     received amount exactly and revert (with no reason string — the
+     "missing revert data" failure) on any fee-taking token. The Supporting
+     variants return nothing on-chain, so no return type is declared. */
+  'function swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256) payable',
+  'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)',
   'function addLiquidityETH(address,uint256,uint256,uint256,address,uint256) payable returns (uint256,uint256,uint256)',
   'function removeLiquidityETH(address,uint256,uint256,uint256,address,uint256) returns (uint256,uint256)'
 ];
@@ -2986,8 +2998,62 @@ function getReadProvider(){
   if(!readProvider) readProvider = new ethers.JsonRpcProvider(CFG.rpcUrl);
   return readProvider;
 }
+/* ---------- Revert-reason decoding ----------
+   A reverting Uniswap V2 call often surfaces in wallets only as
+   "missing revert data" — the reason is there, it just has to be pulled
+   out of the error's data payload (Error(string) 0x08c379a0, or a Panic
+   code) or out of the nested RPC error fields ethers keeps. */
+function decodeRevertData(data){
+  if(!data || typeof data !== 'string' || data.length < 10) return '';
+  try{
+    if(data.slice(0, 10) === '0x08c379a0'){ /* Error(string) */
+      var dec = ethers.AbiCoder.defaultAbiCoder().decode(['string'], '0x' + data.slice(10));
+      return dec && dec[0] ? String(dec[0]) : '';
+    }
+    if(data.slice(0, 10) === '0x4e487b71'){ /* Panic(uint256) */
+      var pd = ethers.AbiCoder.defaultAbiCoder().decode(['uint256'], '0x' + data.slice(10));
+      return 'Panic (code ' + (pd ? pd[0].toString() : '?') + ')';
+    }
+  }catch(x){}
+  return '';
+}
+function revertReason(e){
+  if(!e) return '';
+  var candidates = [e.data, e.error && e.error.data, e.info && e.info.error && e.info.error.data,
+    e.info && e.info.error && e.info.error.error && e.info.error.error.data];
+  for(var i = 0; i < candidates.length; i++){
+    var r = decodeRevertData(candidates[i]);
+    if(r) return r;
+  }
+  var m = e.reason || (e.info && e.info.error && e.info.error.message) || e.shortMessage || e.message || '';
+  m = String(m).replace(/^execution reverted:?\s*/i, '').replace(/^Error:\s*/i, '').trim();
+  var quoted = m.match(/"([^"]{3,120})"/);
+  if(/revert/i.test(m) && quoted) return quoted[1];
+  if(/INSUFFICIENT|EXPIRED|UniswapV2|TRANSFER_FAILED|LOCKED|INVALID_PATH/i.test(m)) return m.slice(0, 160);
+  return '';
+}
+function isInsufficientOutput(reason){
+  return /INSUFFICIENT_OUTPUT_AMOUNT/i.test(reason || '');
+}
+/* Human wording for a swap revert: never leave the user with a bare
+   "missing revert data". */
+function friendlySwapRevert(e){
+  var reason = revertReason(e);
+  if(reason){
+    if(isInsufficientOutput(reason)) return 'Price moved — re-quote: the pool price moved and the output would fall below your minimum received (' + reason + '). The quote has been refreshed — check it and try again.';
+    if(/EXPIRED/i.test(reason)) return 'The swap deadline expired before the transaction could be sent (' + reason + '). Nothing was sent — try again.';
+    return reason;
+  }
+  var m = e && (e.shortMessage || e.message) || '';
+  if(/missing revert data/i.test(String(m))){
+    return 'the router reverted without a reason string. On these pools that almost always means the output fell below the minimum received (price moved past your slippage) — the quote has been refreshed, check it and try again, or raise slippage slightly.';
+  }
+  return '';
+}
 function txErr(e){
   if(!e) return 'unknown error';
+  var fr = friendlySwapRevert(e);
+  if(fr) return fr;
   var m = e.shortMessage || e.reason || (e.info && e.info.error && e.info.error.message) || e.message || String(e);
   if(/user rejected|denied/i.test(m)) return 'transaction rejected in wallet';
   return String(m).slice(0, 220);
@@ -3296,7 +3362,38 @@ async function freshQuoteOut(pair, amountIn, fromLoop){
   var res = await withTimeout(c.getReserves(), 20000, 'price recheck');
   var resLoop = pair.token0IsWloop ? res[0] : res[1];
   var resTok = pair.token0IsWloop ? res[1] : res[0];
+  /* Keep the stored reserves in step with the chain, so the quote shown in
+     the form after a re-quote is the fresh one, not the stale one. */
+  pair.resLoopWei = resLoop;
+  pair.resTokenWei = resTok;
   return quoteOut(amountIn, fromLoop ? resLoop : resTok, fromLoop ? resTok : resLoop);
+}
+/* ---------- Pre-send swap simulation (eth_call) ----------
+   Runs the exact swap calldata through eth_call from the user's own
+   account before anything is signed or sent. If the call reverts, the
+   swap WOULD fail on-chain — the caller must not send it, and the decoded
+   revert reason (not "missing revert data") is what gets shown. Uses a
+   low-level provider.call with a no-return ABI fragment, because the
+   SupportingFeeOnTransferTokens functions return nothing and a typed
+   staticCall would fail trying to decode an empty result. For sells the
+   caller must have secured the router allowance first, otherwise the
+   simulation reverts on the allowance instead of the swap itself. */
+var SWAP_SIM_ABI = [
+  'function swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256) payable',
+  'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)'
+];
+async function simulateSwapEthCall(routerAddr, fromLoop, amountIn, minOut, pair, deadline){
+  var bp = new ethers.BrowserProvider(window.ethereum);
+  var iface = new ethers.Interface(SWAP_SIM_ABI);
+  var data, value = 0n;
+  if(fromLoop){
+    data = iface.encodeFunctionData('swapExactETHForTokensSupportingFeeOnTransferTokens', [minOut, [CFG.wloop, pair.address], state.account, deadline]);
+    value = amountIn;
+  } else {
+    data = iface.encodeFunctionData('swapExactTokensForETHSupportingFeeOnTransferTokens', [amountIn, minOut, [pair.address, CFG.wloop], state.account, deadline]);
+  }
+  await withTimeout(bp.call({ to: routerAddr, from: state.account, data: data, value: value }), 20000, 'swap simulation');
+  return true;
 }
 async function getSigner(){
   var bp = new ethers.BrowserProvider(window.ethereum);
@@ -3314,35 +3411,43 @@ async function doSwap(){
   if(amountIn <= 0n) return;
   var amountOut = quoteOut(amountIn, r.resIn, r.resOut);
   var minOut = applySlip(amountOut);
-  if(state.mev){
-    /* Anti-MEV: re-check the live pool price right before anything is sent */
-    var freshOut;
-    try{
-      freshOut = await freshQuoteOut(pair, amountIn, state.swap.from === 'LOOP');
-    }catch(e){
-      showErr('swapErr', 'Anti-MEV Protection: the price could not be re-checked before sending (' + txErr(e) + '), so the swap was cancelled and nothing was sent. Try again in a moment.');
-      toast('Anti-MEV: swap cancelled — the price re-check failed, so nothing was sent.');
-      return;
-    }
-    if(freshOut < minOut){
-      showErr('swapErr', 'Anti-MEV Protection: swap cancelled — the price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote (expected ±' + fmtWei(amountOut, 18, 6) + ' ' + state.swap.to + ', now ±' + fmtWei(freshOut, 18, 6) + ' ' + state.swap.to + '). No transaction was sent. Check the new quote and try again if you still want to swap.');
-      toast('Anti-MEV: swap cancelled — the price moved beyond your slippage before sending. Nothing was sent.');
-      return;
-    }
-    amountOut = freshOut;
-    minOut = applySlip(amountOut);
+  var fromLoop = state.swap.from === 'LOOP';
+  /* ALWAYS re-quote fresh right before sending — not only when Anti-MEV is
+     on. These pools are thin (MESIAH holds only ±8 LOOP), so a quote shown
+     seconds ago can already be beyond the slippage: the on-screen quote
+     385,741 MESIAH vs 382,765 on-chain is a ±0.8% move, past a 0.5%
+     slippage, and the old flow sent it anyway and reverted with
+     INSUFFICIENT_OUTPUT_AMOUNT ("missing revert data"). If the fresh
+     output is below the minimum from the shown quote, stop, refresh the
+     quote in the form, and let the user decide — never send a swap that
+     is already known to fail. */
+  var freshOut;
+  try{
+    freshOut = await freshQuoteOut(pair, amountIn, fromLoop);
+  }catch(e){
+    showErr('swapErr', 'The price could not be re-checked before sending (' + txErr(e) + '), so the swap was cancelled and nothing was sent. Try again in a moment.');
+    toast('Swap cancelled — the pre-send price re-check failed, so nothing was sent.');
+    return;
   }
+  if(freshOut < minOut){
+    updateSwap(); /* stored reserves were refreshed by freshQuoteOut — the form now shows the new quote */
+    showErr('swapErr', 'Price moved — re-quote: the pool price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote (expected ±' + fmtWei(amountOut, 18, 6) + ' ' + state.swap.to + ', now ±' + fmtWei(freshOut, 18, 6) + ' ' + state.swap.to + '). No transaction was sent — the quote above has been updated; check it and try again if you still want to swap.');
+    toast('Price moved — re-quote. Nothing was sent; the quote has been updated.');
+    return;
+  }
+  amountOut = freshOut;
+  minOut = applySlip(amountOut);
+  updateSwap(); /* show the fresh quote the swap will actually use */
   var routerAddr = routerOf(pair);
+  var deadline = swapDeadlineTs();
   state.busy = true; updateSwap();
   try{
     var signer = await getSigner();
     var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
     var tx;
-    if(state.swap.from === 'LOOP'){
-      var t1 = toast('Waiting for confirmation in your wallet…', null, true);
-      tx = await router.swapExactETHForTokensSupportingFeeOnTransferTokens(minOut, [CFG.wloop, pair.address], state.account, swapDeadlineTs(), { value: amountIn });
-      t1.remove();
-    } else {
+    if(!fromLoop){
+      /* Sells: secure the router allowance FIRST, so the eth_call
+         simulation below tests the swap itself, not the allowance. */
       var erc = new ethers.Contract(pair.address, ERC20_ABI, signer);
       var allow = await erc.allowance(state.account, routerAddr);
       if(allow < amountIn){
@@ -3352,8 +3457,32 @@ async function doSwap(){
         var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
         await atx.wait(); t0b.remove();
       }
+    }
+    /* Simulate the exact swap with eth_call before sending anything. If it
+       reverts, the real transaction would revert too — show the decoded
+       reason and send nothing. */
+    try{
+      await simulateSwapEthCall(routerAddr, fromLoop, amountIn, minOut, pair, deadline);
+    }catch(simErr){
+      clearToasts();
+      state.busy = false;
+      refreshLive(); updateSwap();
+      if(isInsufficientOutput(revertReason(simErr))){
+        showErr('swapErr', 'Price moved — re-quote: simulation shows the output would fall below your minimum received (' + revertReason(simErr) + '). No transaction was sent — the quote has been refreshed; check it and try again.');
+        toast('Price moved — re-quote. Simulation stopped a swap that would have failed; nothing was sent.');
+      } else {
+        showErr('swapErr', 'Swap simulation failed — nothing was sent. The router said: ' + txErr(simErr));
+        toast('Swap simulation failed — nothing was sent.');
+      }
+      return;
+    }
+    if(fromLoop){
+      var t1 = toast('Waiting for confirmation in your wallet…', null, true);
+      tx = await router.swapExactETHForTokensSupportingFeeOnTransferTokens(minOut, [CFG.wloop, pair.address], state.account, deadline, { value: amountIn });
+      t1.remove();
+    } else {
       var t2 = toast('Waiting for swap confirmation in your wallet…', null, true);
-      tx = await router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn, minOut, [pair.address, CFG.wloop], state.account, swapDeadlineTs());
+      tx = await router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn, minOut, [pair.address, CFG.wloop], state.account, deadline);
       t2.remove();
     }
     var tw = toast('Swap sent — waiting for confirmation…', tx.hash, true);
@@ -3682,28 +3811,29 @@ function syncMevUI(){
 }
 
 /* ================= SHARED SWAP EXECUTION (Limit & DCA) =================
-   Same routers, same quote math and the same Anti-MEV rules as the Swap tab.
+   Same routers, same fee-on-transfer swap functions, same always-on fresh
+   re-quote and eth_call simulation as the Swap tab.
    The caller manages order/plan state; this only sends one swap. */
 async function executeSwap(spec){
   var pair = spec.pair;
   var fromLoop = spec.fromSym === 'LOOP';
   var amountOut = quoteOut(spec.amountIn, fromLoop ? pair.resLoopWei : pair.resTokenWei, fromLoop ? pair.resTokenWei : pair.resLoopWei);
   if(amountOut <= 0n) throw new Error('Amount too small — the swap output is below pool precision.');
-  if(state.mev){
-    var freshOut = await freshQuoteOut(pair, spec.amountIn, fromLoop);
-    if(freshOut < applySlip(amountOut)) throw new Error('Anti-MEV: the price moved beyond your slippage since the quote, so the swap was cancelled and nothing was sent.');
-    amountOut = freshOut;
-  }
+  /* Always re-quote fresh right before sending (not only with Anti-MEV on),
+     and simulate with eth_call before sending — the same rules as the Swap
+     tab, so Limit/DCA fills cannot die with "missing revert data" either. */
+  var freshOut = await freshQuoteOut(pair, spec.amountIn, fromLoop);
+  if(freshOut < applySlip(amountOut)) throw new Error('Price moved — re-quote: the price moved beyond your slippage since the quote, so the swap was cancelled and nothing was sent.');
+  amountOut = freshOut;
   var minOut = applySlip(amountOut);
   var routerAddr = routerOf(pair);
+  var deadline = swapDeadlineTs();
   var signer = await getSigner();
   var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
   var tx;
   state.busy = true; updateSwap();
   try{
-    if(fromLoop){
-      tx = await router.swapExactETHForTokensSupportingFeeOnTransferTokens(minOut, [CFG.wloop, pair.address], state.account, swapDeadlineTs(), { value: spec.amountIn });
-    } else {
+    if(!fromLoop){
       var erc = new ethers.Contract(pair.address, ERC20_ABI, signer);
       var allow = await erc.allowance(state.account, routerAddr);
       if(allow < spec.amountIn){
@@ -3713,7 +3843,17 @@ async function executeSwap(spec){
         var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
         await atx.wait(); t0b.remove();
       }
-      tx = await router.swapExactTokensForETHSupportingFeeOnTransferTokens(spec.amountIn, minOut, [pair.address, CFG.wloop], state.account, swapDeadlineTs());
+    }
+    try{
+      await simulateSwapEthCall(routerAddr, fromLoop, spec.amountIn, minOut, pair, deadline);
+    }catch(simErr){
+      if(isInsufficientOutput(revertReason(simErr))) throw new Error('Price moved — re-quote: simulation shows the output would fall below the minimum received (' + revertReason(simErr) + '), so nothing was sent.');
+      throw new Error('Swap simulation failed — nothing was sent. The router said: ' + txErr(simErr));
+    }
+    if(fromLoop){
+      tx = await router.swapExactETHForTokensSupportingFeeOnTransferTokens(minOut, [CFG.wloop, pair.address], state.account, deadline, { value: spec.amountIn });
+    } else {
+      tx = await router.swapExactTokensForETHSupportingFeeOnTransferTokens(spec.amountIn, minOut, [pair.address, CFG.wloop], state.account, deadline);
     }
     await tx.wait();
   } finally {
@@ -4104,8 +4244,8 @@ el('mevToggle').addEventListener('change', function(){
   state.mev = el('mevToggle').checked;
   syncMevUI();
   toast(state.mev
-    ? 'Anti-MEV Protection is ON — slippage capped at 0.5%, swaps blocked above 5% price impact, 2-minute swap deadline, price re-checked before sending.'
-    : 'Anti-MEV Protection is OFF — your manual slippage and deadline settings apply again.');
+    ? 'Anti-MEV Protection is ON — slippage capped at 0.5%, swaps blocked above 5% price impact, 2-minute swap deadline. Swaps are always re-quoted and simulated before sending.'
+    : 'Anti-MEV Protection is OFF — your manual slippage and deadline settings apply again. Swaps are still re-quoted fresh and simulated before sending.');
 });
 /* Limit */
 el('limitTokenBtn').addEventListener('click', function(){ openTokenModal('limit'); });
