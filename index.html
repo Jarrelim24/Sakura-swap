@@ -857,6 +857,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Minimum received</span><strong id="dMinOut"></strong></div>
           <div class="drow" id="dImpactRow"><span>Price impact</span><strong id="dImpact"></strong></div>
           <div class="drow"><span>Pool fee</span><strong>0.3%</strong></div>
+          <div class="drow"><span>Fee split</span><strong id="dFeeSplit"></strong></div>
           <div class="drow"><span>Estimated fee value</span><strong id="dFeeUsd"></strong></div>
           <div class="drow"><span>Slippage</span><strong id="dSlip"></strong></div>
           <div class="drow"><span>Anti-MEV</span><strong id="dMev"></strong></div>
@@ -866,7 +867,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="thin-warn" id="thinPoolWarn" role="alert">Thin pool — price moves fast, consider smaller amount or higher slippage</div>
         <div class="form-err" id="swapErr"></div>
         <button class="btn btn-primary" id="swapAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note">Swaps run through Sakura's Uniswap V2 router on Loop Network. Some pools use the fee-split router (the 0.3% pool fee is split: 0.20% stays in the pool · 0.05% creator · 0.05% platform); older pools use the standard V2 router with the full 0.3% fee inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown.</p>
+        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim. Fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown.</p>
       </div>
 
       <!-- LIMIT MODE -->
@@ -928,6 +929,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Estimated receive at target</span><strong id="limEstOut"></strong></div>
           <div class="drow"><span>Trigger</span><strong id="limTrigger"></strong></div>
           <div class="drow"><span>Distance from current price</span><strong id="limDist"></strong></div>
+          <div class="drow"><span>Route</span><strong id="limRoute"></strong></div>
         </div>
         <div class="form-err" id="limitErr"></div>
         <button class="btn btn-primary create-order-btn" id="limitAction" type="button">Create order</button>
@@ -998,6 +1000,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="details" id="dcaDetails" style="display:none">
           <div class="drow"><span>Total budget</span><strong id="dcaTotal"></strong></div>
           <div class="drow"><span>Estimated tokens per order (at current price)</span><strong id="dcaEst"></strong></div>
+          <div class="drow"><span>Route</span><strong id="dcaRoute"></strong></div>
           <div class="drow"><span>First order</span><strong>Runs immediately when the plan starts</strong></div>
         </div>
         <div class="form-err" id="dcaErr"></div>
@@ -1046,6 +1049,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Pool price</span><strong id="aPrice"></strong></div>
           <div class="drow"><span>Estimated LP received</span><strong id="aLpOut"></strong></div>
           <div class="drow"><span>Your pool share</span><strong id="aShare"></strong></div>
+          <div class="drow"><span>Router</span><strong id="aRoute"></strong></div>
         </div>
         <div class="form-err" id="addErr"></div>
         <button class="btn btn-primary" id="addAction" type="button" style="margin-top:14px">Connect Wallet</button>
@@ -1075,6 +1079,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="details" id="remDetails" style="display:none">
           <div class="drow"><span>You receive LOOP</span><strong id="rOutLoop"></strong></div>
           <div class="drow"><span>You receive tokens</span><strong id="rOutToken"></strong></div>
+          <div class="drow"><span>Router</span><strong id="rRoute"></strong></div>
         </div>
         <div class="form-err" id="remErr"></div>
         <button class="btn btn-primary" id="remAction" type="button" style="margin-top:14px">Connect Wallet</button>
@@ -1417,6 +1422,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   <div class="wrap">
     <strong style="color:var(--ink)">Contracts — Loop Network (chainId 15551)</strong>
     <div class="foot-grid">
+      <span>Router V2 (corrected): <span class="mono">0x452632De5FbA3d5A430161Edc1A20A66B9B4Ee46</span></span>
       <span>Router V2 (fee-split): <span class="mono">0x6FaCB6E8056386e99AeC60e8D743FFec2E41D7Ec</span></span>
       <span>Router V2 (legacy): <span class="mono">0x97c5990C11f59329a004922f490D7f60f83E0ef9</span></span>
       <span>WLOOP: <span class="mono">0x4Fc02eBf3B31F74ccb1866CAdB98f2ABE9296eE7</span></span>
@@ -1468,8 +1474,10 @@ var CFG = {
   explorer: 'https://explorer.mainnetloop.com',
   router: '0x6FaCB6E8056386e99AeC60e8D743FFec2E41D7Ec',
   routerLegacy: '0x97c5990C11f59329a004922f490D7f60f83E0ef9',
+  routerCorrected: '0x452632De5FbA3d5A430161Edc1A20A66B9B4Ee46',
   factory: '0xbf689c2a98d48D60a183AF12024D3c0Cf1dbf967',
   factoryLegacy: '0x01C2aBe539197Af3a4A70Dab3F6B12c170f95D6D',
+  factoryCorrected: '0xE0C83452969eC0E06F0a62Bb99f3c44A50b10929',
   wloop: '0x4Fc02eBf3B31F74ccb1866CAdB98f2ABE9296eE7',
   locker: '0xE9B13E23cb6574634b298c69e96164E0c02050e2',
   /* Token Locker (ERC20 token locking by holders) — deployed to Loop Network
@@ -1503,9 +1511,13 @@ var TOKENS = {
   SFSL:  { symbol:'SFSL', name:'Sakura Fee Split Loop Test', address:'0x8c2860a8709072598b9D454D6E22c49724915988',
            pool:'0x384FF6551D775b9995A84369b775F0B1BB52b95a', vintage:'current', token0IsWloop:true,
            color:'#5B8DEF', totalSupply:'1000000000',
-           resLoop:'0.006721818897', resToken:'860726319.4122335', lpSupply:'2404.966781314061', lpLocked:'2404.966781314061' }
+           resLoop:'0.006721818897', resToken:'860726319.4122335', lpSupply:'2404.966781314061', lpLocked:'2404.966781314061' },
+  SG75:  { symbol:'SG75', name:'Sakura Graduation 75 Test', address:'0x8a758b0c238428ae4dd83ec0809d6e3d9d74ad92',
+           pool:'0x3D50F9c56Fbde006e38CB32F8DA704836DA26724', vintage:'corrected', token0IsWloop:true,
+           color:'#C05B2E', totalSupply:'1000000000',
+           resLoop:'15.03965131911523', resToken:'999999999', lpSupply:'122488.98864727821', lpLocked:'122488.98864727821' }
 };
-var TOKEN_LIST = ['MESIAH','SAKURA','GANGEL','SGL2','SFSL'];
+var TOKEN_LIST = ['MESIAH','SAKURA','GANGEL','SGL2','SFSL','SG75'];
 
 var state = {
   block: SNAPSHOT_BLOCK, live: false,
@@ -1815,7 +1827,43 @@ function priceTokenPerLoop(t){
   var l = Number(weiToRaw(t.resLoopWei, 18)), k = Number(weiToRaw(t.resTokenWei, 18));
   return l > 0 ? k / l : 0;
 }
-function routerOf(t){ return t.vintage === 'legacy' ? CFG.routerLegacy : CFG.router; }
+/* ---------- Per-vintage routing ----------
+   Every Sakura pair is a direct TOKEN/WLOOP pair (single-hop only), but
+   the Router02 a trade must use depends on which V2 factory created the
+   pair — read from the pair's own factory() on-chain, never assumed.
+   Three vintages exist on Loop:
+   - legacy:    plain V2, the full 0.3% fee stays in the pool, no split.
+   - current:   legacy fee-split — 0.3% total (0.20 pool / 0.05 creator /
+                0.05 platform) + creator tax, skimmed from the swap INPUT
+                (on sells the fees come out in the token being sold).
+   - corrected: Gen-3/4/5 standard — 0.3% total (0.10 stays in pool /
+                0.05 creator / 0.15 platform) + creator tax, and ALL fees
+                settle in native LOOP in both directions (on sells they
+                are skimmed from the LOOP output). Its quotes are
+                direction-aware — sell quotes are already net-of-skim —
+                so corrected pairs are ALWAYS quoted through the router's
+                own getAmountsOut / getAmountsIn, never with the vanilla
+                V2 reserve math below. */
+var VINTAGES = {
+  legacy:    { label:'Legacy',    tag:'Legacy router',    routerLabel:'Router02 (Legacy)',
+               router: CFG.routerLegacy,    factory: CFG.factoryLegacy,
+               feeSplit:'0.30% stays in the pool · no fee split' },
+  current:   { label:'Fee-split', tag:'Fee-split',        routerLabel:'Router02 (Fee-split)',
+               router: CFG.router,          factory: CFG.factory,
+               feeSplit:'0.20% pool · 0.05% creator · 0.05% platform · + creator tax · taken from your input' },
+  corrected: { label:'Corrected', tag:'Corrected router', routerLabel:'Router02 (Corrected)',
+               router: CFG.routerCorrected, factory: CFG.factoryCorrected,
+               feeSplit:'0.10% pool · 0.05% creator · 0.15% platform · + creator tax · settled in LOOP' }
+};
+function vintageOf(t){ return (t && VINTAGES[t.vintage]) || VINTAGES.current; }
+function routerOf(t){ return vintageOf(t).router; }
+function isCorrected(t){ return !!t && t.vintage === 'corrected'; }
+function vintageByFactory(factoryAddr){
+  if(!factoryAddr) return null;
+  var f = String(factoryAddr).toLowerCase();
+  for(var k in VINTAGES){ if(VINTAGES[k].factory.toLowerCase() === f) return k; }
+  return null;
+}
 function pairTokenOf(a, b){ return a === 'LOOP' ? TOKENS[b] : TOKENS[a]; }
 
 /* ---------- Uniswap V2 math (0.3% fee) ---------- */
@@ -1888,7 +1936,7 @@ function renderPairs(){
     return '<article class="pool-card">' +
       '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(TOKENS.LOOP, 38) + '</span>' +
       '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / LOOP</strong><small>' + esc(t.name) + '</small></span>' +
-      '<span class="soon-tag pc-tag">' + (t.vintage === 'legacy' ? 'Legacy router' : 'Fee-split') + '</span></div>' +
+      '<span class="soon-tag pc-tag">' + vintageOf(t).tag + '</span></div>' +
       '<div class="pc-stats">' +
       '<div><small>Price</small><strong>' + fmtTokenUSD(t) + '</strong></div>' +
       '<div><small>Pool Value (±)</small><strong>' + fmtLoopUSD(tvl) + '</strong></div>' +
@@ -2764,19 +2812,48 @@ function updateSwap(){
   var err = '';
   var amountIn = 0n, amountOut = 0n;
   var impact = 0;
+  var quotePending = false;
+  var fromLoop = state.swap.from === 'LOOP';
   if(state.swap.lastEdited === 'from'){
     amountIn = inputWei(fromEl, 18);
     if(amountIn > 0n){
-      amountOut = quoteOut(amountIn, r.resIn, r.resOut);
-      if(amountOut <= 0n) err = 'Amount too small — the swap output is below pool precision.';
-      setInputFromWei(toEl, amountOut, 18);
+      if(isCorrected(r.pair)){
+        /* Corrected pairs quote through their router only — the cached
+           router quote for this exact amount, or a fetch is started and
+           the form shows the fetching state until it lands. */
+        var cq = correctedQuoteOut(r.pair, amountIn, fromLoop);
+        if(cq === null){
+          toEl.value = '';
+          if(r.pair._rqFail === rqKey('o', r.pair, amountIn, fromLoop)) err = 'The corrected router quote could not be fetched — check your connection, then change the amount to retry.';
+          else { quotePending = true; fetchCorrectedQuote(r.pair, amountIn, fromLoop); }
+        }
+        else {
+          amountOut = cq;
+          if(amountOut <= 0n) err = 'Amount too small — the swap output is below pool precision.';
+          setInputFromWei(toEl, amountOut, 18);
+        }
+      } else {
+        amountOut = quoteOut(amountIn, r.resIn, r.resOut);
+        if(amountOut <= 0n) err = 'Amount too small — the swap output is below pool precision.';
+        setInputFromWei(toEl, amountOut, 18);
+      }
     } else if(parseInput(fromEl.value) === ''){ toEl.value = ''; }
   } else {
     amountOut = inputWei(toEl, 18);
     if(amountOut > 0n){
-      var need = quoteIn(amountOut, r.resIn, r.resOut);
-      if(need === null){ err = 'Amount exceeds pool reserves — lower the receive amount.'; amountIn = 0n; }
-      else { amountIn = need; setInputFromWei(fromEl, amountIn, 18); }
+      if(isCorrected(r.pair)){
+        var ci = correctedQuoteIn(r.pair, amountOut, fromLoop);
+        if(ci === null){
+          fromEl.value = ''; amountIn = 0n;
+          if(r.pair._rqiFail === rqKey('i', r.pair, amountOut, fromLoop)) err = 'The corrected router quote could not be fetched — check your connection, then change the amount to retry.';
+          else { quotePending = true; fetchCorrectedQuoteIn(r.pair, amountOut, fromLoop); }
+        }
+        else { amountIn = ci; setInputFromWei(fromEl, amountIn, 18); }
+      } else {
+        var need = quoteIn(amountOut, r.resIn, r.resOut);
+        if(need === null){ err = 'Amount exceeds pool reserves — lower the receive amount.'; amountIn = 0n; }
+        else { amountIn = need; setInputFromWei(fromEl, amountIn, 18); }
+      }
     } else if(parseInput(toEl.value) === ''){ fromEl.value = ''; }
   }
   /* Rate line — USD only, same form as Limit & DCA: "1 TOKEN ≈ $…".
@@ -2810,9 +2887,9 @@ function updateSwap(){
     var feeBaseUsd = state.swap.from === 'LOOP' ? loopWeiToUsd(amountIn) : Number(weiToRaw(amountIn, 18)) * tokenPriceUsd(pair);
     el('dFeeUsd').textContent = fmtUSD(feeBaseUsd * 0.003);
     el('dMev').textContent = state.mev ? 'On · slippage ≤ 0.5% · deadline 2 min' : 'Off';
-    el('dRoute').textContent = 'LOOP → ' + pair.symbol + ' · ' + (pair.vintage === 'legacy' ? 'legacy' : 'fee-split') + ' router';
-    if(state.swap.from === 'LOOP') el('dRoute').textContent = 'LOOP → ' + pair.symbol + ' · ' + (pair.vintage === 'legacy' ? 'legacy' : 'fee-split') + ' router';
-    else el('dRoute').textContent = pair.symbol + ' → LOOP · ' + (pair.vintage === 'legacy' ? 'legacy' : 'fee-split') + ' router';
+    var vnt = vintageOf(pair);
+    el('dRoute').textContent = (state.swap.from === 'LOOP' ? 'LOOP → ' + pair.symbol : pair.symbol + ' → LOOP') + ' · ' + vnt.routerLabel;
+    el('dFeeSplit').textContent = vnt.feeSplit;
     /* Thin pool warning: above 1% price impact the price can move between
        quote and confirmation, so say so plainly (exact wording matters). */
     el('thinPoolWarn').classList.toggle('show', impact > 1);
@@ -2824,6 +2901,7 @@ function updateSwap(){
   if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
   if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
   if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
+  if(quotePending){ btn.disabled = true; btn.textContent = 'Fetching quote…'; return; }
   if(amountIn <= 0n){ btn.disabled = true; btn.textContent = 'Enter an amount'; return; }
   if(err){ btn.disabled = true; btn.textContent = 'Swap'; return; }
   if(state.mev && impact > MEV_MAX_IMPACT){
@@ -2863,6 +2941,7 @@ function updateAdd(source){
     var lpOut = lpFromLoop < lpFromTok ? lpFromLoop : lpFromTok;
     el('aLpOut').textContent = '≈ ' + fmtWei(lpOut, 18, 4) + ' LP';
     el('aShare').textContent = fmtNum(Number(lpOut * 1000000n / (t.lpSupplyWei + lpOut)) / 10000, 4) + '%';
+    el('aRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else det.style.display = 'none';
   var btn = el('addAction');
   if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
@@ -2888,6 +2967,7 @@ function updateRemove(){
     det.style.display = 'block';
     el('rOutLoop').textContent = fmtLoopUSD(lpAmt * t.resLoopWei / t.lpSupplyWei) + ' (' + fmtWei(lpAmt * t.resLoopWei / t.lpSupplyWei, 18, 6) + ' LOOP)';
     el('rOutToken').textContent = fmtWei(lpAmt * t.resTokenWei / t.lpSupplyWei, 18, 4) + ' ' + t.symbol;
+    el('rRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else det.style.display = 'none';
   var btn = el('remAction');
   if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
@@ -2982,26 +3062,35 @@ async function importToken(addr){
     var erc = new ethers.Contract(addr, ERC20_ABI, rp);
     var name = await withTimeout(erc.name(), 20000, 'name');
     var symbol = await withTimeout(erc.symbol(), 20000, 'symbol');
-    var pairAddr = null, vintage = 'current';
-    var fac = new ethers.Contract(CFG.factory, FACTORY_ABI, rp);
-    pairAddr = await withTimeout(fac.getPair(addr, CFG.wloop), 20000, 'getPair');
-    if(!pairAddr || pairAddr === ethers.ZeroAddress){
-      var facL = new ethers.Contract(CFG.factoryLegacy, FACTORY_ABI, rp);
-      pairAddr = await withTimeout(facL.getPair(addr, CFG.wloop), 20000, 'getPair legacy');
-      vintage = 'legacy';
+    var pairAddr = null, vintage = null;
+    /* Search the token/WLOOP pair in ALL THREE Sakura V2 factories
+       (legacy, fee-split, corrected) — a graduated token lives in
+       exactly one of them, and its factory decides its router. */
+    var facKeys = ['current', 'legacy', 'corrected'];
+    for(var fi = 0; fi < facKeys.length && !pairAddr; fi++){
+      var fac = new ethers.Contract(VINTAGES[facKeys[fi]].factory, FACTORY_ABI, rp);
+      var got = await withTimeout(fac.getPair(addr, CFG.wloop), 20000, 'getPair ' + facKeys[fi]);
+      if(got && got !== ethers.ZeroAddress){ pairAddr = got; vintage = facKeys[fi]; }
     }
-    if(!pairAddr || pairAddr === ethers.ZeroAddress){
-      showErr('importErr', 'No WLOOP pool for this token was found in either Sakura V2 factory — the token has not graduated or has no pool.');
+    if(!pairAddr){
+      showErr('importErr', 'No WLOOP pool for this token was found in any of the three Sakura V2 factories — the token has not graduated or has no V2 pool yet.');
       renderTokenList(el('tokenSearch').value); return;
     }
     var pair = new ethers.Contract(pairAddr, PAIR_ABI, rp);
+    /* The pair's own factory() is the authority for the vintage (and
+       therefore the router) — trust it over which getPair answered. */
+    try{
+      var facOnChain = await withTimeout(pair.factory(), 20000, 'pair factory');
+      var vByFac = vintageByFactory(facOnChain);
+      if(vByFac) vintage = vByFac;
+    }catch(e){ /* keep the vintage of the factory whose getPair answered */ }
     var res = await pair.getReserves();
     var t0 = (await pair.token0()).toLowerCase();
     var wloopFirst = t0 === CFG.wloop.toLowerCase();
     var lps = await pair.totalSupply();
     var key = symbol.toUpperCase().slice(0, 12);
     if(TOKENS[key]) key = key + 'X';
-    TOKENS[key] = { symbol: key, name: name, address: addr, decimals: 18, pool: pairAddr, vintage: vintage,
+    TOKENS[key] = { symbol: key, name: name, address: addr, decimals: 18, pool: pairAddr, vintage: vintage, _facChecked: true,
       token0IsWloop: wloopFirst, color: '#5B5B61', totalSupply: null,
       resLoopWei: wloopFirst ? res[0] : res[1], resTokenWei: wloopFirst ? res[1] : res[0],
       lpSupplyWei: lps, lpLockedWei: 0n };
@@ -3030,6 +3119,7 @@ var ERC20_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 value)'
 ];
 var PAIR_ABI = [
+  'function factory() view returns (address)',
   'function getReserves() view returns (uint112,uint112,uint32)',
   'function token0() view returns (address)',
   'function totalSupply() view returns (uint256)',
@@ -3043,6 +3133,7 @@ var PAIR_ABI = [
 var FACTORY_ABI = ['function getPair(address,address) view returns (address)'];
 var ROUTER_ABI = [
   'function getAmountsOut(uint256,address[]) view returns (uint256[])',
+  'function getAmountsIn(uint256,address[]) view returns (uint256[])',
   /* ALL swaps use the SupportingFeeOnTransferTokens variants — never the
      plain swapExactETHForTokens / swapExactTokensForETH. Launchpad tokens
      can carry a creator tax / transfer fee; the plain functions measure the
@@ -3150,7 +3241,15 @@ async function refreshLive(){
         var lps = await withTimeout(pair.totalSupply(), 30000, 'LP supply');
         var locked = 0n;
         try{ locked = await withTimeout(pair.balanceOf(CFG.locker), 30000, 'locker LP'); }catch(e){}
-        return { sym: sym, r: r, lps: lps, locked: locked };
+        /* Once per token, verify the vintage against the pair's own
+           factory() on-chain — the factory decides the router, so a
+           token whose pool was created by a newer factory routes
+           correctly without waiting for a page update. */
+        var fac = null;
+        if(!t._facChecked){
+          try{ fac = await withTimeout(pair.factory(), 30000, 'pair factory'); }catch(e){}
+        }
+        return { sym: sym, r: r, lps: lps, locked: locked, fac: fac };
       })();
     });
     var results = await Promise.all(jobs);
@@ -3163,6 +3262,11 @@ async function refreshLive(){
       t.resTokenWei = t.token0IsWloop ? x.r[1] : x.r[0];
       t.lpSupplyWei = x.lps;
       if(x.locked > 0n || t.lpLockedWei > 0n) t.lpLockedWei = x.locked;
+      if(x.fac){
+        var vk = vintageByFactory(x.fac);
+        if(vk) t.vintage = vk;
+        t._facChecked = true;
+      }
     });
     state.live = true;
     setBadge('live', 'Live · Loop · block ' + bn.toLocaleString('en-US'));
@@ -3433,6 +3537,64 @@ function deadlineTs(){ return Math.floor(Date.now() / 1000) + state.deadline * 6
 /* ---------- Anti-MEV helpers ---------- */
 var MEV_MAX_SLIP = 0.5, MEV_MAX_IMPACT = 5, MEV_DEADLINE_MIN = 2;
 function swapDeadlineTs(){ return Math.floor(Date.now() / 1000) + (state.mev ? MEV_DEADLINE_MIN : state.deadline) * 60; }
+/* ---------- Router-native quotes (required for corrected pairs) ----------
+   On the corrected router the quote depends on direction: sells are
+   quoted net of the LOOP skim, buys are not, so the vanilla reserve math
+   would overstate sell output and produce minimums the swap cannot meet.
+   Corrected pairs are therefore quoted ONLY through the router selected
+   for the pair (getAmountsOut / getAmountsIn). The form itself is
+   synchronous, so router quotes are cached on the token object keyed by
+   the exact amount + direction; a cache miss starts one fetch and the
+   form re-renders when it lands. A failed fetch is remembered per key so
+   the form never loops refetching the same quote. */
+async function routerAmountsOut(pair, amountIn, fromLoop){
+  var router = new ethers.Contract(routerOf(pair), ROUTER_ABI, getReadProvider());
+  var path = fromLoop ? [CFG.wloop, pair.address] : [pair.address, CFG.wloop];
+  var amounts = await withTimeout(router.getAmountsOut(amountIn, path), 20000, 'router quote');
+  return amounts[amounts.length - 1];
+}
+async function routerAmountsIn(pair, amountOut, fromLoop){
+  var router = new ethers.Contract(routerOf(pair), ROUTER_ABI, getReadProvider());
+  var path = fromLoop ? [CFG.wloop, pair.address] : [pair.address, CFG.wloop];
+  var amounts = await withTimeout(router.getAmountsIn(amountOut, path), 20000, 'router quote in');
+  return amounts[0];
+}
+function correctedQuoteOut(t, amountIn, fromLoop){
+  var q = t._rq;
+  return (q && q.amountIn === amountIn && q.fromLoop === fromLoop) ? q.amountOut : null;
+}
+function correctedQuoteIn(t, amountOut, fromLoop){
+  var q = t._rqi;
+  return (q && q.amountOut === amountOut && q.fromLoop === fromLoop) ? q.amountIn : null;
+}
+var rqInFlight = {};
+function rqKey(kind, t, amount, fromLoop){
+  return kind + ':' + t.address.toLowerCase() + ':' + (fromLoop ? 'b' : 's') + ':' + amount.toString();
+}
+function fetchCorrectedQuote(t, amountIn, fromLoop){
+  var key = rqKey('o', t, amountIn, fromLoop);
+  if(rqInFlight[key] || t._rqFail === key) return;
+  rqInFlight[key] = true;
+  routerAmountsOut(t, amountIn, fromLoop).then(function(out){
+    t._rq = { amountIn: amountIn, fromLoop: fromLoop, amountOut: out };
+    if(t._rqFail === key) delete t._rqFail;
+  }).catch(function(){ t._rqFail = key; }).then(function(){
+    delete rqInFlight[key];
+    if(typeof updateSwap === 'function') updateSwap();
+  });
+}
+function fetchCorrectedQuoteIn(t, amountOut, fromLoop){
+  var key = rqKey('i', t, amountOut, fromLoop);
+  if(rqInFlight[key] || t._rqiFail === key) return;
+  rqInFlight[key] = true;
+  routerAmountsIn(t, amountOut, fromLoop).then(function(ain){
+    t._rqi = { amountOut: amountOut, fromLoop: fromLoop, amountIn: ain };
+    if(t._rqiFail === key) delete t._rqiFail;
+  }).catch(function(){ t._rqiFail = key; }).then(function(){
+    delete rqInFlight[key];
+    if(typeof updateSwap === 'function') updateSwap();
+  });
+}
 async function freshQuoteOut(pair, amountIn, fromLoop){
   var rp = getReadProvider();
   var c = new ethers.Contract(pair.pool, PAIR_ABI, rp);
@@ -3443,6 +3605,15 @@ async function freshQuoteOut(pair, amountIn, fromLoop){
      the form after a re-quote is the fresh one, not the stale one. */
   pair.resLoopWei = resLoop;
   pair.resTokenWei = resTok;
+  /* Corrected pairs: the fresh quote comes from the corrected router
+     itself (direction-aware, net-of-skim on sells) — never from the
+     vanilla reserve math. The result also refreshes the form's quote
+     cache, so what the form shows afterwards is this same quote. */
+  if(isCorrected(pair)){
+    var out = await routerAmountsOut(pair, amountIn, fromLoop);
+    pair._rq = { amountIn: amountIn, fromLoop: fromLoop, amountOut: out };
+    return out;
+  }
   return quoteOut(amountIn, fromLoop ? resLoop : resTok, fromLoop ? resTok : resLoop);
 }
 /* ---------- Pre-send swap simulation (eth_call) ----------
@@ -3486,9 +3657,17 @@ async function doSwap(){
   var pair = r.pair;
   var amountIn = inputWei(el('fromInput'), 18);
   if(amountIn <= 0n) return;
-  var amountOut = quoteOut(amountIn, r.resIn, r.resOut);
-  var minOut = applySlip(amountOut);
   var fromLoop = state.swap.from === 'LOOP';
+  var amountOut = quoteOut(amountIn, r.resIn, r.resOut);
+  var hadRouterQuote = false;
+  if(isCorrected(pair)){
+    /* The shown quote for a corrected pair is the corrected router's own
+       quote — use it (never the vanilla reserve math) as the reference
+       the minimum received is computed from. */
+    var cq0 = correctedQuoteOut(pair, amountIn, fromLoop);
+    if(cq0 !== null){ amountOut = cq0; hadRouterQuote = true; }
+  }
+  var minOut = applySlip(amountOut);
   /* Instant feedback: the button switches to "Processing…" in the same
      frame as the tap, while the fresh re-quote and the simulation run. */
   state.busy = true; updateSwap();
@@ -3511,7 +3690,7 @@ async function doSwap(){
     updateSwap();
     return;
   }
-  if(freshOut < minOut){
+  if(freshOut < minOut && (hadRouterQuote || !isCorrected(pair))){
     state.busy = false;
     updateSwap(); /* stored reserves were refreshed by freshQuoteOut — the form now shows the new quote */
     showErr('swapErr', 'Price moved — re-quote: the pool price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote (expected ±' + fmtWei(amountOut, 18, 6) + ' ' + state.swap.to + ', now ±' + fmtWei(freshOut, 18, 6) + ' ' + state.swap.to + '). No transaction was sent — the quote above has been updated; check it and try again if you still want to swap.');
@@ -3900,16 +4079,23 @@ function syncMevUI(){
 async function executeSwap(spec){
   var pair = spec.pair;
   var fromLoop = spec.fromSym === 'LOOP';
-  var amountOut = quoteOut(spec.amountIn, fromLoop ? pair.resLoopWei : pair.resTokenWei, fromLoop ? pair.resTokenWei : pair.resLoopWei);
-  if(amountOut <= 0n) throw new Error('Amount too small — the swap output is below pool precision.');
+  /* Reference quote from the stored reserves, taken BEFORE the fresh
+     re-quote updates them. Corrected pairs get no vanilla reference at
+     all — their only valid quote is the corrected router's own. */
+  var shownOut = isCorrected(pair) ? 0n : quoteOut(spec.amountIn, fromLoop ? pair.resLoopWei : pair.resTokenWei, fromLoop ? pair.resTokenWei : pair.resLoopWei);
   /* Always re-quote fresh right before sending (not only with Anti-MEV on),
      and simulate with eth_call before sending — the same rules as the Swap
-     tab, so Limit/DCA fills cannot die with "missing revert data" either. */
+     tab, so Limit/DCA fills cannot die with "missing revert data" either.
+     For corrected pairs freshQuoteOut returns the router's own
+     direction-aware quote (net-of-skim on sells). */
   var freshOut = await freshQuoteOut(pair, spec.amountIn, fromLoop);
-  if(freshOut < applySlip(amountOut)) throw new Error('Price moved — re-quote: the price moved beyond your slippage since the quote, so the swap was cancelled and nothing was sent.');
-  amountOut = freshOut;
+  if(freshOut <= 0n) throw new Error('Amount too small — the swap output is below pool precision.');
+  if(!isCorrected(pair) && shownOut > 0n && freshOut < applySlip(shownOut)) throw new Error('Price moved — re-quote: the price moved beyond your slippage since the quote, so the swap was cancelled and nothing was sent.');
+  var amountOut = freshOut;
   var minOut = applySlip(amountOut);
-  var routerAddr = routerOf(pair);
+  /* The router is the per-vintage router fixed when the order/plan was
+     created (spec.router); fall back to the pair's current selection. */
+  var routerAddr = spec.router || routerOf(pair);
   var deadline = swapDeadlineTs();
   var signer = await getSigner();
   var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
@@ -3996,6 +4182,7 @@ function updateLimit(){
     el('limTrigger').textContent = (buy ? 'Market cap falls to ' : 'Market cap rises to ') + (tMc === null ? 'the target' : fmtCompactUSD(tMc)) + ' (' + fmtUSDPrice(target * loopUsd) + ' per ' + t.symbol + ')';
     var reached = state.limit.mcPct === 0 || (buy ? state.limit.mcPct < 0 : state.limit.mcPct > 0);
     el('limDist').textContent = (state.limit.mcPct > 0 ? '+' : '') + fmtNum(state.limit.mcPct, state.limit.mcPct % 1 ? 1 : 0) + '%' + (reached && state.limit.mcPct !== 0 ? ' — target already reached, executes on the next price check' : state.limit.mcPct === 0 ? ' — at the current price, executes on the next price check' : '');
+    el('limRoute').textContent = (buy ? 'LOOP → ' + t.symbol : t.symbol + ' → LOOP') + ' · ' + vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else det.style.display = 'none';
   var btn = el('limitAction');
   btn.classList.remove('btn-buy', 'btn-sell');
@@ -4019,6 +4206,7 @@ function onLimitAction(){
   state.orders.unshift({
     id: state.orderSeq, dir: state.limit.dir, sym: state.limit.token, target: target,
     targetMc: limitTargetMc(), mcPct: state.limit.mcPct, exact: !!state.limit.exact,
+    router: routerOf(TOKENS[state.limit.token]), vintage: TOKENS[state.limit.token].vintage,
     amountIn: amt, status: 'open', createdAt: Date.now(), note: '', alerted: false, txHash: null, filledOut: null
   });
   el('limitAmountInput').value = '';
@@ -4046,6 +4234,7 @@ function renderOrders(){
     h += '<div class="ord-meta">Order #' + o.id + ' · ' + fmtWei(o.amountIn, 18, 6) + ' ' + (o.dir === 'buy' ? 'LOOP (' + fmtLoopUSD(o.amountIn) + ')' : esc(o.sym)) +
       '<br/>Target MC ' + (o.targetMc === null || o.targetMc === undefined ? '—' : fmtCompactUSD(o.targetMc)) + ' · ' + fmtUSDPrice(o.target * loopUsd) + ' per ' + esc(o.sym) + (p > 0 ? ' · now ' + fmtUSDPrice(p * loopUsd) : '') +
       '<br/>Created ' + new Date(o.createdAt).toLocaleString('en-US');
+    if(o.router) h += '<br/>Router: ' + (VINTAGES[o.vintage] ? VINTAGES[o.vintage].routerLabel : 'Router02') + ' · ' + shortAddr(o.router);
     if(o.status === 'done' && o.filledOut !== null && o.filledOut !== undefined){
       h += '<br/>Filled: received ±' + fmtWei(o.filledOut, 18, 6) + ' ' + (o.dir === 'buy' ? esc(o.sym) : 'LOOP') +
         (o.txHash ? ' · <a href="' + CFG.explorer + '/tx/' + o.txHash + '" target="_blank" rel="noopener">View tx ↗</a>' : '');
@@ -4141,6 +4330,7 @@ function updateDca(){
     det.style.display = 'block';
     el('dcaTotal').textContent = (fromSym === 'LOOP' ? fmtLoopUSD(total) : fmtUSD(Number(weiToRaw(total, 18)) * tokenPriceUsd(t))) + ' (' + fmtWei(total, 18, 6) + ' ' + fromSym + ' total)';
     el('dcaEst').textContent = p > 0 ? (state.dca.dir === 'buy' ? ('≈ ' + fmtNum(Number(weiToRaw(per, 18)) / p, 4) + ' ' + t.symbol) : ('≈ ' + fmtUSD(Number(weiToRaw(per, 18)) * tokenPriceUsd(t)) + ' worth of LOOP')) + ' (before pool fee & price impact)' : '—';
+    el('dcaRoute').textContent = fromSym + ' → ' + dcaToSym() + ' · ' + vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else { sum.style.display = 'none'; det.style.display = 'none'; }
   showErr('dcaErr', rangeBad ? 'The minimum price is above the maximum price — fix the price range.' : '');
   var btn = el('dcaAction');
@@ -4169,6 +4359,7 @@ function renderDca(){
     var perUsd = plan.fromSym === 'LOOP' ? loopWeiToUsd(plan.amountWei) : Number(weiToRaw(plan.amountWei, 18)) * tokenPriceUsd(TOKENS[plan.sym]);
     var h = '<div class="ord-item"><div class="ord-head"><span>' + (plan.dir === 'buy' ? 'Buy ' : 'Sell ') + esc(plan.sym) + ' · ' + fmtWei(plan.amountWei, 18, 6) + ' ' + esc(plan.fromSym) + ' (' + fmtUSD(perUsd) + ') per order · ' + esc(plan.intervalLabel) + '</span>' + chip + '</div>';
     h += '<div class="ord-meta">Progress: ' + plan.done + ' of ' + plan.total + ' orders · total budget ' + fmtWei(plan.totalWei, 18, 6) + ' ' + esc(plan.fromSym) + ' · started ' + new Date(plan.startedAt).toLocaleString('en-US');
+    if(plan.router) h += '<br/>Router: ' + (VINTAGES[plan.vintage] ? VINTAGES[plan.vintage].routerLabel : 'Router02') + ' · ' + shortAddr(plan.router);
     if(plan.minUsd !== null || plan.maxUsd !== null) h += '<br/>Price range: ' + (plan.minUsd !== null ? fmtUSDPrice(plan.minUsd) : 'no min') + ' – ' + (plan.maxUsd !== null ? fmtUSDPrice(plan.maxUsd) : 'no max') + ' per ' + esc(plan.sym);
     if(plan.status === 'active'){
       if(plan.waitingRange) h += '<br/>Current price is outside the price range — waiting, no order slot used.';
@@ -4214,6 +4405,7 @@ function onDcaAction(){
   if(range.min !== null && range.max !== null && range.min > range.max) return;
   state.dcaPlan = {
     sym: state.dca.token, dir: state.dca.dir, fromSym: dcaFromSym(), toSym: dcaToSym(),
+    router: routerOf(TOKENS[state.dca.token]), vintage: TOKENS[state.dca.token].vintage,
     totalWei: total, amountWei: total / BigInt(count), intervalMs: dcaIntervalMs(),
     intervalLabel: 'Every ' + everyNum + ' ' + unitSel.options[unitSel.selectedIndex].textContent,
     total: count, done: 0, startedAt: Date.now(), nextDue: Date.now(), status: 'active', waiting: false, waitingRange: false,
@@ -4261,7 +4453,7 @@ async function checkLimitOrders(){
       var res = await executeSwap({
         fromSym: o.dir === 'buy' ? 'LOOP' : o.sym,
         toSym: o.dir === 'buy' ? o.sym : 'LOOP',
-        amountIn: o.amountIn, pair: t
+        amountIn: o.amountIn, pair: t, router: o.router
       });
       o.status = 'done'; o.txHash = res.txHash; o.filledOut = res.amountOut; o.filledAt = Date.now();
       toast('Limit order #' + o.id + ' filled: ' + (o.dir === 'buy' ? 'bought' : 'sold') + ' ' + o.sym + ' at your target price.', res.txHash);
@@ -4297,7 +4489,7 @@ async function checkDca(){
   engineBusy = true;
   var slot = plan.done + 1;
   try{
-    var res = await executeSwap({ fromSym: plan.fromSym, toSym: plan.toSym, amountIn: plan.amountWei, pair: t });
+    var res = await executeSwap({ fromSym: plan.fromSym, toSym: plan.toSym, amountIn: plan.amountWei, pair: t, router: plan.router });
     state.dcaHistory.unshift({ n: slot, time: Date.now(), sym: plan.sym, fromSym: plan.fromSym, toSym: plan.toSym, amtWei: plan.amountWei, outAmt: res.amountOut, status: 'Done', txHash: res.txHash, note: '' });
     toast('DCA order ' + slot + ' of ' + plan.total + ' done: ' + fmtWei(plan.amountWei, 18, 6) + ' ' + plan.fromSym + ' → ±' + fmtWei(res.amountOut, 18, 4) + ' ' + plan.toSym + '.', res.txHash);
   }catch(e){
