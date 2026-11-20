@@ -2078,6 +2078,12 @@ function vintageByFactory(factoryAddr){
   for(var k in VINTAGES){ if(VINTAGES[k].factory.toLowerCase() === f) return k; }
   return null;
 }
+/* Stack label for position lists: the whole old stack (Legacy router,
+   fee-split, corrected / Gen-5) is one stack, "Legacy"; Gen-7 is the
+   new stack, "New". The vintage labels (Corrected, Fee-split, …) are
+   kept for pool cards and route lines — positions only need the stack. */
+function stackLabelOf(vintage){ return vintage === 'gen7' ? 'New' : 'Legacy'; }
+function stackTagHtml(vintage){ return '<span class="soon-tag pc-tag">' + (vintage === 'gen7' ? 'New · claimable fees' : 'Legacy') + '</span>'; }
 function pairTokenOf(a, b){ return a === 'LOOP' ? TOKENS[b] : TOKENS[a]; }
 
 /* ---------- Uniswap V2 math (0.3% fee) ---------- */
@@ -2167,38 +2173,50 @@ function renderPairs(){
      that actually exist on-chain; until the first stable-pair graduation
      this list is empty and nothing is shown. Pool value is twice the
      stablecoin reserve, since the stablecoin is $1. */
+  /* One stable-pair card (graduated token / tUSDC or tUSDT). Used for
+     the preferred record and, when the pair exists on both factories,
+     for the legacy half as its own card. */
+  function stablePoolCard(sym, stSym, sp){
+    if(!sp || !sp.pool) return '';
+    var t = TOKENS[sym];
+    if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && stSym.toLowerCase().indexOf(f) < 0) return '';
+    var tvlUsd = Number(weiToRaw(sp.resStableWei, 6)) * 2;
+    var priceUsd = stableTokenPriceUsd(t, sp);
+    var spRec = sp.vintage === 'gen7' ? claimableOf(sp.pool) : null;
+    return '<article class="pool-card">' +
+      '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(TOKENS[stSym], 38) + '</span>' +
+      '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(stSym) + '</strong><small>' + esc(t.name) + '</small></span>' +
+      '<span class="soon-tag pc-tag">' + (sp.vintage === 'gen7' ? 'Gen-7 stable' : 'Gen-5 stable') + '</span></div>' +
+      '<div class="pc-stats">' +
+      '<div><small>Price</small><strong>' + fmtUSDPrice(priceUsd) + '</strong></div>' +
+      '<div><small>Pool Value (±)</small><strong>' + fmtUSD(tvlUsd) + '</strong></div>' +
+      '<div><small>' + esc(stSym) + ' Reserve (value)</small><strong>' + fmtUSD(Number(weiToRaw(sp.resStableWei, 6))) + '</strong></div>' +
+      '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(sp.resTokenWei, 18, 0) + '</strong></div>' +
+      '<div><small>LP Supply</small><strong>' + fmtLp(sp.lpSupplyWei) + '</strong></div>' +
+      '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + sp.pool + '" target="_blank" rel="noopener">' + shortAddr(sp.pool) + ' ↗</a></strong></div>' +
+      (sp.vintage === 'gen7' ? '<div><small>Claimable fees</small><strong>' + (spRec ? fmtWei(spRec.amount || 0n, claimAssetDecimals(spRec.asset), 6) + ' ' + spRec.assetSym : '—') + '</strong></div>' +
+      '<div><small>Fee policy</small><strong>' + (spRec && spRec.lpBps !== null && spRec.lpBps !== undefined ? ('LP ' + bpsTxt(spRec.lpBps) + ' · creator ' + bpsTxt(spRec.creatorBps) + ' · platform ' + bpsTxt(spRec.protocolBps) + (spRec.taxBps ? ' · + ' + bpsTxt(spRec.taxBps) + ' tax' : '')) : '—') + '</strong></div>' : '') +
+      '<div><small>Volume ±24h</small><strong>—</strong></div>' +
+      '<div><small>Trades ±24h</small><strong>—</strong></div>' +
+      '</div>' +
+      '<div class="pc-actions">' +
+      '<button type="button" class="btn btn-primary" data-swap-stable="' + sym + '|' + stSym + '">Swap</button>' +
+      '<button type="button" class="btn btn-ghost" data-add-stable="' + sym + '|' + stSym + '">Add Liquidity</button>' +
+      (spRec && spRec.amount > 0n ? '<button type="button" class="btn btn-ghost" data-claim="' + sp.pool + '">Claim fees</button>' : '') +
+      '</div></article>';
+  }
   var sCards = [];
   TOKEN_LIST.forEach(function(sym){
     var t = TOKENS[sym];
-    if(!t.stablePools) return;
-    STABLE_LIST.forEach(function(stSym){
-      var sp = t.stablePools[stSym];
-      if(!sp || !sp.pool) return;
-      if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && stSym.toLowerCase().indexOf(f) < 0) return;
-      var tvlUsd = Number(weiToRaw(sp.resStableWei, 6)) * 2;
-      var priceUsd = stableTokenPriceUsd(t, sp);
-      var spRec = sp.vintage === 'gen7' ? claimableOf(sp.pool) : null;
-      sCards.push('<article class="pool-card">' +
-        '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(TOKENS[stSym], 38) + '</span>' +
-        '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(stSym) + '</strong><small>' + esc(t.name) + '</small></span>' +
-        '<span class="soon-tag pc-tag">' + (sp.vintage === 'gen7' ? 'Gen-7 stable' : 'Gen-5 stable') + '</span></div>' +
-        '<div class="pc-stats">' +
-        '<div><small>Price</small><strong>' + fmtUSDPrice(priceUsd) + '</strong></div>' +
-        '<div><small>Pool Value (±)</small><strong>' + fmtUSD(tvlUsd) + '</strong></div>' +
-        '<div><small>' + esc(stSym) + ' Reserve (value)</small><strong>' + fmtUSD(Number(weiToRaw(sp.resStableWei, 6))) + '</strong></div>' +
-        '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(sp.resTokenWei, 18, 0) + '</strong></div>' +
-        '<div><small>LP Supply</small><strong>' + fmtLp(sp.lpSupplyWei) + '</strong></div>' +
-        '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + sp.pool + '" target="_blank" rel="noopener">' + shortAddr(sp.pool) + ' ↗</a></strong></div>' +
-        (sp.vintage === 'gen7' ? '<div><small>Claimable fees</small><strong>' + (spRec ? fmtWei(spRec.amount || 0n, claimAssetDecimals(spRec.asset), 6) + ' ' + spRec.assetSym : '—') + '</strong></div>' +
-        '<div><small>Fee policy</small><strong>' + (spRec && spRec.lpBps !== null && spRec.lpBps !== undefined ? ('LP ' + bpsTxt(spRec.lpBps) + ' · creator ' + bpsTxt(spRec.creatorBps) + ' · platform ' + bpsTxt(spRec.protocolBps) + (spRec.taxBps ? ' · + ' + bpsTxt(spRec.taxBps) + ' tax' : '')) : '—') + '</strong></div>' : '') +
-        '<div><small>Volume ±24h</small><strong>—</strong></div>' +
-        '<div><small>Trades ±24h</small><strong>—</strong></div>' +
-        '</div>' +
-        '<div class="pc-actions">' +
-        '<button type="button" class="btn btn-primary" data-swap-stable="' + sym + '|' + stSym + '">Swap</button>' +
-        '<button type="button" class="btn btn-ghost" data-add-stable="' + sym + '|' + stSym + '">Add Liquidity</button>' +
-        (spRec && spRec.amount > 0n ? '<button type="button" class="btn btn-ghost" data-claim="' + sp.pool + '">Claim fees</button>' : '') +
-        '</div></article>');
+    if(t.stablePools) STABLE_LIST.forEach(function(stSym){
+      var c = stablePoolCard(sym, stSym, t.stablePools[stSym]);
+      if(c) sCards.push(c);
+    });
+    /* Legacy half of a dual-factory stable pair: its own card, so the
+       old pool stays visible on the Pools page. */
+    if(t.stablePoolsLegacy) STABLE_LIST.forEach(function(stSym){
+      var c2 = stablePoolCard(sym, stSym, t.stablePoolsLegacy[stSym]);
+      if(c2) sCards.push(c2);
     });
   });
   /* Gen-5 pair cards (xStock / stable, xStock / LOOP, xStock / xStock,
@@ -2416,6 +2434,14 @@ function claimableCellHtml(poolAddr, forPf){
     (amt > 0n ? '<button type="button" class="btn btn-ghost" style="margin-top:6px;padding:4px 10px;font-size:12px" data-claim="' + poolAddr + '">Claim</button>' : '') +
     '</div>';
 }
+/* Position value cell: the headline number is the position VALUE — the
+   LP share of both reserves, in asset symbols. The raw LP count is
+   secondary small text only: for 6-decimal pairs it reads as a
+   meaningless 0.0000005 in 18 decimals and panics holders. */
+function posValueCell(uA, decA, symA, uB, decB, symB, lp){
+  return '<div><small>Your Position</small><strong>' + fmtWei(uA, decA, 6) + ' ' + esc(symA) + ' + ' + fmtWei(uB, decB, 6) + ' ' + esc(symB) + '</strong>' +
+    '<small>' + fmtLp(lp) + ' LP</small></div>';
+}
 function positionsHtml(forPf){
   var addr = forPf ? pfEffAddr() : state.account;
   var LPB = forPf ? pfEffLp() : state.lpBalances;
@@ -2439,16 +2465,16 @@ function positionsHtml(forPf){
     var lp = LPB[t.pool.toLowerCase()];
     if(lp === undefined){ pending = true; return; }
     if(lp === null || lp <= 0n){
-      if(!forPf) pushClaimableOnly(t.pool, avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / LOOP</span>');
+      if(!forPf) pushClaimableOnly(t.pool, avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / LOOP</span>' + stackTagHtml(t.vintage || 'current'));
       return; /* null = read failed / timed out — settled as no position, never pending forever */
     }
     var share = t.lpSupplyWei > 0n ? Number(lp * 1000000n / t.lpSupplyWei) / 10000 : 0;
     var uLoop = t.lpSupplyWei > 0n ? lp * t.resLoopWei / t.lpSupplyWei : 0n;
     var uTok = t.lpSupplyWei > 0n ? lp * t.resTokenWei / t.lpSupplyWei : 0n;
     seenPools[t.pool.toLowerCase()] = true;
-    rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / LOOP</span></div>' +
+    rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / LOOP</span>' + stackTagHtml(t.vintage || 'current') + '</div>' +
       '<div class="pos-grid">' +
-      '<div><small>Your LP</small><strong>' + fmtLp(lp) + '</strong></div>' +
+      posValueCell(uTok, 18, t.symbol, uLoop, 18, 'LOOP', lp) +
       '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
       '<div><small>Underlying Value</small><strong>' + fmtLoopUSD(uLoop) + ' + ' + fmtWei(uTok, 18, 2) + ' ' + esc(t.symbol) + '</strong></div>' +
       claimableCellHtml(t.pool, forPf) +
@@ -2466,18 +2492,43 @@ function positionsHtml(forPf){
       var lp = LPB[sp.pool.toLowerCase()];
       if(lp === undefined){ if(!forPf) pending = true; return; }
       if(lp === null || lp <= 0n){
-        if(sp.vintage === 'gen7' && !forPf) pushClaimableOnly(sp.pool, avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(stSym) + '</span><span class="soon-tag pc-tag">Gen-7 · claimable fees</span>');
+        if(sp.vintage === 'gen7' && !forPf) pushClaimableOnly(sp.pool, avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(stSym) + '</span>' + stackTagHtml('gen7'));
         return;
       }
       var share = sp.lpSupplyWei > 0n ? Number(lp * 1000000n / sp.lpSupplyWei) / 10000 : 0;
       var uSt = sp.lpSupplyWei > 0n ? lp * sp.resStableWei / sp.lpSupplyWei : 0n;
       var uTok = sp.lpSupplyWei > 0n ? lp * sp.resTokenWei / sp.lpSupplyWei : 0n;
       seenPools[sp.pool.toLowerCase()] = true;
-      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(stSym) + '</span>' + (sp.vintage === 'gen7' ? '<span class="soon-tag pc-tag">Gen-7 · claimable fees</span>' : '') + '</div>' +
+      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(stSym) + '</span>' + stackTagHtml(sp.vintage || 'corrected') + '</div>' +
         '<div class="pos-grid">' +
-        '<div><small>Your LP</small><strong>' + fmtLp(lp) + '</strong></div>' +
+        posValueCell(uTok, t.decimals, t.symbol, uSt, 6, stSym, lp) +
         '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
-        '<div><small>Underlying Value</small><strong>' + fmtUSD(Number(weiToRaw(uSt, 6))) + ' + ' + fmtWei(uTok, 18, 2) + ' ' + esc(t.symbol) + '</strong></div>' +
+        '<div><small>Underlying Value</small><strong>' + fmtUSD(Number(weiToRaw(uSt, 6))) + ' + ' + fmtWei(uTok, t.decimals, 2) + ' ' + esc(t.symbol) + '</strong></div>' +
+        claimableCellHtml(sp.pool, forPf) +
+        '</div></div>');
+    });
+  });
+  /* Legacy half of dual-factory stable pairs: the main record above
+     points at the Gen-7 pool, so without this loop the old position
+     would vanish from the list. */
+  TOKEN_LIST.forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.stablePoolsLegacy) return;
+    STABLE_LIST.forEach(function(stSym){
+      var sp = t.stablePoolsLegacy[stSym];
+      if(!sp || !sp.pool) return;
+      var lp = LPB[sp.pool.toLowerCase()];
+      if(lp === undefined){ if(!forPf) pending = true; return; }
+      if(lp === null || lp <= 0n) return;
+      var share = sp.lpSupplyWei > 0n ? Number(lp * 1000000n / sp.lpSupplyWei) / 10000 : 0;
+      var uSt = sp.lpSupplyWei > 0n ? lp * sp.resStableWei / sp.lpSupplyWei : 0n;
+      var uTok = sp.lpSupplyWei > 0n ? lp * sp.resTokenWei / sp.lpSupplyWei : 0n;
+      seenPools[sp.pool.toLowerCase()] = true;
+      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(stSym) + '</span>' + stackTagHtml('corrected') + '</div>' +
+        '<div class="pos-grid">' +
+        posValueCell(uTok, t.decimals, t.symbol, uSt, 6, stSym, lp) +
+        '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
+        '<div><small>Underlying Value</small><strong>' + fmtUSD(Number(weiToRaw(uSt, 6))) + ' + ' + fmtWei(uTok, t.decimals, 2) + ' ' + esc(t.symbol) + '</strong></div>' +
         claimableCellHtml(sp.pool, forPf) +
         '</div></div>');
     });
@@ -2505,9 +2556,9 @@ function positionsHtml(forPf){
       var usdA = usdPriceOf(sym), usdB = usdPriceOf(oSym);
       var valTxt = (usdA !== null ? fmtUSD(Number(weiToRaw(uA, t.decimals)) * usdA) : fmtWei(uA, t.decimals, 2) + ' ' + esc(t.symbol)) + ' + ' +
                    (usdB !== null ? fmtUSD(Number(weiToRaw(uB, o.decimals)) * usdB) : fmtWei(uB, o.decimals, 2) + ' ' + esc(o.symbol));
-      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span></div>' +
+      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span>' + stackTagHtml('corrected') + '</div>' +
         '<div class="pos-grid">' +
-        '<div><small>Your LP</small><strong>' + fmtLp(lp) + '</strong></div>' +
+        posValueCell(uA, t.decimals, sym, uB, o.decimals, oSym, lp) +
         '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
         '<div><small>Underlying Value</small><strong>' + valTxt + '</strong></div>' +
         '</div></div>');
@@ -2531,7 +2582,7 @@ function positionsHtml(forPf){
       var lp = LPB[pk];
       if(lp === undefined){ if(!forPf) pending = true; return; }
       if(lp === null || lp <= 0n){
-        if(!forPf) pushClaimableOnly(gp.pool, avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span><span class="soon-tag pc-tag">Gen-7 · claimable fees</span>');
+        if(!forPf) pushClaimableOnly(gp.pool, avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span>' + stackTagHtml('gen7'));
         return;
       }
       var o = TOKENS[oSym];
@@ -2541,9 +2592,9 @@ function positionsHtml(forPf){
       var usdA = usdPriceOf(sym), usdB = usdPriceOf(oSym);
       var valTxt = (usdA !== null ? fmtUSD(Number(weiToRaw(uA, t.decimals)) * usdA) : fmtWei(uA, t.decimals, 2) + ' ' + esc(t.symbol)) + ' + ' +
                    (usdB !== null ? fmtUSD(Number(weiToRaw(uB, o.decimals)) * usdB) : fmtWei(uB, o.decimals, 2) + ' ' + esc(o.symbol));
-      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span><span class="soon-tag pc-tag">Gen-7 · claimable fees</span></div>' +
+      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span>' + stackTagHtml('gen7') + '</div>' +
         '<div class="pos-grid">' +
-        '<div><small>Your LP</small><strong>' + fmtLp(lp) + '</strong></div>' +
+        posValueCell(uA, t.decimals, sym, uB, o.decimals, oSym, lp) +
         '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
         '<div><small>Underlying Value</small><strong>' + valTxt + '</strong></div>' +
         claimableCellHtml(gp.pool, forPf) +
@@ -2577,7 +2628,7 @@ function collectUserPositions(){
   var addr = state.account;
   if(!addr) return out;
   var LPB = state.lpBalances;
-  function push(pool, tokenSym, quoteSym, vintage, lpSupplyWei){
+  function push(pool, tokenSym, quoteSym, vintage, lpSupplyWei, resAWei, resBWei){
     if(!pool) return;
     var pk = pool.toLowerCase();
     for(var i = 0; i < out.length; i++) if(out[i].pool.toLowerCase() === pk) return; /* one row per pool */
@@ -2586,16 +2637,30 @@ function collectUserPositions(){
     var rec = claimableOf(pool);
     var claimAmt = rec ? (rec.amount || 0n) : 0n;
     if((lp === null || lp <= 0n) && claimAmt <= 0n) return;
+    var lpN = (lp === null ? 0n : lp);
     out.push({ pool: pool, tokenSym: tokenSym, quoteSym: quoteSym, vintage: vintage,
-      lp: (lp === null ? 0n : lp), share: (lpSupplyWei > 0n && lp > 0n) ? Number(lp * 1000000n / lpSupplyWei) / 10000 : 0,
+      lp: lpN, share: (lpSupplyWei > 0n && lpN > 0n) ? Number(lpN * 1000000n / lpSupplyWei) / 10000 : 0,
+      /* Position value: the LP share of both reserves (raw wei). The
+         Remove list shows this as the headline number — the raw LP
+         count is secondary text (for 6-decimal pairs it reads as a
+         meaningless 0.0000005 in 18 decimals). */
+      valA: (lpSupplyWei > 0n && lpN > 0n) ? lpN * (resAWei || 0n) / lpSupplyWei : 0n,
+      valB: (lpSupplyWei > 0n && lpN > 0n) ? lpN * (resBWei || 0n) / lpSupplyWei : 0n,
       claimable: rec });
   }
   TOKEN_LIST.forEach(function(sym){
     var t = TOKENS[sym];
-    push(t.pool, sym, 'LOOP', t.vintage || 'current', t.lpSupplyWei);
+    push(t.pool, sym, 'LOOP', t.vintage || 'current', t.lpSupplyWei, t.resTokenWei, t.resLoopWei);
     if(t.stablePools) STABLE_LIST.forEach(function(stSym){
       var sp = t.stablePools[stSym];
-      if(sp && sp.pool) push(sp.pool, sym, stSym, sp.vintage || 'corrected', sp.lpSupplyWei);
+      if(sp && sp.pool) push(sp.pool, sym, stSym, sp.vintage || 'corrected', sp.lpSupplyWei, sp.resTokenWei, sp.resStableWei);
+    });
+    /* Legacy half of a dual-factory stable pair: the main record points
+       at the Gen-7 pool, so without this loop the old position would
+       vanish from the list. */
+    if(t.stablePoolsLegacy) STABLE_LIST.forEach(function(stSym){
+      var lsp = t.stablePoolsLegacy[stSym];
+      if(lsp && lsp.pool) push(lsp.pool, sym, stSym, lsp.vintage || 'corrected', lsp.lpSupplyWei, lsp.resTokenWei, lsp.resStableWei);
     });
   });
   Object.keys(TOKENS).forEach(function(sym){
@@ -2606,7 +2671,7 @@ function collectUserPositions(){
         var gp = t[key][oSym];
         if(!gp || !gp.pool) return;
         if(isGraduated(sym) && isStable(oSym)) return; /* already a stable row */
-        push(gp.pool, sym, oSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei);
+        push(gp.pool, sym, oSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei, gp.resTokenWei, gp.resOtherWei);
       });
     });
   });
@@ -2626,10 +2691,15 @@ function renderRemovePositions(){
     var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
     var claimTxt = '';
     if(p.claimable && p.claimable.amount > 0n) claimTxt = ' · claimable ' + fmtWei(p.claimable.amount, claimAssetDecimals(p.claimable.asset), 6) + ' ' + p.claimable.assetSym;
+    /* Headline is the position VALUE (LP share of both reserves, in
+       asset symbols) — the raw LP count is secondary text only. For a
+       6-decimal pair the raw count (e.g. 500,009,999,000) reads as a
+       meaningless 0.0000005 in 18 decimals and panics holders. */
+    var decA = t ? t.decimals : 18, decB = q ? q.decimals : 18;
     return '<div class="rem-pos' + (state.remPool && state.remPool.toLowerCase() === p.pool.toLowerCase() ? ' sel' : '') + '" data-rem-pool="' + p.pool + '">' +
       '<span style="display:flex">' + avatarHtml(t, 30) + avatarHtml(q, 30) + '</span>' +
-      '<span class="rp-meta"><strong>' + esc(p.tokenSym) + ' / ' + esc(p.quoteSym) + '</strong><small>' + esc(VINTAGES[p.vintage].label) + claimTxt + '</small></span>' +
-      '<span class="rp-lp">' + fmtLp(p.lp) + ' LP<small>' + fmtNum(p.share, 2) + '% of pool</small></span>' +
+      '<span class="rp-meta"><strong>' + esc(p.tokenSym) + ' / ' + esc(p.quoteSym) + '</strong><small>' + stackLabelOf(p.vintage) + claimTxt + '</small></span>' +
+      '<span class="rp-lp">' + fmtWei(p.valA, decA, 6) + ' ' + esc(p.tokenSym) + ' + ' + fmtWei(p.valB, decB, 6) + ' ' + esc(p.quoteSym) + '<small>' + fmtLp(p.lp) + ' LP · ' + fmtNum(p.share, 2) + '% of pool</small></span>' +
       '</div>';
   }).join('');
   Array.prototype.forEach.call(wrap.querySelectorAll('.rem-pos'), function(row){
@@ -3875,17 +3945,38 @@ function updateAdd(source){
     btn.disabled = false; btn.textContent = 'Add Liquidity';
     return;
   }
-  /* --- Stable quote (tUSDC / tUSDT): the pair's own router (Gen-5 corrected / Gen-7 new) --- */
+  /* --- Stable quote (tUSDC / tUSDT): Add targets the Gen-7 pair — a
+     pair that exists only on the old factory is never topped up, Add
+     creates a NEW Gen-7 pair instead (see addStableRec). --- */
   var stAmt = inputWei(loopEl, 6), tokAmt2 = inputWei(tokEl, 18);
-  var sp = t.stablePools ? t.stablePools[state.addQuote] : null;
+  var sp = addStableRec(t, state.addQuote);
+  /* Ratio reference (display only): when Add creates a NEW Gen-7 pair the
+     Add record has no pool of its own — suggest the legacy pair's ratio
+     (the shared record) so MAX still fills the other side. The tx still
+     creates the Gen-7 pair; this never changes the Add target. */
+  var spRatio = null;
+  if((!sp || !sp.pool) && t.stablePools){
+    var shr = t.stablePools[state.addQuote];
+    if(shr && shr.pool) spRatio = shr;
+  }
   if(!sp){
-    ensureStablePair(t, state.addQuote).then(function(){ if(typeof updateAdd === 'function') updateAdd(); });
-  } else if(sp.pool){
+    ensureStablePairForAdd(t, state.addQuote).then(function(){ if(typeof updateAdd === 'function') updateAdd(); });
+  }
+  if(sp && sp.pool){
     if(source === 'loop' && stAmt > 0n && sp.resStableWei > 0n){
       tokAmt2 = stAmt * sp.resTokenWei / sp.resStableWei;
       setInputFromWei(tokEl, tokAmt2, 18);
     } else if(source === 'token' && tokAmt2 > 0n && sp.resTokenWei > 0n){
       stAmt = tokAmt2 * sp.resStableWei / sp.resTokenWei;
+      setInputFromWei(loopEl, stAmt, 6);
+    } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; tokAmt2 = 0n; }
+    else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; stAmt = 0n; }
+  } else if(spRatio){
+    if(source === 'loop' && stAmt > 0n && spRatio.resStableWei > 0n){
+      tokAmt2 = stAmt * spRatio.resTokenWei / spRatio.resStableWei;
+      setInputFromWei(tokEl, tokAmt2, 18);
+    } else if(source === 'token' && tokAmt2 > 0n && spRatio.resTokenWei > 0n){
+      stAmt = tokAmt2 * spRatio.resStableWei / spRatio.resTokenWei;
       setInputFromWei(loopEl, stAmt, 6);
     } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; tokAmt2 = 0n; }
     else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; stAmt = 0n; }
@@ -3928,29 +4019,50 @@ function updateAdd(source){
 /* ================= ADD LIQUIDITY (GENERIC GEN-5 / GEN-7 PAIRS) =================
    Any pair not covered by the classic branches: xStock/tUSDC, xStock/
    tUSDT, xStock/LOOP, xStock/xStock, tUSDC/tUSDT, graduated/xStock.
-   All through the pair's own factory/router: an existing pair keeps its
-   vintage; a pair that does not exist yet is created on the NEW (Gen-7)
-   factory. For a pair that does not exist yet the user sets the initial
-   price — when both sides have a TestAssetPeg oracle price, the
-   oracle-implied ratio is shown and a warning appears if the user's
-   ratio is more than 2% away from it. */
+   All new pools are created on the NEW (Gen-7) factory: an existing
+   Gen-7 pair keeps its vintage, but a pair that exists only on the old
+   factory is NOT topped up — Add creates a NEW Gen-7 pair instead
+   (the legacy pool stays untouched and removable). For a pair that
+   does not exist yet the user sets the initial price — when both sides
+   have a TestAssetPeg oracle price, the oracle-implied ratio is shown
+   and a warning appears if the user's ratio is more than 2% away
+   from it. */
 function updateAddGen5(source){
   var t = TOKENS[state.addToken];
   var q = TOKENS[state.addQuote];
   var decA = t.decimals, decB = q.decimals;
   var loopEl = el('addLoopInput'), tokEl = el('addTokenInput');
   var amtA = inputWei(tokEl, decA), amtB = inputWei(loopEl, decB);
-  var gpRec = genPairOf(t, state.addQuote);
+  var gpRec = genPairOfForAdd(t, state.addQuote); /* Add-mode: a legacy-only pair is NOT topped up — Add creates a NEW Gen-7 pair */
   var gp = gpRec ? gpRec.gp : null;
   var gpVintage = gpRec ? gpRec.vintage : 'gen7';
+  /* Ratio reference (display only): when Add creates a NEW Gen-7 pair the
+     Add record has no pool of its own — suggest the legacy pair's ratio
+     (swap-mode resolver, Gen-7 first) so MAX still fills the other side.
+     The tx still creates the Gen-7 pair; this never changes the Add target. */
+  var ratioGp = null;
+  if(!gp || !gp.pool){
+    var rRec = genPairOf(t, state.addQuote);
+    if(rRec && rRec.gp && rRec.gp.pool) ratioGp = rRec.gp;
+  }
   if(!gp){
-    ensureGenPair(t, state.addQuote).then(function(){ if(typeof updateAdd === 'function') updateAdd(); });
-  } else if(gp.pool){
+    ensureGenPairForAdd(t, state.addQuote).then(function(){ if(typeof updateAdd === 'function') updateAdd(); });
+  }
+  if(gp && gp.pool){
     if(source === 'loop' && amtB > 0n && gp.resOtherWei > 0n){
       amtA = amtB * gp.resTokenWei / gp.resOtherWei;
       setInputFromWei(tokEl, amtA, decA);
     } else if(source === 'token' && amtA > 0n && gp.resTokenWei > 0n){
       amtB = amtA * gp.resOtherWei / gp.resTokenWei;
+      setInputFromWei(loopEl, amtB, decB);
+    } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; amtA = 0n; }
+    else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; amtB = 0n; }
+  } else if(ratioGp){
+    if(source === 'loop' && amtB > 0n && ratioGp.resOtherWei > 0n){
+      amtA = amtB * ratioGp.resTokenWei / ratioGp.resOtherWei;
+      setInputFromWei(tokEl, amtA, decA);
+    } else if(source === 'token' && amtA > 0n && ratioGp.resTokenWei > 0n){
+      amtB = amtA * ratioGp.resOtherWei / ratioGp.resTokenWei;
       setInputFromWei(loopEl, amtB, decB);
     } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; amtA = 0n; }
     else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; amtB = 0n; }
@@ -4049,8 +4161,16 @@ function updateRemove(){
     btn.disabled = false; btn.textContent = 'Remove Liquidity';
     return;
   }
-  /* --- Stable quote (tUSDC / tUSDT): burn LP of the Gen-5 stable pair --- */
-  var sp = t.stablePools ? t.stablePools[state.remQuote] : null;
+  /* --- Stable quote (tUSDC / tUSDT): burn LP of the pair's own pool.
+     A position picked from the "Your LP Positions" list pins its exact
+     pool (legacy or new); the manual picker uses the preferred record
+     (Gen-7 first, Gen-5 when only the legacy pair exists). --- */
+  var sp = null;
+  if(state.remPool){
+    var recRem = genPairByPool(state.remPool);
+    if(recRem) sp = recRem.gp;
+  }
+  if(!sp) sp = t.stablePools ? t.stablePools[state.remQuote] : null;
   var lpAmt2 = inputWei(el('remLpInput'), 18);
   var det2 = el('remDetails');
   if(!sp){
@@ -4538,6 +4658,20 @@ async function loadConnectedBalances(onlyKey, force){
       var pKey = gp.pool.toLowerCase();
       if(want(pKey) && (onlyKey || force || state.lpBalances[pKey] === undefined)){
         settle(pKey, true, function(p){ return new ethers.Contract(gp.pool, PAIR_ABI, p).balanceOf(addr); }, sym + '/' + oSym + ' LP balance');
+      }
+    });
+  });
+  /* Legacy-half stable-pair LP balances (dual-factory stable pairs):
+     without these, the old position never appears in the lists. */
+  TOKEN_LIST.forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.stablePoolsLegacy) return;
+    STABLE_LIST.forEach(function(stSym){
+      var sp = t.stablePoolsLegacy[stSym];
+      if(!sp || !sp.pool) return;
+      var pKey = sp.pool.toLowerCase();
+      if(want(pKey) && (onlyKey || force || state.lpBalances[pKey] === undefined)){
+        settle(pKey, true, function(p){ return new ethers.Contract(sp.pool, PAIR_ABI, p).balanceOf(addr); }, sym + '/' + stSym + ' Legacy LP balance');
       }
     });
   });
@@ -5198,6 +5332,30 @@ function bigSqrt(n){
    Gen-7 factory: every NEW stable pair is created on Gen-7, never on the
    legacy stack. The record carries its vintage so quotes and removes use
    the matching router. */
+/* Read one stable-pair record from ONE factory (no caching here).
+   Returns the record, or null when the factory has no pair. */
+async function readStablePair(t, stableSym, factoryAddr, vintage){
+  var st = TOKENS[stableSym];
+  var fac = new ethers.Contract(factoryAddr, FACTORY_ABI, getReadProvider());
+  var pairAddr = await withTimeout(fac.getPair(t.address, st.address), 20000, 'stable getPair');
+  if(!pairAddr || pairAddr === ethers.ZeroAddress) return null;
+  var pair = new ethers.Contract(pairAddr, PAIR_ABI, getReadProvider());
+  var res = await withTimeout(pair.getReserves(), 20000, 'stable reserves');
+  var t0 = (await withTimeout(pair.token0(), 20000, 'stable token0')).toLowerCase();
+  var lps = await withTimeout(pair.totalSupply(), 20000, 'stable lp supply');
+  var tokFirst = t0 === t.address.toLowerCase();
+  return { pool: pairAddr, stable: stableSym, tokenAddr: t.address, stableAddr: st.address, vintage: vintage,
+    resTokenWei: tokFirst ? res[0] : res[1],
+    resStableWei: tokFirst ? res[1] : res[0],
+    lpSupplyWei: lps, checkedAt: Date.now() };
+}
+/* Stable-pair resolution — BOTH factories are read for every known
+   (graduated token, stablecoin) combination. The main record in
+   t.stablePools is the pair swaps use: Gen-7 first, Gen-5 only when
+   there is no Gen-7 pair, "new on Gen-7" when neither has one. When
+   the pair exists on BOTH factories, the legacy record is kept in
+   t.stablePoolsLegacy so the old position stays detectable and
+   removable — the main record alone would hide it. */
 async function ensureStablePair(t, stableSym){
   if(!t.stablePools) t.stablePools = {};
   var sp = t.stablePools[stableSym];
@@ -5206,34 +5364,47 @@ async function ensureStablePair(t, stableSym){
   if(!t._spLoading) t._spLoading = {};
   if(t._spLoading[stableSym]) return t._spLoading[stableSym];
   var p = (async function(){
-    var st = TOKENS[stableSym];
-    var fac = new ethers.Contract(CFG.factoryCorrected, FACTORY_ABI, getReadProvider());
-    var pairAddr = await withTimeout(fac.getPair(t.address, st.address), 20000, 'stable getPair');
-    var vintage = 'corrected';
-    if(!pairAddr || pairAddr === ethers.ZeroAddress){
-      var fac7 = new ethers.Contract(CFG.factoryNew, FACTORY_ABI, getReadProvider());
-      pairAddr = await withTimeout(fac7.getPair(t.address, st.address), 20000, 'stable gen7 getPair');
-      vintage = 'gen7';
-    }
+    var g7 = null, g5 = null, g7Err = false, g5Err = false;
+    try{ g7 = await readStablePair(t, stableSym, CFG.factoryNew, 'gen7'); }catch(e){ g7Err = true; }
+    try{ g5 = await readStablePair(t, stableSym, CFG.factoryCorrected, 'corrected'); }catch(e){ g5Err = true; }
+    if(g7Err && g5Err) throw new Error('stable getPair failed on both factories');
     var out;
-    if(!pairAddr || pairAddr === ethers.ZeroAddress){
-      out = { pool: null, stable: stableSym, tokenAddr: t.address, stableAddr: st.address, vintage: vintage, checkedAt: Date.now() };
+    if(g7){
+      out = g7;
+      if(g5){ if(!t.stablePoolsLegacy) t.stablePoolsLegacy = {}; t.stablePoolsLegacy[stableSym] = g5; }
+      else if(t.stablePoolsLegacy) delete t.stablePoolsLegacy[stableSym];
+    } else if(g5){
+      out = g5;
+      if(t.stablePoolsLegacy) delete t.stablePoolsLegacy[stableSym];
     } else {
-      var pair = new ethers.Contract(pairAddr, PAIR_ABI, getReadProvider());
-      var res = await withTimeout(pair.getReserves(), 20000, 'stable reserves');
-      var t0 = (await withTimeout(pair.token0(), 20000, 'stable token0')).toLowerCase();
-      var lps = await withTimeout(pair.totalSupply(), 20000, 'stable lp supply');
-      var tokFirst = t0 === t.address.toLowerCase();
-      out = { pool: pairAddr, stable: stableSym, tokenAddr: t.address, stableAddr: st.address, vintage: vintage,
-        resTokenWei: tokFirst ? res[0] : res[1],
-        resStableWei: tokFirst ? res[1] : res[0],
-        lpSupplyWei: lps, checkedAt: Date.now() };
+      out = { pool: null, stable: stableSym, tokenAddr: t.address, stableAddr: TOKENS[stableSym].address, vintage: 'gen7', checkedAt: Date.now() };
+      if(t.stablePoolsLegacy) delete t.stablePoolsLegacy[stableSym];
     }
     t.stablePools[stableSym] = out;
     return out;
   })();
   t._spLoading[stableSym] = p;
   try{ return await p; } finally { delete t._spLoading[stableSym]; }
+}
+/* Add-mode stable record: the pair Add will actually use. A pair that
+   exists only on the old factory is NOT topped up — Add creates a NEW
+   Gen-7 pair instead. Returns the shared record when it is Gen-7, the
+   shared "no pair" record when neither factory has one, a synthetic
+   "new pair on Gen-7" record when the shared record is legacy-only, or
+   null when nothing is resolved yet. The synthetic record is never
+   written into t.stablePools, so swaps keep pointing at the legacy
+   pool. */
+function addStableRec(t, stableSym){
+  var sp = t.stablePools ? t.stablePools[stableSym] : null;
+  if(!sp) return null;
+  if(!sp.pool) return sp; /* no pair anywhere: new pair on Gen-7 */
+  if(sp.vintage === 'gen7') return sp;
+  return { pool: null, stable: stableSym, tokenAddr: sp.tokenAddr, stableAddr: sp.stableAddr, vintage: 'gen7',
+    resTokenWei: 0n, resStableWei: 0n, lpSupplyWei: 0n, checkedAt: Date.now() };
+}
+async function ensureStablePairForAdd(t, stableSym){
+  await ensureStablePair(t, stableSym);
+  return addStableRec(t, stableSym);
 }
 function stableTokenPriceUsd(t, sp){
   if(!sp || !sp.pool || sp.resStableWei <= 0n || sp.resTokenWei <= 0n) return 0;
@@ -5423,8 +5594,25 @@ async function ensureGenPair(t, otherSym){
   if(g5 && g5.pool) return { gp: g5, vintage: 'corrected' };
   return { gp: g7, vintage: 'gen7' };
 }
+/* ---------- Add-mode generic pair resolution ----------
+   A pair that exists only on the old factory is NOT topped up — Add
+   creates a NEW pair on Gen-7. The Gen-5 record is ignored entirely
+   here (swaps and Remove keep using it through genPairOf /
+   genPairByPool). Returns the Gen-7 record when it exists, else the
+   Gen-7 "new pair" record, or null when nothing is resolved yet. */
+function genPairOfForAdd(t, otherSym){
+  var g7 = gen7PairOf(t, otherSym);
+  if(g7 && g7.pool) return { gp: g7, vintage: 'gen7' };
+  if(g7) return { gp: g7, vintage: 'gen7' };
+  return null;
+}
+async function ensureGenPairForAdd(t, otherSym){
+  var g7 = await ensureGen7Pair(t, otherSym);
+  return { gp: g7, vintage: 'gen7' };
+}
 /* The pair record for an explicit pool address (Remove-list selection):
    finds the record across the graduated LOOP pool, stablePools,
+   stablePoolsLegacy (the legacy half of a dual-factory stable pair),
    gen7Pairs and gen5Pairs. Returns { gp, vintage, tokenSym, quoteSym }
    or null when the pool is not known here. */
 function genPairByPool(poolAddr){
@@ -5441,6 +5629,14 @@ function genPairByPool(poolAddr){
         sp = t.stablePools[stSym];
         if(sp && sp.pool && sp.pool.toLowerCase() === pk){
           return { gp: sp, vintage: sp.vintage || 'corrected', tokenSym: sym, quoteSym: stSym };
+        }
+      }
+    }
+    if(t.stablePoolsLegacy){
+      for(var stSymL in t.stablePoolsLegacy){
+        sp = t.stablePoolsLegacy[stSymL];
+        if(sp && sp.pool && sp.pool.toLowerCase() === pk){
+          return { gp: sp, vintage: sp.vintage || 'corrected', tokenSym: sym, quoteSym: stSymL };
         }
       }
     }
@@ -5974,7 +6170,7 @@ async function doAddStable(){
   var tokAmt = inputWei(el('addTokenInput'), 18);
   var stAmt = inputWei(el('addLoopInput'), 6);
   if(tokAmt <= 0n || stAmt <= 0n) return;
-  var spAdd = await ensureStablePair(t, state.addQuote);
+  var spAdd = await ensureStablePairForAdd(t, state.addQuote); /* Add-mode: never tops up a legacy-only pair — creates the Gen-7 pair */
   var routerAddr = stableRouter(spAdd);
   state.busy = true; updateAdd();
   try{
@@ -6019,7 +6215,7 @@ async function doAddGen5(){
   var amtA = inputWei(el('addTokenInput'), t.decimals);
   var amtB = inputWei(el('addLoopInput'), q.decimals);
   if(amtA <= 0n || amtB <= 0n) return;
-  var gpAdd = await ensureGenPair(t, state.addQuote);
+  var gpAdd = await ensureGenPairForAdd(t, state.addQuote); /* Add-mode: never tops up a legacy-only pair — creates the Gen-7 pair */
   var routerAddr = VINTAGES[gpAdd.vintage].router;
   state.busy = true; updateAdd();
   try{
