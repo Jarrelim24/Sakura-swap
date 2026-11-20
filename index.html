@@ -878,7 +878,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="thin-warn" id="thinPoolWarn" role="alert">Thin pool — price moves fast, consider smaller amount or higher slippage</div>
         <div class="form-err" id="swapErr"></div>
         <button class="btn btn-primary" id="swapAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim. Fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown. Stablecoins (tUSDC, tUSDT) and the 12 test xStocks trade through TestAssetPeg v2 at the USD oracle price with a single 0.5% spread per swap — there are no V2 pools for xStocks. Graduated tokens can also pair with tUSDC/tUSDT in the corrected (Gen-5) factory once a stable pair exists; until then the form says the pair does not exist yet.</p>
+        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim. Fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown. Stablecoins (tUSDC, tUSDT) and the 12 test xStocks trade through TestAssetPeg v2 at the USD oracle price with a single 0.5% spread per swap — there are no V2 pools for xStocks. Graduated tokens can also pair with tUSDC/tUSDT in the Gen-7 factory once a stable pair exists; until then the form says the pair does not exist yet.</p>
       </div>
 
       <!-- LIMIT MODE -->
@@ -1042,7 +1042,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <!-- ADD LIQUIDITY MODE -->
       <div id="modeAdd">
         <div class="card-head"><h2>Add Liquidity</h2></div>
-        <p class="card-desc">Deposit two assets at the pool ratio and receive LP as proof of your share. Pair with LOOP, tUSDC, tUSDT, xStocks or any graduated token — new pairs use the Gen-5 router.</p>
+        <p class="card-desc">Deposit two assets at the pool ratio and receive LP as proof of your share. Pair with LOOP, tUSDC, tUSDT, xStocks or any graduated token — new pairs use the Gen-7 router.</p>
         <div class="pct-row" id="addQuoteRow" style="margin-top:12px"><span style="align-self:center;font-weight:700;color:var(--muted);font-size:13px">Pair with</span>
           <button type="button" data-q="LOOP" class="sel">LOOP</button>
           <button type="button" data-q="tUSDC">tUSDC</button>
@@ -3383,8 +3383,8 @@ function renderAll(){
 function renderBalances(){
   el('fromBalance').innerHTML = state.account ? esc(balText(state.swap.from)) + ' <button type="button" id="maxFrom">MAX</button>' : '';
   el('toBalance').textContent = state.account ? balText(state.swap.to) : '';
-  el('addLoopBalance').textContent = state.account ? balText(state.addQuote) : '';
-  el('addTokenBalance').textContent = state.account ? balText(state.addToken) : '';
+  el('addLoopBalance').innerHTML = state.account ? esc(balText(state.addQuote)) + ' <button type="button" id="maxAddLoop">MAX</button>' : '';
+  el('addTokenBalance').innerHTML = state.account ? esc(balText(state.addToken)) + ' <button type="button" id="maxAddToken">MAX</button>' : '';
   var lpPool = remLpPool();
   var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
   el('remLpBalance').textContent = state.account ? ('Your LP: ' + (lp === undefined ? '…' : (lp === null ? 'unavailable' : fmtLp(lp)))) : '';
@@ -3397,6 +3397,30 @@ function renderBalances(){
     if(state.swap.from === 'LOOP'){ var buf = toWei('0.005', 18); v = b > buf ? b - buf : 0n; }
     setInputFromWei(el('fromInput'), v, TOKENS[state.swap.from].decimals);
     state.swap.lastEdited = 'from'; updateSwap();
+  });
+  /* Add Liquidity MAX — same pattern as the Swap MAX above. Fills the
+     side with the wallet's full balance of that asset, then calls
+     updateAdd for that side so the other side follows the pool ratio
+     (or, for a pair that does not exist yet, stays for the user to type
+     at the oracle-implied ratio). The LOOP side keeps a 0.01 LOOP gas
+     reserve so the add transaction itself cannot run out of gas. */
+  var mxL = el('maxAddLoop');
+  if(mxL) mxL.addEventListener('click', function(){
+    var b = balanceOf(state.addQuote);
+    if(b === undefined || b === null) return;
+    var v = b;
+    if(state.addQuote === 'LOOP'){ var buf = toWei('0.01', 18); v = b > buf ? b - buf : 0n; }
+    setInputFromWei(el('addLoopInput'), v, TOKENS[state.addQuote].decimals);
+    updateAdd('loop');
+  });
+  var mxT = el('maxAddToken');
+  if(mxT) mxT.addEventListener('click', function(){
+    var b = balanceOf(state.addToken);
+    if(b === undefined || b === null) return;
+    var v = b;
+    if(state.addToken === 'LOOP'){ var buf = toWei('0.01', 18); v = b > buf ? b - buf : 0n; }
+    setInputFromWei(el('addTokenInput'), v, TOKENS[state.addToken].decimals);
+    updateAdd('token');
   });
 }
 </script>
@@ -4547,6 +4571,7 @@ async function loadConnectedBalances(onlyKey, force){
     renderBalances(); renderPositions(); renderRemovePositions(); renderPortfolio(); refreshAllForms();
     loadClaimables(addr); /* Gen-7 claimable fees for discovered pairs (cached 60s) */
   }
+  if(!onlyKey) maybeRerunBalancesAfterDiscovery(addr);
 }
 function retryConnectedBalance(key){
   if(!state.account) return;
@@ -5608,6 +5633,25 @@ async function freshStableQuoteOut(sp, amountIn, fromToken){
   sp._rq = { amountIn: amountIn, fromToken: fromToken, amountOut: out };
   return out;
 }
+/* After pair discovery, refresh the wallet balances — but a balance
+   load that started BEFORE discovery landed never asked for the newly
+   discovered pairs' LP balances (its settle jobs were built from the
+   pairs known at the time), and refreshBalances() is a no-op while
+   balLoading is true. If a load is in flight, remember to re-run it
+   when it ends (maybeRerunBalancesAfterDiscovery, called at the end of
+   loadConnectedBalances); otherwise the new pair's LP balance is never
+   requested and its position never appears in Remove. */
+function refreshBalancesAfterDiscovery(){
+  if(!state.account) return;
+  if(state.balLoading) state.balRefreshNeeded = true;
+  else refreshBalances();
+}
+function maybeRerunBalancesAfterDiscovery(addr){
+  if(!state.balRefreshNeeded || !state.account || state.account !== addr) return false;
+  state.balRefreshNeeded = false;
+  loadConnectedBalances(null, true);
+  return true;
+}
 /* Discover Gen-5 stable pairs for the Pools page and Liquidity. */
 async function loadStablePairs(){
   if(!window.ethers) return;
@@ -5620,7 +5664,7 @@ async function loadStablePairs(){
   try{ await discoverGen5Pairs(); }catch(e){ /* Gen-5 discovery stays empty; the form says so */ }
   try{ await discoverGen7Pairs(); }catch(e){ /* Gen-7 discovery stays empty; the form says so */ }
   renderPairs();
-  if(state.account) refreshBalances();
+  refreshBalancesAfterDiscovery();
 }
 /* Which venue a swap uses. Peg when BOTH sides are peg assets; the
    LOOP pool when one side is LOOP; a Gen-5 stable pair when a graduated
