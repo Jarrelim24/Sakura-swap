@@ -918,7 +918,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="thin-warn" id="thinPoolWarn" role="alert">Thin pool — price moves fast, consider smaller amount or higher slippage</div>
         <div class="form-err" id="swapErr"></div>
         <button class="btn btn-primary" id="swapAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim. Fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown. Stablecoins (tUSDC, tUSDT) and the 12 test xStocks trade through TestAssetPeg v2 at the USD oracle price with a single 0.5% spread per swap — there are no V2 pools for xStocks. Graduated tokens can also pair with tUSDC/tUSDT in the Gen-7 factory once a stable pair exists; until then the form says the pair does not exist yet.</p>
+        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. New pairs and new graduations live on the Gen-7 factory and route through Router02 (gen-7): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, and the LP share is claimable anytime without removing liquidity. Older pools keep their own routers: Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected) with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim; fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown. Stablecoins (tUSDC, tUSDT) and the 12 test xStocks trade at the USD oracle price through TestAssetPeg v2 with a single 0.5% spread per swap, or through their Gen-7 V2 pools when a pool exists — the form picks the cheaper path. Graduated tokens can also pair with tUSDC/tUSDT in the Gen-7 factory once a stable pair exists; until then the form says the pair does not exist yet.</p>
       </div>
 
       <!-- LIMIT MODE -->
@@ -1530,20 +1530,20 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   <div class="wrap">
     <strong style="color:var(--ink)">Contracts — Loop Network (chainId 15551)</strong>
     <div class="foot-grid">
-      <span>Router V2 (corrected): <span class="mono">0x452632De5FbA3d5A430161Edc1A20A66B9B4Ee46</span></span>
-      <span>Router V2 (fee-split): <span class="mono">0x6FaCB6E8056386e99AeC60e8D743FFec2E41D7Ec</span></span>
+      <span>Factory (gen-7): <span class="mono">0xb9696898Ff377D7dfCbFd9C9270972814173176b</span></span>
+      <span>Router V2 (gen-7): <span class="mono">0xcB589238585c007e2B71ad104DA622057485b323</span></span>
+      <span>ClaimDex (fee-split adapter, gen-7): <span class="mono">0x77F971f3E9d26376b7E60b7E68D8719bEf186f4E</span></span>
+      <span>Fee Ledger (gen-7): <span class="mono">0x70750dA7511287c73e7Fe3D1D7b25104347859ed</span></span>
+      <span>Graduation Locker (gen-7): <span class="mono">0x0E7096FCa95e6C4ce6921dF7cb29B841C3d12B10</span></span>
+      <span>Launchpad Factory (gen-7): <span class="mono">0xE4caad609dF38a248eCcF4fFD70b27f092942b26</span></span>
+      <span>Factory (corrected / gen-5 — Legacy): <span class="mono">0xE0C83452969eC0E06F0a62Bb99f3c44A50b10929</span></span>
+      <span>Router V2 (corrected, gen-5 — Legacy): <span class="mono">0x452632De5FbA3d5A430161Edc1A20A66B9B4Ee46</span></span>
+      <span>Router V2 (fee-split — Legacy): <span class="mono">0x6FaCB6E8056386e99AeC60e8D743FFec2E41D7Ec</span></span>
       <span>Router V2 (legacy): <span class="mono">0x97c5990C11f59329a004922f490D7f60f83E0ef9</span></span>
       <span>WLOOP: <span class="mono">0x4Fc02eBf3B31F74ccb1866CAdB98f2ABE9296eE7</span></span>
       <span>Token Locker: <span class="mono">0xA4C46795Bc6116e0286ea13e1439622E9727B50f</span></span>
       <span>SAKURA: <span class="mono">0x6D3855b49e65D7F4403Fef6e4d29068f068EF644</span></span>
       <span>TestAssetPeg v2: <span class="mono">0xd79B3553806F1c3e70e6640a21439Ae6B613f6Be</span></span>
-      <span>Factory (corrected / gen-5): <span class="mono">0xE0C83452969eC0E06F0a62Bb99f3c44A50b10929</span></span>
-      <span>Router V2 (gen-7): <span class="mono">0xcB589238585c007e2B71ad104DA622057485b323</span></span>
-      <span>Factory (gen-7): <span class="mono">0xb9696898Ff377D7dfCbFd9C9270972814173176b</span></span>
-      <span>ClaimDex (fee-split adapter, gen-7): <span class="mono">0x77F971f3E9d26376b7E60b7E68D8719bEf186f4E</span></span>
-      <span>Fee Ledger (gen-7): <span class="mono">0x70750dA7511287c73e7Fe3D1D7b25104347859ed</span></span>
-      <span>Graduation Locker (gen-7): <span class="mono">0x0E7096FCa95e6C4ce6921dF7cb29B841C3d12B10</span></span>
-      <span>Launchpad Factory (gen-7): <span class="mono">0xE4caad609dF38a248eCcF4fFD70b27f092942b26</span></span>
     </div>
     <span id="footNote">Initial data: on-chain snapshot at block 45269686 (Nov 15, 2026 · 17:47 UTC), verified from the Loop RPC. The page tries to re-read live when opened — figures never go back to an older block than the one already shown.</span>
   </div>
@@ -1793,6 +1793,7 @@ var state = {
         viewAddr: null, wBalances: {}, wLpBalances: {}, wBalFor: null, wBalLoading: false,
         wErrors: {}, wBalSettledFor: null },
   balErrors: {}, lpErrors: {}, balSettledFor: null, balLoading: false,
+  discoveryHadErrors: false, lastDiscoveryAt: 0, /* pair discovery: set by loadStablePairs; engineTick retries while hadErrors */
   slippage: 0.5, deadline: 20, mev: true,
   limit: { dir:'buy', token:'MESIAH', mcPct:0, exact:false }, orders: [], ordersLoadedFor: null, ordersLoading: false,
   dca: { token:'MESIAH', dir:'buy' }, dcaPlans: [], plansLoadedFor: null, plansLoading: false, dcaPlan: null, dcaHistory: [],
@@ -2372,7 +2373,14 @@ function renderPairs(){
     p._tvl = poolTvlUsd(p); p._vol = poolVolUsd(p); p._fees = poolFeesUsd(p);
   });
   var key = state.poolSort || 'vol';
+  /* Gen-7 ("New") pools always list above Legacy pools — a new pool
+     with no volume yet must not sink below old pools. Inside each
+     tier the user's chosen sort (Volume / TVL / Fees) still applies,
+     and a pool with no scanned data (null) still sorts last in its tier. */
   pools.sort(function(a, b){
+    var aNew = a.vintage === 'gen7' ? 0 : 1;
+    var bNew = b.vintage === 'gen7' ? 0 : 1;
+    if(aNew !== bNew) return aNew - bNew;
     var av = key === 'tvl' ? a._tvl : (key === 'fees' ? a._fees : a._vol);
     var bv = key === 'tvl' ? b._tvl : (key === 'fees' ? b._fees : b._vol);
     if(av === null && bv === null) return 0;
@@ -2928,11 +2936,22 @@ function positionsHtml(forPf){
         '</div></div>');
     });
   });
+  /* A failed LP balance (null) is not "no LP": treat it as pending so the
+     list says "Loading positions…" while the automatic retry runs,
+     instead of "You don't have LP in any pool yet". */
+  if(!forPf && Object.keys(state.lpErrors).length > 0) pending = true;
   if(pending && rows.length === 0) return '<div class="empty-note">Loading positions from the chain…</div>';
   if(rows.length === 0) return forPf && pfIsWatch()
     ? '<div class="empty-note">This wallet has no LP in any Sakura pool. Graduation LP locked in the locker belongs to no one and doesn\'t appear here.</div>'
     : '<div class="empty-note">You don\'t have LP in any pool yet. Add liquidity via the <strong>Liquidity</strong> page — graduation LP locked in the locker belongs to no one and doesn\'t appear here.</div>';
-  return rows.join('');
+  /* Gen-7 ("New") positions first — the rows above are built section by
+     section (LOOP pairs, stable pairs, gen-5, then gen-7), which would
+     otherwise bury new pools under old ones. A row is Gen-7 when it
+     carries the "New · claimable fees" tag; partition keeps the order
+     inside each tier exactly as built. */
+  var newRows = rows.filter(function(h){ return h.indexOf('New · claimable fees') >= 0; });
+  var oldRows = rows.filter(function(h){ return h.indexOf('New · claimable fees') < 0; });
+  return newRows.concat(oldRows).join('');
 }
 function renderPositions(){
   renderPositionTotals();
@@ -2961,11 +2980,25 @@ function collectUserPositions(){
     var pk = pool.toLowerCase();
     for(var i = 0; i < out.length; i++) if(out[i].pool.toLowerCase() === pk) return; /* one row per pool */
     var lp = LPB[pk];
-    if(lp === undefined) return; /* balance not loaded yet — the list refreshes when it lands */
     var rec = claimableOf(pool);
     var claimAmt = rec ? (rec.amount || 0n) : 0n;
-    if((lp === null || lp <= 0n) && claimAmt <= 0n) return;
-    var lpN = (lp === null ? 0n : lp);
+    if(lp === undefined || lp === null){
+      /* Balance unknown (never loaded) or failed (null): keep a
+         placeholder row so the position is never silently hidden — the
+         Remove tab shows it as loading / failed-with-retry instead of
+         pretending the user has no LP. Only once the first full load
+         settled (or when this pair's balance actually failed); before
+         that, the list shows the generic "Loading your positions…" note.
+         A claimable fee still shows the row even with an unknown
+         balance (fees survive LP removal). */
+      if(claimAmt > 0n || state.balSettledFor === addr || state.lpErrors[pk]){
+        out.push({ pool: pool, tokenSym: tokenSym, quoteSym: quoteSym, vintage: vintage,
+          lp: 0n, share: 0, valA: 0n, valB: 0n, claimable: rec, unknown: true, failed: lp === null });
+      }
+      return;
+    }
+    if(lp <= 0n && claimAmt <= 0n) return;
+    var lpN = lp;
     out.push({ pool: pool, tokenSym: tokenSym, quoteSym: quoteSym, vintage: vintage,
       lp: lpN, share: (lpSupplyWei > 0n && lpN > 0n) ? Number(lpN * 1000000n / lpSupplyWei) / 10000 : 0,
       /* Position value: the LP share of both reserves (raw wei). The
@@ -3004,7 +3037,12 @@ function collectUserPositions(){
       });
     });
   });
-  return out;
+  /* Gen-7 ("New") positions first — the Remove list, the Positions
+     totals bar and "Claim all" all read this list. Partition (not sort)
+     so the push order inside each tier is preserved exactly. */
+  var newPos = out.filter(function(p){ return p.vintage === 'gen7'; });
+  var oldPos = out.filter(function(p){ return p.vintage !== 'gen7'; });
+  return newPos.concat(oldPos);
 }
 function renderRemovePositions(){
   var wrap = el('remPositionsList');
@@ -3013,13 +3051,22 @@ function renderRemovePositions(){
   var pos = collectUserPositions();
   if(!pos.length){
     var anyLoaded = Object.keys(state.lpBalances).length > 0;
-    wrap.innerHTML = anyLoaded ? '<div class="empty-note">You don\'t have LP in any pool yet.</div>' : '<div class="empty-note">Loading your positions…</div>';
+    var anyFailed = Object.keys(state.lpErrors).length > 0;
+    wrap.innerHTML = anyFailed ? '<div class="empty-note">Some balances failed to load — retrying automatically…</div>'
+      : (anyLoaded ? '<div class="empty-note">You don\'t have LP in any pool yet.</div>' : '<div class="empty-note">Loading your positions…</div>');
     return;
   }
   wrap.innerHTML = pos.map(function(p){
     var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
     var claimTxt = '';
     if(p.claimable && p.claimable.amount > 0n) claimTxt = ' · claimable ' + fmtWei(p.claimable.amount, claimAssetDecimals(p.claimable.asset), 6) + ' ' + p.claimable.assetSym;
+    if(p.unknown){
+      return '<div class="rem-pos unknown" data-retry-pool="' + p.pool + '">' +
+        '<span style="display:flex">' + avatarHtml(t, 30) + avatarHtml(q, 30) + '</span>' +
+        '<span class="rp-meta"><strong>' + esc(p.tokenSym) + ' / ' + esc(p.quoteSym) + '</strong><small>' + stackLabelOf(p.vintage) + claimTxt + '</small></span>' +
+        '<span class="rp-lp">' + (p.failed ? 'Balance failed to load — tap to retry' : 'Loading balance…') + '</span>' +
+        '</div>';
+    }
     /* Headline is the position VALUE (LP share of both reserves, in
        asset symbols) — the raw LP count is secondary text only. For a
        6-decimal pair the raw count (e.g. 500,009,999,000) reads as a
@@ -3033,6 +3080,8 @@ function renderRemovePositions(){
   }).join('');
   Array.prototype.forEach.call(wrap.querySelectorAll('.rem-pos'), function(row){
     row.addEventListener('click', function(){
+      var retryPool = row.getAttribute('data-retry-pool');
+      if(retryPool){ retryConnectedBalance(retryPool.toLowerCase()); toast('Retrying balance…'); return; }
       var rec = genPairByPool(row.getAttribute('data-rem-pool'));
       if(!rec) return;
       state.remPool = rec.gp.pool;
@@ -6022,7 +6071,7 @@ async function readStablePair(t, stableSym, factoryAddr, vintage){
   return { pool: pairAddr, stable: stableSym, tokenAddr: t.address, stableAddr: st.address, vintage: vintage,
     resTokenWei: tokFirst ? res[0] : res[1],
     resStableWei: tokFirst ? res[1] : res[0],
-    lpSupplyWei: lps, checkedAt: Date.now() };
+    lpSupplyWei: lps, checkedAt: Date.now(), res: res, t0: t0 };
 }
 /* Stable-pair resolution — BOTH factories are read for every known
    (graduated token, stablecoin) combination. The main record in
@@ -6060,6 +6109,41 @@ async function ensureStablePair(t, stableSym){
   })();
   t._spLoading[stableSym] = p;
   try{ return await p; } finally { delete t._spLoading[stableSym]; }
+}
+/* Direct fallback for the stable-stable pair (tUSDC/tUSDT): it is NOT
+   covered by ensureStablePair (TOKEN_LIST holds only graduated tokens),
+   so its only discovery path is factory enumeration — which runs once
+   per page load and is skipped entirely when it throws. Read getPair on
+   BOTH factories directly and store the main (Gen-7 preferred) and
+   legacy (Gen-5) records, plus the gen5/gen7 pair records the lists
+   iterate. A read that THROWS leaves the existing records alone (the
+   pair is unknown, not absent) and reports false so the periodic
+   discovery retry runs again later. Returns true only when both reads
+   succeeded (even when neither factory has the pair). */
+async function discoverStableStablePair(){
+  if(!window.ethers) return false;
+  var t = TOKENS['tUSDC'];
+  if(!t || !TOKENS['tUSDT']) return false;
+  var g7 = null, g5 = null, g7Err = false, g5Err = false;
+  try{ g7 = await readStablePair(t, 'tUSDT', CFG.factoryNew, 'gen7'); }catch(e){ g7Err = true; }
+  try{ g5 = await readStablePair(t, 'tUSDT', CFG.factoryCorrected, 'corrected'); }catch(e){ g5Err = true; }
+  if(g7Err && g5Err) return false;
+  if(g7){
+    storeGen7Pair('tUSDC', 'tUSDT', g7.pool, g7.res, g7.t0, g7.lpSupplyWei);
+    if(!t.stablePools) t.stablePools = {};
+    t.stablePools['tUSDT'] = g7;
+    if(g5){
+      storeGen5Pair('tUSDC', 'tUSDT', g5.pool, g5.res, g5.t0, g5.lpSupplyWei);
+      if(!t.stablePoolsLegacy) t.stablePoolsLegacy = {};
+      t.stablePoolsLegacy['tUSDT'] = g5;
+    } else if(!g5Err && t.stablePoolsLegacy) delete t.stablePoolsLegacy['tUSDT'];
+  } else if(g5){
+    storeGen5Pair('tUSDC', 'tUSDT', g5.pool, g5.res, g5.t0, g5.lpSupplyWei);
+    if(!t.stablePools) t.stablePools = {};
+    t.stablePools['tUSDT'] = g5;
+    if(t.stablePoolsLegacy) delete t.stablePoolsLegacy['tUSDT'];
+  }
+  return !g7Err && !g5Err;
 }
 /* Add-mode stable record: the pair Add will actually use. A pair that
    exists only on the old factory is NOT topped up — Add creates a NEW
@@ -6188,8 +6272,10 @@ async function ensureDiscoveredToken(addr, rp){
    being skipped. */
 var discoverGen5Running = false;
 async function discoverGen5Pairs(){
-  if(!window.ethers || discoverGen5Running) return;
+  if(!window.ethers) return false;
+  if(discoverGen5Running) return true; /* a run is already in flight; its result lands */
   discoverGen5Running = true;
+  var pairErrors = 0;
   try{
     var rp = getReadProvider();
     var fac = new ethers.Contract(CFG.factoryCorrected, FACTORY_ABI, rp);
@@ -6216,10 +6302,11 @@ async function discoverGen5Pairs(){
         var res = await withTimeout(pair.getReserves(), 20000, 'gen5 reserves');
         var lps = await withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply');
         storeGen5Pair(s0, s1, pAddr, res, t0, lps);
-      }catch(e){ /* skip this pair */ }
+      }catch(e){ pairErrors++; /* skip this pair */ }
     }
-  }catch(e){ /* discovery unavailable; the forms say so */ }
+  }catch(e){ pairErrors++; /* discovery unavailable; the forms say so */ }
   discoverGen5Running = false;
+  return pairErrors === 0;
 }
 /* ---------- Gen-7 pairs (new stack) — mirrors the Gen-5 block above,
    but against CFG.factoryNew. A Gen-7 pair record carries vintage:'gen7'.
@@ -6272,8 +6359,10 @@ function storeGen7Pair(aSym, bSym, poolAddr, res, t0Lower, lps){
 }
 var discoverGen7Running = false;
 async function discoverGen7Pairs(){
-  if(!window.ethers || discoverGen7Running) return;
+  if(!window.ethers) return false;
+  if(discoverGen7Running) return true; /* a run is already in flight; its result lands */
   discoverGen7Running = true;
+  var pairErrors = 0;
   try{
     var rp = getReadProvider();
     var fac = new ethers.Contract(CFG.factoryNew, FACTORY_ABI, rp);
@@ -6300,10 +6389,11 @@ async function discoverGen7Pairs(){
         var res = await withTimeout(pair.getReserves(), 20000, 'gen7 reserves');
         var lps = await withTimeout(pair.totalSupply(), 20000, 'gen7 lp supply');
         storeGen7Pair(s0, s1, pAddr, res, t0, lps);
-      }catch(e){ /* skip this pair */ }
+      }catch(e){ pairErrors++; /* skip this pair */ }
     }
-  }catch(e){ /* discovery unavailable; the forms say so */ }
+  }catch(e){ pairErrors++; /* discovery unavailable; the forms say so */ }
   discoverGen7Running = false;
+  return pairErrors === 0;
 }
 /* ---------- Unified Gen-5 / Gen-7 pair resolution ----------
    A token pair can now exist on two factories. Order: a Gen-7 pair if it
@@ -6582,18 +6672,34 @@ function maybeRerunBalancesAfterDiscovery(addr){
   return true;
 }
 /* Discover Gen-5 stable pairs for the Pools page and Liquidity. */
+/* Discovery runs once per page load (via refreshLive) — on a slow phone
+   a single timeout used to hide a pair until reload, with nothing
+   recording the failure. loadStablePairs now reports whether any part
+   failed (state.discoveryHadErrors + state.lastDiscoveryAt) so
+   engineTick can retry it, and runs the direct stable-stable fallback
+   even when factory enumeration throws. */
+var loadStablePairsRunning = false;
 async function loadStablePairs(){
-  if(!window.ethers) return;
-  await Promise.all(TOKEN_LIST.map(async function(sym){
-    var t = TOKENS[sym];
-    await Promise.all(STABLE_LIST.map(async function(stSym){
-      try{ await ensureStablePair(t, stSym); }catch(e){ /* stays undiscovered; the form says so */ }
+  if(!window.ethers || loadStablePairsRunning) return;
+  loadStablePairsRunning = true;
+  var hadErr = false;
+  try{
+    await Promise.all(TOKEN_LIST.map(async function(sym){
+      var t = TOKENS[sym];
+      await Promise.all(STABLE_LIST.map(async function(stSym){
+        try{ await ensureStablePair(t, stSym); }catch(e){ hadErr = true; /* stays undiscovered; retried by engineTick */ }
+      }));
     }));
-  }));
-  try{ await discoverGen5Pairs(); }catch(e){ /* Gen-5 discovery stays empty; the form says so */ }
-  try{ await discoverGen7Pairs(); }catch(e){ /* Gen-7 discovery stays empty; the form says so */ }
-  renderPairs();
-  refreshBalancesAfterDiscovery();
+    try{ if(!await discoverGen5Pairs()) hadErr = true; }catch(e){ hadErr = true; /* Gen-5 discovery stays empty; retried by engineTick */ }
+    try{ if(!await discoverGen7Pairs()) hadErr = true; }catch(e){ hadErr = true; /* Gen-7 discovery stays empty; retried by engineTick */ }
+    try{ if(!await discoverStableStablePair()) hadErr = true; }catch(e){ hadErr = true; }
+    renderPairs();
+    refreshBalancesAfterDiscovery();
+  }finally{
+    state.discoveryHadErrors = hadErr;
+    state.lastDiscoveryAt = Date.now();
+    loadStablePairsRunning = false;
+  }
 }
 /* The stable pair a LOOP<->token swap routes through when the token has
    no LOOP pool (graduation into a stable pair, e.g. TSHIBA/tUSDC):
@@ -7967,6 +8073,22 @@ async function onDcaAction(){
    plan progress — follow the chain instead of this tab. */
 var engineBusy = false;
 function engineTick(){
+  /* Periodic repair for slow-RPC sessions (every 30s): pair discovery
+     runs once per page load, so a single timeout hides a pair until
+     reload; a failed LP balanceOf leaves a null that a normal load never
+     retries (only undefined) — both stay broken silently. Retry them
+     here, throttled, until they land. The balance retry only re-runs the
+     failed keys (retryConnectedBalance deletes just those), and the
+     discovery retry only fires while a previous run recorded an error. */
+  if(!state.busy){
+    if(state.discoveryHadErrors && !loadStablePairsRunning && Date.now() - (state.lastDiscoveryAt || 0) > 60000){
+      loadStablePairs();
+    }
+    if(state.account && !state.balLoading &&
+       (Object.keys(state.lpErrors).length || Object.keys(state.balErrors).length)){
+      retryConnectedBalance();
+    }
+  }
   if(!state.account || state.busy) return;
   if(swapMode === 'limit'){
     state.ordersLoadedFor = null;
