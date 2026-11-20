@@ -2059,6 +2059,26 @@ function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'
 function withTimeout(p, ms, label){
   return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('Timeout: ' + (label || 'RPC'))); }, ms); })]);
 }
+/* Pause helper for RPC retries (real setTimeout; tests set
+   RPC_RETRY_DELAY_MS = 0 to skip the wait). */
+function sleepMs(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+var RPC_RETRY_DELAY_MS = 1000;
+/* Retry a fresh RPC promise factory a few times before giving up.
+   Slow-RPC sessions drop individual calls (the 20s withTimeout fires)
+   even though the next attempt answers — without a retry, one dropped
+   allPairsLength() call blanks the whole factory enumeration and one
+   dropped per-pair call hides that pair until the next discovery run.
+   fn must build a NEW promise on every attempt: a raced promise keeps
+   running in the background, but its result is discarded, so re-calling
+   fn is safe for read-only eth_calls. */
+async function withRpcRetries(fn, attempts, delayMs){
+  var lastErr = null;
+  for(var i = 0; i < attempts; i++){
+    try{ return await fn(); }
+    catch(e){ lastErr = e; if(i + 1 < attempts) await sleepMs(delayMs === undefined ? RPC_RETRY_DELAY_MS : delayMs); }
+  }
+  throw lastErr;
+}
 
 /* ---------- Loop RPC fallback layer ----------
    The primary Loop RPC (api.mainnetloop.com) does not always answer from a
@@ -6421,7 +6441,7 @@ async function discoverGen5Pairs(){
   try{
     var rp = getReadProvider();
     var fac = new ethers.Contract(CFG.factoryCorrected, FACTORY_ABI, rp);
-    var n = Number(await withTimeout(fac.allPairsLength(), 20000, 'gen5 allPairsLength'));
+    var n = Number(await withRpcRetries(function(){ return withTimeout(fac.allPairsLength(), 20000, 'gen5 allPairsLength'); }, 3));
     var addrToSym = {};
     Object.keys(TOKENS).forEach(function(s){ var a = TOKENS[s].address; if(a && a !== 'NATIVE') addrToSym[a.toLowerCase()] = s; });
     addrToSym[CFG.wloop.toLowerCase()] = 'LOOP';
@@ -6432,24 +6452,35 @@ async function discoverGen5Pairs(){
        skip that pair; stores happen after all fetches settle. */
     var results = await Promise.all(Array.from({ length: n }, function(_, i){
       return (async function(){
+        var fetched;
         try{
-          var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen5 allPairs');
-          var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
-          var parts = await Promise.all([
-            withTimeout(pair.token0(), 20000, 'gen5 token0'),
-            withTimeout(pair.token1(), 20000, 'gen5 token1'),
-            withTimeout(pair.getReserves(), 20000, 'gen5 reserves'),
-            withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply')
-          ]);
-          var t0 = String(parts[0]).toLowerCase(), t1 = String(parts[1]).toLowerCase();
+          /* The pure RPC reads get one retry in-run: on a slow RPC the
+             first attempt often times out while the burst of parallel
+             discovery calls is still in flight; the retry lands after
+             it subsides. Metadata reads (ensureDiscoveredToken) stay
+             outside the retry — they degrade gracefully on their own. */
+          fetched = await withRpcRetries(async function(){
+            var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen5 allPairs');
+            var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
+            var parts = await Promise.all([
+              withTimeout(pair.token0(), 20000, 'gen5 token0'),
+              withTimeout(pair.token1(), 20000, 'gen5 token1'),
+              withTimeout(pair.getReserves(), 20000, 'gen5 reserves'),
+              withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply')
+            ]);
+            return { pAddr: pAddr, parts: parts };
+          }, 2);
+        }catch(e){ return { error: true }; }
+        try{
+          var t0 = String(fetched.parts[0]).toLowerCase(), t1 = String(fetched.parts[1]).toLowerCase();
           /* Unknown tokens get a lightweight discovered entry (never in
              TOKEN_LIST) so the pair still shows in the Pools table. */
-          var s0 = addrToSym[t0] || await ensureDiscoveredToken(parts[0], rp);
-          var s1 = addrToSym[t1] || await ensureDiscoveredToken(parts[1], rp);
+          var s0 = addrToSym[t0] || await ensureDiscoveredToken(fetched.parts[0], rp);
+          var s1 = addrToSym[t1] || await ensureDiscoveredToken(fetched.parts[1], rp);
           if(!s0 || !s1) return null;
           /* Graduated/stable pairs live in stablePools, not gen5Pairs. */
           if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) return null;
-          return { s0: s0, s1: s1, pAddr: pAddr, res: parts[2], t0: t0, lps: parts[3] };
+          return { s0: s0, s1: s1, pAddr: fetched.pAddr, res: fetched.parts[2], t0: t0, lps: fetched.parts[3] };
         }catch(e){ return { error: true }; }
       })();
     }));
@@ -6520,7 +6551,7 @@ async function discoverGen7Pairs(){
   try{
     var rp = getReadProvider();
     var fac = new ethers.Contract(CFG.factoryNew, FACTORY_ABI, rp);
-    var n = Number(await withTimeout(fac.allPairsLength(), 20000, 'gen7 allPairsLength'));
+    var n = Number(await withRpcRetries(function(){ return withTimeout(fac.allPairsLength(), 20000, 'gen7 allPairsLength'); }, 3));
     var addrToSym = {};
     Object.keys(TOKENS).forEach(function(s){ var a = TOKENS[s].address; if(a && a !== 'NATIVE') addrToSym[a.toLowerCase()] = s; });
     addrToSym[CFG.wloop.toLowerCase()] = 'LOOP';
@@ -6531,24 +6562,35 @@ async function discoverGen7Pairs(){
        all fetches settle. */
     var results = await Promise.all(Array.from({ length: n }, function(_, i){
       return (async function(){
+        var fetched;
         try{
-          var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen7 allPairs');
-          var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
-          var parts = await Promise.all([
-            withTimeout(pair.token0(), 20000, 'gen7 token0'),
-            withTimeout(pair.token1(), 20000, 'gen7 token1'),
-            withTimeout(pair.getReserves(), 20000, 'gen7 reserves'),
-            withTimeout(pair.totalSupply(), 20000, 'gen7 lp supply')
-          ]);
-          var t0 = String(parts[0]).toLowerCase(), t1 = String(parts[1]).toLowerCase();
+          /* The pure RPC reads get one retry in-run: on a slow RPC the
+             first attempt often times out while the burst of parallel
+             discovery calls is still in flight; the retry lands after
+             it subsides. Metadata reads (ensureDiscoveredToken) stay
+             outside the retry — they degrade gracefully on their own. */
+          fetched = await withRpcRetries(async function(){
+            var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen7 allPairs');
+            var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
+            var parts = await Promise.all([
+              withTimeout(pair.token0(), 20000, 'gen7 token0'),
+              withTimeout(pair.token1(), 20000, 'gen7 token1'),
+              withTimeout(pair.getReserves(), 20000, 'gen7 reserves'),
+              withTimeout(pair.totalSupply(), 20000, 'gen7 lp supply')
+            ]);
+            return { pAddr: pAddr, parts: parts };
+          }, 2);
+        }catch(e){ return { error: true }; }
+        try{
+          var t0 = String(fetched.parts[0]).toLowerCase(), t1 = String(fetched.parts[1]).toLowerCase();
           /* Unknown tokens get a lightweight discovered entry (never in
              TOKEN_LIST) so the pair still shows in the Pools table. */
-          var s0 = addrToSym[t0] || await ensureDiscoveredToken(parts[0], rp);
-          var s1 = addrToSym[t1] || await ensureDiscoveredToken(parts[1], rp);
+          var s0 = addrToSym[t0] || await ensureDiscoveredToken(fetched.parts[0], rp);
+          var s1 = addrToSym[t1] || await ensureDiscoveredToken(fetched.parts[1], rp);
           if(!s0 || !s1) return null;
           /* Graduated/stable pairs live in stablePools, not gen7Pairs. */
           if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) return null;
-          return { s0: s0, s1: s1, pAddr: pAddr, res: parts[2], t0: t0, lps: parts[3] };
+          return { s0: s0, s1: s1, pAddr: fetched.pAddr, res: fetched.parts[2], t0: t0, lps: fetched.parts[3] };
         }catch(e){ return { error: true }; }
       })();
     }));
@@ -8277,7 +8319,7 @@ function engineTick(){
      failed keys (retryConnectedBalance deletes just those), and the
      discovery retry only fires while a previous run recorded an error. */
   if(!state.busy){
-    if(state.discoveryHadErrors && !loadStablePairsRunning && Date.now() - (state.lastDiscoveryAt || 0) > 60000){
+    if(state.discoveryHadErrors && !loadStablePairsRunning && Date.now() - (state.lastDiscoveryAt || 0) > 30000){
       loadStablePairs();
     }
     if(state.account && !state.balLoading &&
