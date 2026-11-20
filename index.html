@@ -185,14 +185,14 @@ body[data-view="home"] #homeHero,body[data-view="home"] #homeBelow{display:block
 .layout{display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:20px;align-items:start;padding:18px 0 8px}
 .layout>*{min-width:0}
 body[data-view="home"] .layout, body[data-view="pools"] .layout, body[data-view="locker"] .layout, body[data-view="portfolio"] .layout,
-body[data-view="farming"] .layout, body[data-view="staking"] .layout{display:none}
+body[data-view="farming"] .layout, body[data-view="staking"] .layout, body[data-view="pool"] .layout{display:none}
 body[data-view="analytics"] .layout{grid-template-columns:minmax(0,1fr)}
 body[data-view="analytics"] .trade-card{display:none}
 body[data-view="swap"] .liquidity-card{display:none}
 body[data-view="liquidity"] .swap-card{display:none}
-#poolsSection,#lockerSection,#portfolioSection,#farmingSection,#stakingSection{display:none;margin-top:18px}
+#poolsSection,#poolDetailSection,#lockerSection,#portfolioSection,#farmingSection,#stakingSection{display:none;margin-top:18px}
 body[data-view="pools"] #poolsSection, body[data-view="locker"] #lockerSection, body[data-view="portfolio"] #portfolioSection,
-body[data-view="farming"] #farmingSection, body[data-view="staking"] #stakingSection{display:block}
+body[data-view="farming"] #farmingSection, body[data-view="staking"] #stakingSection, body[data-view="pool"] #poolDetailSection{display:block}
 body[data-view="analytics"] #poolsSection{display:block}
 body[data-view="swap"] .panel-positions{display:none}
 body[data-view="liquidity"] .panel-chart{display:none}
@@ -387,6 +387,42 @@ body[data-view="analytics"] .panel-positions{display:none}
 .pools-tools{display:flex;gap:10px;align-items:center;margin-bottom:16px}
 .pools-tools .search-box{flex:1;min-width:0}
 .pools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+/* Meteora-style Pools table (Sakura theme: black bg, pink accent) */
+.pool-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.pool-cats{display:flex;gap:6px;flex-wrap:wrap}
+.pool-cats button,.pool-sorts button{border:1px solid var(--line2);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer}
+.pool-cats button.sel,.pool-sorts button.sel{border-color:var(--pink);background:var(--pink-pale);color:var(--pink-dark)}
+.pool-sorts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.pool-sorts span{font-size:12px;font-weight:700;color:var(--muted)}
+.pool-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface);margin-top:12px}
+.pool-table{width:100%;min-width:820px;border-collapse:collapse;font-size:13.5px}
+.pool-table th,.pool-table td{padding:11px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.pool-table th:first-child,.pool-table td:first-child{text-align:left}
+.pool-table thead th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.pool-table thead th.sortable{cursor:pointer}
+.pool-table thead th.sortable.sel{color:var(--pink-dark)}
+.pool-table tbody tr{cursor:pointer}
+.pool-table tbody tr:hover{background:var(--surface2)}
+.pool-table tbody tr:last-child td{border-bottom:0}
+.pool-cell{display:flex;align-items:center;gap:9px;font-weight:800}
+.pool-cell small{display:block;font-weight:600;color:var(--muted);font-size:11.5px}
+.pool-table .num{font-variant-numeric:tabular-nums}
+/* Pool detail */
+.pd-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:14px}
+.pd-stats>div{border:1px solid var(--line);border-radius:12px;padding:12px}
+.pd-stats small{color:var(--muted);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;display:block}
+.pd-stats strong{font-size:16px}
+.claim-big{font-size:26px;font-weight:800;color:var(--pink-dark)}
+.claim-note{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:4px}
+.range-wrap input[type=range]{width:100%;accent-color:var(--pink)}
+.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:700}
+.pos-totals{display:flex;flex-wrap:wrap;gap:16px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:10px;font-size:13.5px}
+.pos-totals strong{font-size:15px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-row .btn{flex:1;min-width:140px;justify-content:center}
+.tag{display:inline-flex;align-items:center;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:800;vertical-align:middle}
+.tag-new{background:var(--pink-pale);color:var(--pink-dark)}
+.tag-legacy{background:var(--surface2);color:var(--muted)}
 .pool-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--surface);display:flex;flex-direction:column;box-shadow:var(--shadow)}
 .pool-card:hover{border-color:var(--line2)}
 .pc-head{display:flex;align-items:center;gap:11px;min-width:0}
@@ -752,7 +788,11 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   </div>
   <div class="page-head" id="headPools" hidden>
     <h1>Pools</h1>
-    <p>Every Uniswap V2 pool paired with LOOP on Sakura: price, pool value, reserves on both sides, locked LP, and recent trade activity — one card per pool. From here you can swap or add liquidity right away.</p>
+    <p>Every pool on Sakura — TVL, 24h volume and fees, live from the chain. Tap a row for the pool detail, your position and claimable fees.</p>
+  </div>
+  <div class="page-head" id="headPool" hidden>
+    <h1 id="headPoolTitle">Pool</h1>
+    <p>Pool detail — live reserves, 24h volume and fees, your position and claimable fees.</p>
   </div>
   <div class="page-head" id="headLocker" hidden>
     <h1>Token Locker</h1>
@@ -1071,6 +1111,12 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Your pool share</span><strong id="aShare"></strong></div>
           <div class="drow"><span>Router</span><strong id="aRoute"></strong></div>
         </div>
+        <div class="slip-row" id="addSlipRow" style="margin-top:12px"><span style="font-size:12px;font-weight:700;color:var(--muted)">Slippage</span>
+          <button type="button" data-slip="0.1">0.1%</button>
+          <button type="button" data-slip="0.5" class="sel">0.5%</button>
+          <button type="button" data-slip="1">1%</button>
+          <label class="slip-custom"><input id="addSlipCustom" inputmode="decimal" placeholder="Custom"/><span>%</span></label>
+        </div>
         <div class="thin-warn" id="addOracleWarn" role="alert"></div>
         <div class="form-err" id="addErr"></div>
         <button class="btn btn-primary" id="addAction" type="button" style="margin-top:14px">Connect Wallet</button>
@@ -1104,6 +1150,10 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <button type="button" data-pct="75">75%</button>
           <button type="button" data-pct="100">100%</button>
         </div>
+        <div class="range-wrap" style="margin-top:10px">
+          <input type="range" id="remSlider" min="0" max="100" step="25" value="0" aria-label="Remove percentage"/>
+          <div class="range-labels"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        </div>
         <div class="tbox" style="margin-top:10px">
           <div class="tb-top"><label for="remLpInput">LP amount to burn</label></div>
           <div class="tb-row"><input id="remLpInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/></div>
@@ -1112,9 +1162,11 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span id="rOutLoopLabel">You receive LOOP</span><strong id="rOutLoop"></strong></div>
           <div class="drow"><span>You receive tokens</span><strong id="rOutToken"></strong></div>
           <div class="drow"><span>Router</span><strong id="rRoute"></strong></div>
+          <div class="drow"><span>Total value</span><strong id="rOutUsd"></strong></div>
         </div>
         <div class="form-err" id="remErr"></div>
         <button class="btn btn-primary" id="remAction" type="button" style="margin-top:14px">Connect Wallet</button>
+        <p class="form-note"><strong>Unclaimed fees stay claimable after a full remove</strong> — the ledger keeps them. Claim anytime, no need to remove.</p>
         <p class="form-note">Only your own LP can be withdrawn. The graduation LP of every Sakura token is permanently locked in the locker and cannot be withdrawn by anyone.</p>
       </div>
 
@@ -1136,6 +1188,8 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <section class="card panel-positions" aria-label="Your liquidity positions">
         <div class="card-head"><h2>Your Liquidity Positions</h2></div>
         <p class="card-desc">LP you hold across all Sakura pools, with your share and underlying value.</p>
+        <div class="pos-totals" id="posTotals" style="display:none"></div>
+        <button type="button" class="btn btn-ghost" id="claimAllBtn" style="display:none;margin-top:10px">Claim all fees</button>
         <div id="positionsList"><div class="empty-note">Connect your wallet to see your LP across all Sakura pools.</div></div>
       </section>
 
@@ -1185,11 +1239,32 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     <div class="pools-tools">
       <div class="search-box">
         <svg class="ic" viewBox="0 0 24 24" style="width:17px;height:17px"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="poolSearch" placeholder="Search pools — token name or symbol…" autocomplete="off"/>
+        <input id="poolSearch" placeholder="Search pools — token name, symbol or address…" autocomplete="off"/>
       </div>
     </div>
-    <div class="pools-grid" id="pairsBody"></div>
-    <p class="form-note" style="margin-top:14px">Pool value is estimated as twice the LOOP reserve (50/50 pairs) and shown in USD at the current LOOP/USD rate. Volume and trade counts come from scanning on-chain Swap events over the last ±50,000 blocks (±24 hours); if the RPC fails to scan, that column is marked unavailable — never a made-up number. Stable pairs (TOKEN / tUSDC or tUSDT) are valued at twice the stablecoin reserve, since the stablecoin is $1; their volume and trade counts are not scanned yet.</p>
+    <div class="pool-tools">
+      <div class="pool-cats" id="poolCats">
+        <button type="button" data-cat="all" class="sel">All</button>
+        <button type="button" data-cat="mine">My positions</button>
+        <button type="button" data-cat="launchpad">Launchpad</button>
+        <button type="button" data-cat="assets">Assets</button>
+      </div>
+      <div class="pool-sorts" id="poolSorts">
+        <span>Sort by</span>
+        <button type="button" data-sort="vol" class="sel">Volume 24h</button>
+        <button type="button" data-sort="tvl">TVL</button>
+        <button type="button" data-sort="fees">Fees 24h</button>
+      </div>
+    </div>
+    <div class="pool-table-wrap"><table class="pool-table"><thead><tr>
+      <th>Pool</th><th class="sortable" data-sort="tvl">TVL</th><th class="sortable sel" data-sort="vol">Volume 24h</th><th class="sortable" data-sort="fees">Fees 24h</th><th>Fees / TVL</th><th>Fee</th><th></th>
+    </tr></thead><tbody id="pairsBody"></tbody></table></div>
+    <p class="form-note" style="margin-top:14px">TVL is the USD value of both reserves at the TestAssetPeg oracle price (stablecoins $1, xStocks and LOOP at oracle / market rate). Volume and fees come from scanning on-chain Swap events over the last ±50,000 blocks (±24 hours); a pool that has not been indexed yet shows "—" — never a made-up number. Tap a row for the pool detail, your position and claimable fees.</p>
+  </section>
+
+  <!-- ======= POOL DETAIL ======= -->
+  <section id="poolDetailSection" aria-label="Pool detail">
+    <div id="poolDetailBody"></div>
   </section>
 
   <!-- ======= TOKEN LOCKER ======= -->
@@ -1323,6 +1398,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <section class="card" aria-label="Your LP positions">
         <div class="card-head"><h2>Liquidity Positions (LP)</h2></div>
         <p class="card-desc">LP you hold across all pools, with your share and underlying value. Withdraw via the Liquidity page.</p>
+        <div class="pos-totals" id="pfPosTotals" style="display:none"></div>
         <div id="pfPositions"><div class="empty-note">Connect your wallet to see your LP.</div></div>
       </section>
       <section class="card" aria-label="Your token locks">
@@ -1532,16 +1608,15 @@ var CFG = {
      feeAsset = WLOOP, feeCreatorBps 5, feeProtocolBps 15, feeLpBps 10,
      feeTaxBps 100 (1%), feeGeneric 0. Graduation LP is locked in the
      new locker 0x0E70… (122,489.7 LP of pair 0).
-     WARNING — pair creation is gated on-chain: factory.createPair()
-     REVERTS for direct eth_call simulations from every tested caller
-     (owner, adapter, gen-7 launchpad) for every token pair, while the
-     same simulation on the Gen-5 factory SUCCEEDS (control test). New
-     pairs are therefore created through the launchpad/adapter flow, not
-     by a plain router call — the UI attempts addLiquidity and surfaces
-     any revert honestly instead of claiming creation works. The given
-     pair init-code hash 0x43223a33… does NOT reproduce the on-chain
-     pair-0 address under standard CREATE2 either, so the UI never
-     predicts pair addresses — it always reads factory.getPair(). */
+     CORRECTION (verified 2026-11-20, blocks 45397058–45397086): the
+     earlier "gated" finding did NOT reproduce — createPair(tUSDC,tUSDT)
+     eth_call returns 0x0D70EcC8fe38D322a4589d8594a6969B3990eEa1 from the
+     owner, the adapter AND the gen-7 launchpad (the earlier probe used
+     a wrong selector/ABI). The init-code hash 0x43223a33… DOES reproduce
+     the on-chain addresses under standard CREATE2 (G7GR/WLOOP =
+     0x9f837232…, tUSDT/tUSDC = 0x0D70EcC8…). New pairs are still created
+     through Router02.addLiquidity (which the factory authorises); the UI
+     never predicts pair addresses — it always reads factory.getPair(). */
   routerNew: '0xcB589238585c007e2B71ad104DA622057485b323',
   factoryNew: '0xb9696898Ff377D7dfCbFd9C9270972814173176b',
   adapterClaimDex: '0x77F971f3E9d26376b7E60b7E68D8719bEf186f4E',
@@ -1580,27 +1655,27 @@ var SAKURA_POOL_CREATED_BLOCK = 45268585;
 var TOKENS = {
   LOOP:  { symbol:'LOOP', name:'Loop Network', address:'NATIVE', decimals:18, color:'#2A2A2E' },
   WLOOP: { symbol:'WLOOP', name:'Wrapped LOOP', address:CFG.wloop, decimals:18, color:'#2A2A2E' },
-  SAKURA:{ symbol:'SAKURA', name:'Sakura Chan', address:'0x6D3855b49e65D7F4403Fef6e4d29068f068EF644',
+  SAKURA:{ symbol:'SAKURA', name:'Sakura Chan', address:'0x6D3855b49e65D7F4403Fef6e4d29068f068EF644', decimals:18,
            pool:'0x21Bf53996D7120d74915dF78bb9EA5662bACAfCA', vintage:'current', token0IsWloop:true,
            img:'data:image/jpeg;base64,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', color:'#E8437A', totalSupply:'1000000000', chartFrom:45268585,
            resLoop:'4.243', resToken:'131653824.14648102', lpSupply:'23634.872029556645', lpLocked:'23634.872029556645' },
-  MESIAH:{ symbol:'MESIAH', name:'Meowsiah', address:'0x3D7F729145a4CCEE11BBbfBE1A19F780e13Aab46',
+  MESIAH:{ symbol:'MESIAH', name:'Meowsiah', address:'0x3D7F729145a4CCEE11BBbfBE1A19F780e13Aab46', decimals:18,
            pool:'0xdEe7ef51e3DF913dFBAFae17E40D23DaBb107FF4', vintage:'legacy', token0IsWloop:false,
            color:'#2A9D8F', totalSupply:'1000000000',
            resLoop:'8.144905668873108', resToken:'31898538.920736704', lpSupply:'16068.065706850086', lpLocked:'16068.065706850086' },
-  GANGEL:{ symbol:'GANGEL', name:'Guardian Angel', address:'0x0135d8e27496f7A220eC509A02895Be94b3C41F1',
+  GANGEL:{ symbol:'GANGEL', name:'Guardian Angel', address:'0x0135d8e27496f7A220eC509A02895Be94b3C41F1', decimals:18,
            pool:'0x5f01Ea546EA95B478C8786b2B454C0af89a484b3', vintage:'current', token0IsWloop:false,
            color:'#D9A441', totalSupply:'1000000000',
            resLoop:'2.647382162860829', resToken:'193745703.66976488', lpSupply:'22629.14452245559', lpLocked:'22629.14452245559' },
-  SGL2:  { symbol:'SGL2', name:'Sakura Graduate Loop Test V2', address:'0xf94f605d56dDC7a126B911E7fBd28D31B2496d08',
+  SGL2:  { symbol:'SGL2', name:'Sakura Graduate Loop Test V2', address:'0xf94f605d56dDC7a126B911E7fBd28D31B2496d08', decimals:18,
            pool:'0x09Fb754ce66bb949340bD517d72aa45B53c6D941', vintage:'legacy', token0IsWloop:true,
            color:'#4C956C', totalSupply:'1000000000',
            resLoop:'0.00682', resToken:'848447296.3509045', lpSupply:'2404.966781314061', lpLocked:'2404.966781314061' },
-  SFSL:  { symbol:'SFSL', name:'Sakura Fee Split Loop Test', address:'0x8c2860a8709072598b9D454D6E22c49724915988',
+  SFSL:  { symbol:'SFSL', name:'Sakura Fee Split Loop Test', address:'0x8c2860a8709072598b9D454D6E22c49724915988', decimals:18,
            pool:'0x384FF6551D775b9995A84369b775F0B1BB52b95a', vintage:'current', token0IsWloop:true,
            color:'#5B8DEF', totalSupply:'1000000000',
            resLoop:'0.006721818897', resToken:'860726319.4122335', lpSupply:'2404.966781314061', lpLocked:'2404.966781314061' },
-  SG75:  { symbol:'SG75', name:'Sakura Graduation 75 Test', address:'0x8a758b0c238428ae4dd83ec0809d6e3d9d74ad92',
+  SG75:  { symbol:'SG75', name:'Sakura Graduation 75 Test', address:'0x8a758b0c238428ae4dd83ec0809d6e3d9d74ad92', decimals:18,
            pool:'0x3D50F9c56Fbde006e38CB32F8DA704836DA26724', vintage:'corrected', token0IsWloop:true,
            color:'#C05B2E', totalSupply:'1000000000',
            resLoop:'15.03965131911523', resToken:'999999999', lpSupply:'122488.98864727821', lpLocked:'122488.98864727821' },
@@ -1638,6 +1713,8 @@ var TOKEN_LIST = ['MESIAH','SAKURA','GANGEL','SGL2','SFSL','SG75'];
    (LOOP + the two test stablecoins + the 12 test xStocks). Stablecoins
    are the quote assets for Gen-5 (corrected-factory) V2 pairs. */
 var PEG_LIST = ['LOOP','tUSDC','tUSDT','tAAPLx','tNVDAx','tTSLAx','tGOOGLx','tAMZNx','tMSFTx','tMETAx','tGMEx','tCOINx','tMSTRx','tPLTRx','tSPYx'];
+var XSTOCK_LIST = ['tAAPLx','tNVDAx','tTSLAx','tGOOGLx','tAMZNx','tMSFTx','tMETAx','tGMEx','tCOINx','tMSTRx','tPLTRx','tSPYx'];
+function isXStock(sym){ return XSTOCK_LIST.indexOf(sym) >= 0; }
 var STABLE_LIST = ['tUSDC','tUSDT'];
 function isPegAsset(sym){ return PEG_LIST.indexOf(sym) >= 0; }
 function isStable(sym){ return STABLE_LIST.indexOf(sym) >= 0; }
@@ -1723,7 +1800,7 @@ var state = {
   addToken: 'MESIAH', remToken: 'MESIAH', addQuote: 'LOOP', remQuote: 'LOOP',
   remPool: null,       /* explicit pool address picked from the "Your LP Positions" list in the Remove tab — overrides the token/quote pair resolution so a pair that exists on two factories can be picked exactly; cleared whenever the token picker or quote buttons change the pair */
   lockToken: 'MESIAH', lockDays: 90,
-  chartSym: 'MESIAH', poolFilter: '',
+  chartSym: 'MESIAH', poolFilter: '', poolSort: 'vol', poolCat: 'all', poolDetail: null,
   rateFlipped: false, selectingFor: 'swapFrom'
 };
 
@@ -1822,7 +1899,19 @@ function fmtCompactUSD(usd){
 }
 function loopWeiToUsd(wei){ return Number(weiToRaw(wei, 18)) * loopUsd; }
 function fmtLoopUSD(wei, maxFrac){ return fmtUSD(loopWeiToUsd(wei), maxFrac); }
-function tokenPriceUsd(t){ return priceLoopPerToken(t) * loopUsd; }
+function tokenPriceUsd(t){
+  var p = priceLoopPerToken(t) * loopUsd;
+  if(p > 0) return p;
+  /* No LOOP pool — price from the token's stable pair (stablecoin = $1).
+     This is what prices a stable-quote import (e.g. TSHIBA/tUSDC). */
+  if(t.stablePools){
+    for(var s in t.stablePools){
+      var sp = t.stablePools[s];
+      if(sp && sp.pool){ var v = stableTokenPriceUsd(t, sp); if(v > 0) return v; }
+    }
+  }
+  return 0;
+}
 function fmtTokenUSD(t){ return fmtUSDPrice(tokenPriceUsd(t)); }
 function marketCapUsd(t){
   if(!t || !t.totalSupply) return null;
@@ -2138,241 +2227,137 @@ function clearToasts(){ el('toastWrap').innerHTML = ''; }
 
 /* ---------- Render: pool cards, positions, portfolio ---------- */
 var poolActivity = {}; /* sym -> { vol: string, trades: string } hasil scan event Swap */
-function renderPairs(){
-  var grid = el('pairsBody');
-  var f = (state.poolFilter || '').trim().toLowerCase();
-  var syms = TOKEN_LIST.filter(function(sym){
-    var t = TOKENS[sym];
-    return !f || t.symbol.toLowerCase().indexOf(f) >= 0 || t.name.toLowerCase().indexOf(f) >= 0;
-  });
-  var cards = syms.map(function(sym){
-    var t = TOKENS[sym];
-    var lockPct = t.lpSupplyWei > 0n ? Number(t.lpLockedWei * 10000n / t.lpSupplyWei) / 100 : 0;
-    var act = poolActivity[sym];
-    var tvl = t.resLoopWei * 2n;
-    return '<article class="pool-card">' +
-      '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(TOKENS.LOOP, 38) + '</span>' +
-      '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / LOOP</strong><small>' + esc(t.name) + '</small></span>' +
-      '<span class="soon-tag pc-tag">' + vintageOf(t).tag + '</span></div>' +
-      '<div class="pc-stats">' +
-      '<div><small>Price</small><strong>' + fmtTokenUSD(t) + '</strong></div>' +
-      '<div><small>Pool Value (±)</small><strong>' + fmtLoopUSD(tvl) + '</strong></div>' +
-      '<div><small>LOOP Reserve (value)</small><strong>' + fmtLoopUSD(t.resLoopWei) + '</strong></div>' +
-      '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(t.resTokenWei, 18, 0) + '</strong></div>' +
-      '<div><small>Locked LP</small><strong>' + fmtNum(lockPct, 0) + '%</strong></div>' +
-      '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + t.pool + '" target="_blank" rel="noopener">' + shortAddr(t.pool) + ' ↗</a></strong></div>' +
-      '<div><small>Volume ±24h</small><strong id="pcVol-' + sym + '">' + (act ? esc(act.vol) : 'Scanning…') + '</strong></div>' +
-      '<div><small>Trades ±24h</small><strong id="pcTrades-' + sym + '">' + (act ? esc(act.trades) : '…') + '</strong></div>' +
-      '</div>' +
-      '<div class="pc-actions">' +
-      '<button type="button" class="btn btn-primary" data-act="swap" data-sym="' + sym + '">Swap</button>' +
-      '<button type="button" class="btn btn-ghost" data-act="add" data-sym="' + sym + '">Add Liquidity</button>' +
-      '</div></article>';
-  }).join('');
-  /* Gen-5 stable-pair cards (TOKEN / tUSDC or tUSDT) — only for pairs
-     that actually exist on-chain; until the first stable-pair graduation
-     this list is empty and nothing is shown. Pool value is twice the
-     stablecoin reserve, since the stablecoin is $1. */
-  /* One stable-pair card (graduated token / tUSDC or tUSDT). Used for
-     the preferred record and, when the pair exists on both factories,
-     for the legacy half as its own card. */
-  function stablePoolCard(sym, stSym, sp){
-    if(!sp || !sp.pool) return '';
-    var t = TOKENS[sym];
-    if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && stSym.toLowerCase().indexOf(f) < 0) return '';
-    var tvlUsd = Number(weiToRaw(sp.resStableWei, 6)) * 2;
-    var priceUsd = stableTokenPriceUsd(t, sp);
-    var spRec = sp.vintage === 'gen7' ? claimableOf(sp.pool) : null;
-    return '<article class="pool-card">' +
-      '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(TOKENS[stSym], 38) + '</span>' +
-      '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(stSym) + '</strong><small>' + esc(t.name) + '</small></span>' +
-      '<span class="soon-tag pc-tag">' + (sp.vintage === 'gen7' ? 'Gen-7 stable' : 'Gen-5 stable') + '</span></div>' +
-      '<div class="pc-stats">' +
-      '<div><small>Price</small><strong>' + fmtUSDPrice(priceUsd) + '</strong></div>' +
-      '<div><small>Pool Value (±)</small><strong>' + fmtUSD(tvlUsd) + '</strong></div>' +
-      '<div><small>' + esc(stSym) + ' Reserve (value)</small><strong>' + fmtUSD(Number(weiToRaw(sp.resStableWei, 6))) + '</strong></div>' +
-      '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(sp.resTokenWei, 18, 0) + '</strong></div>' +
-      '<div><small>LP Supply</small><strong>' + fmtLp(sp.lpSupplyWei) + '</strong></div>' +
-      '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + sp.pool + '" target="_blank" rel="noopener">' + shortAddr(sp.pool) + ' ↗</a></strong></div>' +
-      (sp.vintage === 'gen7' ? '<div><small>Claimable fees</small><strong>' + (spRec ? fmtWei(spRec.amount || 0n, claimAssetDecimals(spRec.asset), 6) + ' ' + spRec.assetSym : '—') + '</strong></div>' +
-      '<div><small>Fee policy</small><strong>' + (spRec && spRec.lpBps !== null && spRec.lpBps !== undefined ? ('LP ' + bpsTxt(spRec.lpBps) + ' · creator ' + bpsTxt(spRec.creatorBps) + ' · platform ' + bpsTxt(spRec.protocolBps) + (spRec.taxBps ? ' · + ' + bpsTxt(spRec.taxBps) + ' tax' : '')) : '—') + '</strong></div>' : '') +
-      '<div><small>Volume ±24h</small><strong>—</strong></div>' +
-      '<div><small>Trades ±24h</small><strong>—</strong></div>' +
-      '</div>' +
-      '<div class="pc-actions">' +
-      '<button type="button" class="btn btn-primary" data-swap-stable="' + sym + '|' + stSym + '">Swap</button>' +
-      '<button type="button" class="btn btn-ghost" data-add-stable="' + sym + '|' + stSym + '">Add Liquidity</button>' +
-      (spRec && spRec.amount > 0n ? '<button type="button" class="btn btn-ghost" data-claim="' + sp.pool + '">Claim fees</button>' : '') +
-      '</div></article>';
+/* ================= POOLS TABLE (Meteora-style, Sakura theme) ================= */
+var poolActivityByAddr = {}; /* pair address (lowercase) -> { volUsd: number|null, tradesN: number|null } */
+/* One row per live pool, deduped by pair address. A pair that exists on
+   both factories appears twice (Legacy + New) — each is a real pool. */
+function collectPools(){
+  var byAddr = {};
+  function add(pool, tokenSym, quoteSym, vintage, lpSupplyWei, resAWei, resBWei){
+    if(!pool) return;
+    var key = pool.toLowerCase();
+    if(byAddr[key]) return;
+    var t = TOKENS[tokenSym], q = TOKENS[quoteSym];
+    if(!t || !q) return;
+    var rec = null;
+    try{ rec = claimableOf(pool); }catch(e){ rec = null; }
+    byAddr[key] = { pool: pool, tokenSym: tokenSym, quoteSym: quoteSym, vintage: vintage,
+      taxBps: (rec && rec.taxBps) ? rec.taxBps : 0,
+      lpSupplyWei: lpSupplyWei || 0n, resAWei: resAWei || 0n, resBWei: resBWei || 0n };
   }
-  var sCards = [];
   TOKEN_LIST.forEach(function(sym){
     var t = TOKENS[sym];
+    add(t.pool, sym, 'LOOP', t.vintage || 'current', t.lpSupplyWei, t.resTokenWei, t.resLoopWei);
     if(t.stablePools) STABLE_LIST.forEach(function(stSym){
-      var c = stablePoolCard(sym, stSym, t.stablePools[stSym]);
-      if(c) sCards.push(c);
+      var sp = t.stablePools[stSym];
+      if(sp && sp.pool) add(sp.pool, sym, stSym, sp.vintage || 'corrected', sp.lpSupplyWei, sp.resTokenWei, sp.resStableWei);
     });
-    /* Legacy half of a dual-factory stable pair: its own card, so the
-       old pool stays visible on the Pools page. */
     if(t.stablePoolsLegacy) STABLE_LIST.forEach(function(stSym){
-      var c2 = stablePoolCard(sym, stSym, t.stablePoolsLegacy[stSym]);
-      if(c2) sCards.push(c2);
+      var lsp = t.stablePoolsLegacy[stSym];
+      if(lsp && lsp.pool) add(lsp.pool, sym, stSym, lsp.vintage || 'corrected', lsp.lpSupplyWei, lsp.resTokenWei, lsp.resStableWei);
     });
   });
-  /* Gen-5 pair cards (xStock / stable, xStock / LOOP, xStock / xStock,
-     tUSDC / tUSDT, graduated / xStock) — only for pairs that actually
-     exist on-chain; until the first one is created this list is empty.
-     Graduated/stable pairs are already shown as stable cards above. */
-  var g5Cards = [];
-  var seenG5 = {};
   Object.keys(TOKENS).forEach(function(sym){
     var t = TOKENS[sym];
-    if(!t.gen5Pairs) return;
-    Object.keys(t.gen5Pairs).forEach(function(oSym){
-      var gp = t.gen5Pairs[oSym];
-      if(!gp || !gp.pool) return;
-      if(seenG5[gp.pool.toLowerCase()]) return;
-      seenG5[gp.pool.toLowerCase()] = true;
-      if(isGraduated(sym) && isStable(oSym)) return; /* already a stable card */
-      var o = TOKENS[oSym];
-      if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && oSym.toLowerCase().indexOf(f) < 0 && (o.name || '').toLowerCase().indexOf(f) < 0) return;
-      var tvlUsd = gen5PairUsdValue(sym, oSym, gp);
-      var price = gen5PairPrice(sym, oSym, gp);
-      var tag = (isPegAsset(sym) && isPegAsset(oSym)) ? 'Gen-5 · peg' : 'Gen-5';
-      g5Cards.push('<article class="pool-card">' +
-        '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(o, 38) + '</span>' +
-        '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(oSym) + '</strong><small>' + esc(t.name) + ' · ' + esc(o.name) + '</small></span>' +
-        '<span class="soon-tag pc-tag">' + tag + '</span></div>' +
-        '<div class="pc-stats">' +
-        '<div><small>Price</small><strong>' + (price !== null ? ('1 ' + esc(t.symbol) + ' ≈ ' + fmtNum(price, 6) + ' ' + esc(oSym)) : '—') + '</strong></div>' +
-        '<div><small>Pool Value (±)</small><strong>' + (tvlUsd !== null ? fmtUSD(tvlUsd) : '—') + '</strong></div>' +
-        '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(gp.resTokenWei, t.decimals, 0) + '</strong></div>' +
-        '<div><small>' + esc(oSym) + ' Reserve</small><strong>' + fmtWei(gp.resOtherWei, o.decimals, 0) + '</strong></div>' +
-        '<div><small>LP Supply</small><strong>' + fmtLp(gp.lpSupplyWei) + '</strong></div>' +
-        '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + gp.pool + '" target="_blank" rel="noopener">' + shortAddr(gp.pool) + ' ↗</a></strong></div>' +
-        '<div><small>Volume ±24h</small><strong>—</strong></div>' +
-        '<div><small>Trades ±24h</small><strong>—</strong></div>' +
-        '</div>' +
-        '<div class="pc-actions">' +
-        '<button type="button" class="btn btn-primary" data-g5-swap="' + sym + '|' + oSym + '">Swap</button>' +
-        '<button type="button" class="btn btn-ghost" data-g5-add="' + sym + '|' + oSym + '">Add Liquidity</button>' +
-        '</div></article>');
+    ['gen5Pairs', 'gen7Pairs'].forEach(function(key){
+      if(!t[key]) return;
+      Object.keys(t[key]).forEach(function(oSym){
+        var gp = t[key][oSym];
+        if(!gp || !gp.pool) return;
+        if(isGraduated(sym) && isStable(oSym)) return; /* already a stable row */
+        add(gp.pool, sym, oSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei, gp.resTokenWei, gp.resOtherWei);
+      });
     });
   });
-  /* Gen-7 pair cards (xStock / stable, xStock / LOOP, xStock / xStock,
-     tUSDC / tUSDT, graduated / xStock) — only for pairs that actually
-     exist on the NEW factory; until the first one is created this list
-     is empty. Graduated/stable pairs are already shown as stable cards
-     above. Each card shows the fee policy and the connected wallet's
-     claimable LP fee, with a Claim button. */
-  var g7Cards = [];
-  var seenG7 = {};
-  Object.keys(TOKENS).forEach(function(sym){
-    var t = TOKENS[sym];
-    if(!t.gen7Pairs) return;
-    Object.keys(t.gen7Pairs).forEach(function(oSym){
-      var gp = t.gen7Pairs[oSym];
-      if(!gp || !gp.pool) return;
-      if(seenG7[gp.pool.toLowerCase()]) return;
-      seenG7[gp.pool.toLowerCase()] = true;
-      if(isGraduated(sym) && isStable(oSym)) return; /* already a stable card */
-      var o = TOKENS[oSym];
-      if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && oSym.toLowerCase().indexOf(f) < 0 && (o.name || '').toLowerCase().indexOf(f) < 0) return;
-      var tvlUsd = gen5PairUsdValue(sym, oSym, gp);
-      var price = gen5PairPrice(sym, oSym, gp);
-      var rec7 = claimableOf(gp.pool);
-      g7Cards.push('<article class="pool-card">' +
-        '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(o, 38) + '</span>' +
-        '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(oSym) + '</strong><small>' + esc(t.name) + ' · ' + esc(o.name) + '</small></span>' +
-        '<span class="soon-tag pc-tag">Gen-7 · claimable fees</span></div>' +
-        '<div class="pc-stats">' +
-        '<div><small>Price</small><strong>' + (price !== null ? ('1 ' + esc(t.symbol) + ' ≈ ' + fmtNum(price, 6) + ' ' + esc(oSym)) : '—') + '</strong></div>' +
-        '<div><small>Pool Value (±)</small><strong>' + (tvlUsd !== null ? fmtUSD(tvlUsd) : '—') + '</strong></div>' +
-        '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(gp.resTokenWei, t.decimals, 0) + '</strong></div>' +
-        '<div><small>' + esc(oSym) + ' Reserve</small><strong>' + fmtWei(gp.resOtherWei, o.decimals, 0) + '</strong></div>' +
-        '<div><small>LP Supply</small><strong>' + fmtLp(gp.lpSupplyWei) + '</strong></div>' +
-        '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + gp.pool + '" target="_blank" rel="noopener">' + shortAddr(gp.pool) + ' ↗</a></strong></div>' +
-        '<div><small>Claimable fees</small><strong>' + (rec7 ? fmtWei(rec7.amount || 0n, claimAssetDecimals(rec7.asset), 6) + ' ' + rec7.assetSym : '—') + '</strong></div>' +
-        '<div><small>Fee policy</small><strong>' + (rec7 && rec7.lpBps !== null && rec7.lpBps !== undefined ? ('LP ' + bpsTxt(rec7.lpBps) + ' · creator ' + bpsTxt(rec7.creatorBps) + ' · platform ' + bpsTxt(rec7.protocolBps) + (rec7.taxBps ? ' · + ' + bpsTxt(rec7.taxBps) + ' tax' : '')) : '—') + '</strong></div>' +
-        '</div>' +
-        '<div class="pc-actions">' +
-        '<button type="button" class="btn btn-primary" data-g7-swap="' + sym + '|' + oSym + '">Swap</button>' +
-        '<button type="button" class="btn btn-ghost" data-g7-add="' + sym + '|' + oSym + '">Add Liquidity</button>' +
-        (rec7 && rec7.amount > 0n ? '<button type="button" class="btn btn-ghost" data-claim="' + gp.pool + '">Claim fees</button>' : '') +
-        '</div></article>');
-    });
+  return Object.keys(byAddr).map(function(k){ return byAddr[k]; });
+}
+/* USD value of one reserve side; null while its price is not loaded. */
+function poolSideUsd(wei, sym){
+  if(wei === 0n) return 0; /* zero of anything is $0 — never let an unpriced zero blank a total */
+  var pr = usdPriceOf(sym);
+  if(pr === null || pr === undefined) return null;
+  return Number(weiToRaw(wei, TOKENS[sym].decimals)) * pr;
+}
+function poolTvlUsd(row){
+  var a = poolSideUsd(row.resAWei, row.tokenSym);
+  var b = poolSideUsd(row.resBWei, row.quoteSym);
+  if(a === null || b === null) return null;
+  return a + b;
+}
+/* 24h volume in USD from the per-address Swap scan; null = not indexed yet. */
+function poolVolUsd(row){
+  var rec = poolActivityByAddr[(row.pool || '').toLowerCase()];
+  if(!rec || rec.volUsd === null || rec.volUsd === undefined) return null;
+  return rec.volUsd;
+}
+function poolFeesUsd(row){
+  var v = poolVolUsd(row);
+  if(v === null) return null;
+  return v * (0.003 + (row.taxBps || 0) / 10000);
+}
+function poolFeeText(row){
+  var s = '0.3%';
+  if(row.taxBps) s += ' + ' + fmtNum(row.taxBps / 100, 2) + '% tax';
+  return s;
+}
+function poolIsLaunchpad(row){ return isGraduated(row.tokenSym) || isGraduated(row.quoteSym); }
+function poolIsAsset(row){
+  return isStable(row.tokenSym) || isStable(row.quoteSym) || isXStock(row.tokenSym) || isXStock(row.quoteSym);
+}
+function renderPairs(){
+  var body = el('pairsBody');
+  if(!body) return;
+  var pools = collectPools();
+  var f = (state.poolFilter || '').trim().toLowerCase();
+  if(f) pools = pools.filter(function(p){
+    var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
+    var hay = (t.symbol + ' ' + t.name + ' ' + q.symbol + ' ' + q.name + ' ' + p.pool).toLowerCase();
+    return hay.indexOf(f) >= 0;
   });
-  if(!syms.length && !sCards.length && !g5Cards.length && !g7Cards.length){
-    grid.innerHTML = '<div class="empty-note" style="grid-column:1/-1">No pools match that search.</div>';
+  if(state.poolCat === 'launchpad') pools = pools.filter(poolIsLaunchpad);
+  else if(state.poolCat === 'assets') pools = pools.filter(poolIsAsset);
+  else if(state.poolCat === 'mine'){
+    var mine = {};
+    collectUserPositions().forEach(function(p){ mine[p.pool.toLowerCase()] = true; });
+    pools = pools.filter(function(p){ return mine[p.pool.toLowerCase()]; });
+  }
+  pools.forEach(function(p){
+    p._tvl = poolTvlUsd(p); p._vol = poolVolUsd(p); p._fees = poolFeesUsd(p);
+  });
+  var key = state.poolSort || 'vol';
+  pools.sort(function(a, b){
+    var av = key === 'tvl' ? a._tvl : (key === 'fees' ? a._fees : a._vol);
+    var bv = key === 'tvl' ? b._tvl : (key === 'fees' ? b._fees : b._vol);
+    if(av === null && bv === null) return 0;
+    if(av === null) return 1;
+    if(bv === null) return -1;
+    return bv - av;
+  });
+  /* Keep the sort headers in sync with the active sort. */
+  document.querySelectorAll('.pool-table th.sortable').forEach(function(th){
+    th.classList.toggle('sel', th.getAttribute('data-sort') === key);
+  });
+  if(!pools.length){
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">' + (state.poolCat === 'mine' && !state.account ? 'Connect your wallet to see your positions.' : 'No pools match this filter yet.') + '</td></tr>';
     return;
   }
-  grid.innerHTML = cards + sCards.join('') + g5Cards.join('') + g7Cards.join('');
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-act]'), function(btn){
-    btn.addEventListener('click', function(){
-      var sym = btn.getAttribute('data-sym');
-      if(btn.getAttribute('data-act') === 'swap'){
-        state.swap.from = 'LOOP'; state.swap.to = sym; state.swap.lastEdited = 'from';
-        syncSwapTokenButtons(); renderBalances(); updateSwap();
-        showView('swap'); setChartSym(sym);
-      } else {
-        state.addToken = sym;
-        syncAddTokenButton(); renderBalances(); updateAdd();
-        showView('liquidity'); setMode('add');
-      }
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-swap-stable]'), function(btn){
-    btn.addEventListener('click', function(){
-      var parts = btn.getAttribute('data-swap-stable').split('|');
-      state.swap.from = parts[1]; state.swap.to = parts[0]; state.swap.lastEdited = 'from';
-      syncSwapTokenButtons(); renderBalances(); updateSwap();
-      showView('swap'); setChartSym(parts[0]);
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-add-stable]'), function(btn){
-    btn.addEventListener('click', function(){
-      var parts = btn.getAttribute('data-add-stable').split('|');
-      state.addToken = parts[0]; state.addQuote = parts[1];
-      syncAddTokenButton(); syncAddQuoteButton(); renderBalances(); updateAdd();
-      showView('liquidity'); setMode('add');
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-g5-swap]'), function(btn){
-    btn.addEventListener('click', function(){
-      var parts = btn.getAttribute('data-g5-swap').split('|');
-      state.swap.from = parts[0]; state.swap.to = parts[1]; state.swap.lastEdited = 'from';
-      syncSwapTokenButtons(); renderBalances(); updateSwap();
-      showView('swap'); setChartSym(parts[1]);
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-g5-add]'), function(btn){
-    btn.addEventListener('click', function(){
-      var parts = btn.getAttribute('data-g5-add').split('|');
-      state.addToken = parts[0]; state.addQuote = parts[1];
-      syncAddTokenButton(); syncAddQuoteButton(); renderBalances(); updateAdd();
-      showView('liquidity'); setMode('add');
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-g7-swap]'), function(btn){
-    btn.addEventListener('click', function(){
-      var parts = btn.getAttribute('data-g7-swap').split('|');
-      state.swap.from = parts[0]; state.swap.to = parts[1]; state.swap.lastEdited = 'from';
-      syncSwapTokenButtons(); renderBalances(); updateSwap();
-      showView('swap'); setChartSym(parts[1]);
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-g7-add]'), function(btn){
-    btn.addEventListener('click', function(){
-      var parts = btn.getAttribute('data-g7-add').split('|');
-      state.addToken = parts[0]; state.addQuote = parts[1];
-      syncAddTokenButton(); syncAddQuoteButton(); renderBalances(); updateAdd();
-      showView('liquidity'); setMode('add');
-    });
-  });
-  Array.prototype.forEach.call(grid.querySelectorAll('button[data-claim]'), function(btn){
-    btn.addEventListener('click', function(){ doClaimFees(btn.getAttribute('data-claim')); });
-  });
+  body.innerHTML = pools.map(function(p){
+    var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
+    var label = (p.vintage === 'gen7') ? 'New' : 'Legacy';
+    var feesTvl = (p._fees !== null && p._tvl !== null && p._tvl > 0) ? fmtNum(p._fees / p._tvl * 100, 2) + '%' : '—';
+    return '<tr data-pool="' + esc(p.pool) + '">'
+      + '<td><div class="pool-cell">' + avatarHtml(t) + avatarHtml(q)
+      + '<div>' + esc(t.symbol) + ' / ' + esc(q.symbol)
+      + '<small>' + esc(label) + ' · ' + esc(shortAddr(p.pool)) + '</small></div></div></td>'
+      + '<td class="num">' + (p._tvl === null ? '—' : fmtUSD(p._tvl)) + '</td>'
+      + '<td class="num">' + (p._vol === null ? '—' : fmtUSD(p._vol)) + '</td>'
+      + '<td class="num">' + (p._fees === null ? '—' : fmtUSD(p._fees)) + '</td>'
+      + '<td class="num">' + feesTvl + '</td>'
+      + '<td class="num">' + esc(poolFeeText(p)) + '</td>'
+      + '<td><span class="linklike">Detail →</span></td></tr>';
+  }).join('');
 }
+
 var lastActivityScan = 0;
 async function loadPoolActivity(){
   var now = Date.now();
@@ -2412,7 +2397,302 @@ async function loadPoolActivity(){
     }));
   }catch(e){ failAll(); }
   if(typeof renderHomeExtras === 'function') renderHomeExtras();
+  renderPairs();
+  try{ await loadPoolActivityByAddr(); }catch(e){ /* table keeps "—" for un-scanned pools */ }
 }
+/* Per-pair 24h volume scan for the Pools table: every live pool (all
+   vintages), volume in USD on the peg/quote side of the pair. Runs after
+   the LOOP-pair scan above, inside the same 2-minute throttle. A pool
+   whose scan fails keeps volUsd null and shows "—" — never a made-up
+   number. */
+async function loadPoolActivityByAddr(){
+  if(!window.ethers) return;
+  try{
+    var rp = getReadProvider();
+    var latest = await withTimeout(rp.getBlockNumber(), 30000, 'blockNumber');
+    var from = Math.max(0, latest - 50000);
+    var pools = collectPools();
+    var seen = {};
+    await Promise.all(pools.map(async function(p){
+      var key = (p.pool || '').toLowerCase();
+      if(!key || seen[key]) return;
+      seen[key] = true;
+      try{
+        var pair = new ethers.Contract(p.pool, PAIR_ABI, rp);
+        var logs = await withTimeout(pair.queryFilter('Swap', from, latest), 45000, 'scan pool volume');
+        var qSym = (PEG_LIST.indexOf(p.quoteSym) >= 0) ? p.quoteSym
+          : (PEG_LIST.indexOf(p.tokenSym) >= 0 ? p.tokenSym : null);
+        if(!qSym){ poolActivityByAddr[key] = { volUsd: null, tradesN: logs.length }; return; }
+        var t0 = (await withTimeout(pair.token0(), 20000, 'scan token0')).toLowerCase();
+        var qAddr = (qSym === 'LOOP') ? CFG.wloop : TOKENS[qSym].address;
+        var qIs0 = t0 === (qAddr || '').toLowerCase();
+        var sum = 0n;
+        logs.forEach(function(lg){
+          var a = lg.args;
+          var d = qIs0 ? (a.amount0In - a.amount0Out) : (a.amount1In - a.amount1Out);
+          sum += d < 0n ? -d : d;
+        });
+        var price = usdPriceOf(qSym);
+        poolActivityByAddr[key] = { volUsd: (price === null || price === undefined) ? null : Number(weiToRaw(sum, TOKENS[qSym].decimals)) * price, tradesN: logs.length };
+      }catch(e){
+        poolActivityByAddr[key] = { volUsd: null, tradesN: null };
+      }
+    }));
+  }catch(e){ /* leave un-scanned pools at "—" */ }
+  renderPairs();
+}
+/* ================= POOL DETAIL ================= */
+function poolRowByAddr(addr){
+  if(!addr) return null;
+  var pools = collectPools();
+  for(var i = 0; i < pools.length; i++) if(pools[i].pool.toLowerCase() === String(addr).toLowerCase()) return pools[i];
+  return null;
+}
+function openPoolDetail(poolAddr){
+  state.poolDetail = poolAddr;
+  showView('pool');
+}
+function renderPoolDetail(){
+  var body = el('poolDetailBody');
+  if(!body) return;
+  var row = poolRowByAddr(state.poolDetail);
+  if(!row){
+    body.innerHTML = '<div class="card"><div class="empty-note">Pool not found. <button type="button" class="btn btn-ghost" id="pdBackBtn2">Back to Pools</button></div></div>';
+    var b2 = el('pdBackBtn2'); if(b2) b2.addEventListener('click', function(){ showView('pools'); });
+    return;
+  }
+  var t = TOKENS[row.tokenSym], q = TOKENS[row.quoteSym];
+  var label = (row.vintage === 'gen7') ? 'New' : 'Legacy';
+  var tvl = poolTvlUsd(row), vol = poolVolUsd(row), fees = poolFeesUsd(row);
+  var priceA = (row.resAWei > 0n && row.resBWei > 0n) ? Number(weiToRaw(row.resBWei, q.decimals)) / Number(weiToRaw(row.resAWei, t.decimals)) : null;
+  var pq = usdPriceOf(row.quoteSym);
+  var priceUsd = (priceA !== null && pq !== null && pq !== undefined) ? priceA * pq : null;
+  var pos = null;
+  if(state.account) collectUserPositions().forEach(function(pp){ if(pp.pool.toLowerCase() === row.pool.toLowerCase()) pos = pp; });
+  var claimRec = claimableOf(row.pool);
+  var claimAmt = claimRec ? (claimRec.amount || 0n) : 0n;
+  var claimSym = claimRec ? claimRec.assetSym : '';
+  var claimDec = claimRec ? claimAssetDecimals(claimRec.asset) : 18;
+  var posUsd = null;
+  if(pos){
+    var va = poolSideUsd(pos.valA, row.tokenSym), vb = poolSideUsd(pos.valB, row.quoteSym);
+    if(va !== null && vb !== null) posUsd = va + vb;
+  }
+  var posHtml;
+  if(!state.account) posHtml = '<div class="empty-note">Connect your wallet to see your position in this pool.</div>';
+  else if(!pos) posHtml = '<div class="empty-note">You don\'t have LP in this pool yet.</div>';
+  else posHtml = '<div class="pd-stats" style="margin-top:0">'
+    + '<div><small>Your share</small><strong>' + fmtNum(pos.share, 2) + '%</strong></div>'
+    + '<div><small>Your value</small><strong>' + esc(fmtWei(pos.valA, t.decimals, 4)) + ' ' + esc(t.symbol) + ' + ' + esc(fmtWei(pos.valB, q.decimals, 4)) + ' ' + esc(q.symbol) + '</strong><br/><small>' + (posUsd === null ? '—' : fmtUSD(posUsd)) + ' total</small></div>'
+    + '<div><small>Claimable fees</small><strong class="claim-big">' + esc(fmtWei(claimAmt, claimDec, 6)) + ' ' + esc(claimSym) + '</strong><br/><small class="claim-note">Claim anytime — no need to remove.</small></div>'
+    + '</div>';
+  body.innerHTML = '<div class="card">'
+    + '<div class="card-head"><h2><span style="display:inline-flex">' + avatarHtml(t, 30) + avatarHtml(q, 30) + '</span> ' + esc(t.symbol) + ' / ' + esc(q.symbol) + ' <span class="tag ' + (row.vintage === 'gen7' ? 'tag-new' : 'tag-legacy') + '">' + esc(label) + '</span></h2><button type="button" class="btn btn-ghost" id="pdBackBtn">← Pools</button></div>'
+    + '<div class="pd-stats">'
+    + '<div><small>TVL</small><strong>' + (tvl === null ? '—' : fmtUSD(tvl)) + '</strong></div>'
+    + '<div><small>Volume 24h</small><strong>' + (vol === null ? '—' : fmtUSD(vol)) + '</strong></div>'
+    + '<div><small>Fees 24h</small><strong>' + (fees === null ? '—' : fmtUSD(fees)) + '</strong></div>'
+    + '<div><small>Price</small><strong>' + (priceA === null ? '—' : '1 ' + esc(t.symbol) + ' = ' + fmtNum(priceA, 6) + ' ' + esc(q.symbol)) + '</strong><br/><small>' + (priceUsd === null ? '' : '≈ ' + fmtUSDPrice(priceUsd) + ' per ' + esc(t.symbol)) + '</small></div>'
+    + '<div><small>Pool fee</small><strong>' + esc(poolFeeText(row)) + '</strong></div>'
+    + '</div>'
+    + '<div class="chart-wrap" style="margin-top:14px"><div class="chart-empty" id="pdChartEmpty">Loading swap history from the chain…</div><svg id="pdChartSvg" viewBox="0 0 640 220" style="display:none" role="img" aria-label="Price chart"></svg></div>'
+    + '<div class="card" style="margin-top:14px;box-shadow:none"><div class="card-head"><h2>Your position</h2></div>' + posHtml + '</div>'
+    + '<div class="btn-row" style="margin-top:14px">'
+    + '<button type="button" class="btn btn-primary" id="pdAddBtn">Add Liquidity</button>'
+    + '<button type="button" class="btn btn-ghost" id="pdRemoveBtn">Remove</button>'
+    + '<button type="button" class="btn btn-ghost" id="pdClaimBtn"' + (claimAmt > 0n ? '' : ' disabled') + '>Claim Fees' + (claimAmt > 0n ? ' (' + esc(fmtWei(claimAmt, claimDec, 4)) + ' ' + esc(claimSym) + ')' : '') + '</button>'
+    + '</div>'
+    + '<p class="form-note" style="margin-top:10px">Claiming fees never touches your LP — unclaimed fees stay claimable even after a full remove.</p>'
+    + '<div class="card" style="margin-top:14px;box-shadow:none"><div class="card-head"><h2>Recent swaps · ' + esc(t.symbol) + ' / ' + esc(q.symbol) + '</h2></div><ul class="trades-list" id="pdTradesList"><li><span style="color:var(--muted)">Loading from the chain…</span></li></ul></div>'
+    + '</div>';
+  var ht = el('headPoolTitle'); if(ht) ht.textContent = t.symbol + ' / ' + q.symbol;
+  el('pdBackBtn').addEventListener('click', function(){ showView('pools'); });
+  el('pdAddBtn').addEventListener('click', function(){ openAddForPool(row.pool); });
+  el('pdRemoveBtn').addEventListener('click', function(){ openRemoveForPool(row.pool); });
+  el('pdClaimBtn').addEventListener('click', async function(){
+    await doClaimFees(row.pool);
+    renderPoolDetail(); renderPairs(); renderPositions();
+  });
+  loadPoolChart(row);
+}
+/* Price chart for ONE pool — the same Swap-event scan + running-reserves
+   technique as loadChart, but parameterized by pair address, so it works
+   for any pair (LOOP, stable or xStock), not only TOKEN/LOOP. */
+var pdChartReq = 0;
+async function loadPoolChart(row){
+  var req = ++pdChartReq;
+  var empty = el('pdChartEmpty'), svg = el('pdChartSvg'), list = el('pdTradesList');
+  if(!empty || !svg) return;
+  var t = TOKENS[row.tokenSym], q = TOKENS[row.quoteSym];
+  var pq = usdPriceOf(row.quoteSym);
+  var unit = (pq !== null && pq !== undefined) ? 'USD' : q.symbol;
+  svg.style.display = 'none';
+  empty.style.display = 'block';
+  empty.textContent = 'Loading swap history from the chain…';
+  if(list) list.innerHTML = '<li><span style="color:var(--muted)">Loading from the chain…</span></li>';
+  if(!window.ethers){
+    empty.textContent = 'Chart unavailable — the chain library failed to load.';
+    if(list) list.innerHTML = '<li><span style="color:var(--muted)">Trade history unavailable.</span></li>';
+    return;
+  }
+  try{
+    var rp = getReadProvider();
+    var pair = new ethers.Contract(row.pool, PAIR_ABI, rp);
+    var latest = await withTimeout(rp.getBlockNumber(), 30000, 'blockNumber');
+    if(req !== pdChartReq) return;
+    var logs = await withTimeout(pair.queryFilter('Swap', Math.max(0, latest - 50000), latest), 45000, 'Swap logs');
+    if(req !== pdChartReq) return;
+    var t0 = (await withTimeout(pair.token0(), 20000, 'token0')).toLowerCase();
+    var aAddr = (row.tokenSym === 'LOOP') ? CFG.wloop : t.address;
+    var aIs0 = t0 === (aAddr || '').toLowerCase();
+    if(!logs.length){
+      empty.innerHTML = 'No swaps in this pool in the scanned block range yet.<br/>Current spot price <strong>' + (priceA(row) === null ? '—' : fmtUSDPrice(priceA(row))) + '</strong> — the chart fills in once the first trade comes in.';
+      if(list) list.innerHTML = '<li><span style="color:var(--muted)">No trades in this pool yet.</span></li>';
+      return;
+    }
+    var deltas = logs.map(function(lg){
+      var a = lg.args;
+      var d0 = a.amount0In - a.amount0Out, d1 = a.amount1In - a.amount1Out;
+      return { lg: lg, dA: aIs0 ? d0 : d1, dB: aIs0 ? d1 : d0 };
+    });
+    var prices = [];
+    var runA = row.resAWei, runB = row.resBWei;
+    for(var i = deltas.length - 1; i >= 0; i--){
+      var pr = 0;
+      if(runA > 0n && runB > 0n){
+        var perQ = Number(weiToRaw(runB, q.decimals)) / Number(weiToRaw(runA, t.decimals));
+        pr = (pq !== null && pq !== undefined) ? perQ * pq : perQ;
+      }
+      prices.unshift({ block: deltas[i].lg.blockNumber, price: pr });
+      runA -= deltas[i].dA; runB -= deltas[i].dB;
+    }
+    var vals = prices.map(function(pp){ return pp.price; }).filter(function(v){ return v > 0; });
+    if(vals.length < 2){
+      empty.textContent = 'Only ' + vals.length + ' swap(s) in this pool so far — not enough to draw a price line.';
+    } else {
+      var W = 640, H = 220, P = 34;
+      var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+      if(mx === mn){ mx = mn * 1.01; mn = mn * 0.99; }
+      var pts = prices.map(function(pp, i){
+        var x = P + (W - 2 * P) * (prices.length === 1 ? 0.5 : i / (prices.length - 1));
+        var y = H - P - (H - 2 * P) * ((pp.price - mn) / (mx - mn));
+        return x.toFixed(1) + ',' + y.toFixed(1);
+      });
+      svg.innerHTML =
+        '<line x1="' + P + '" y1="' + (H - P) + '" x2="' + (W - P) + '" y2="' + (H - P) + '" stroke="var(--line2)" stroke-width="1"/>' +
+        '<polyline points="' + pts.join(' ') + '" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+        '<text x="' + P + '" y="18" font-size="12" font-weight="700" fill="var(--muted)">High ' + fmtUSDPrice(mx) + '</text>' +
+        '<text x="' + P + '" y="' + (H - 8) + '" font-size="12" font-weight="700" fill="var(--muted)">Low ' + fmtUSDPrice(mn) + ' · ' + unit + ' per ' + esc(t.symbol) + '</text>' +
+        '<text x="' + (W - P) + '" y="18" font-size="12" font-weight="700" fill="var(--muted)" text-anchor="end">' + logs.length + ' swap</text>';
+      svg.style.display = 'block';
+      empty.style.display = 'none';
+    }
+    if(list){
+      var last = deltas.slice(-8).reverse();
+      list.innerHTML = last.map(function(d){
+        var isBuy = d.dA > 0n;
+        var aAmt = d.dA > 0n ? d.dA : -d.dA;
+        var bAmt = d.dB > 0n ? d.dB : -d.dB;
+        return '<li><span class="' + (isBuy ? 'tag-buy' : 'tag-sell') + '">' + (isBuy ? 'BUY' : 'SELL') + '</span>' +
+          '<span>' + fmtWei(bAmt, q.decimals, 4) + ' ' + esc(q.symbol) + ' ⇄ ' + fmtWei(aAmt, t.decimals, 0) + ' ' + esc(t.symbol) + '</span>' +
+          '<span style="color:var(--muted)">block ' + d.lg.blockNumber + '</span></li>';
+      }).join('');
+    }
+  }catch(e){
+    empty.textContent = 'Chart unavailable — could not scan this pool. Spot prices are shown above.';
+    if(list) list.innerHTML = '<li><span style="color:var(--muted)">Trade history unavailable.</span></li>';
+  }
+}
+function priceA(row){
+  var t = TOKENS[row.tokenSym], q = TOKENS[row.quoteSym];
+  if(row.resAWei <= 0n || row.resBWei <= 0n) return null;
+  var perQ = Number(weiToRaw(row.resBWei, q.decimals)) / Number(weiToRaw(row.resAWei, t.decimals));
+  var pq = usdPriceOf(row.quoteSym);
+  return (pq !== null && pq !== undefined) ? perQ * pq : null;
+}
+/* Pool detail -> Add / Remove: load the exact pool into the existing
+   forms (no duplicated tx logic). Remove pins state.remPool, so a pair
+   that exists on two factories is never ambiguous. */
+function openAddForPool(poolAddr){
+  var row = poolRowByAddr(poolAddr);
+  if(!row) return;
+  state.addToken = row.tokenSym; state.addQuote = row.quoteSym;
+  syncAddTokenButton(); renderBalances(); updateAdd();
+  showView('liquidity'); setMode('add');
+}
+function openRemoveForPool(poolAddr){
+  var row = poolRowByAddr(poolAddr);
+  if(!row) return;
+  var rec = genPairByPool(poolAddr);
+  if(rec){
+    state.remPool = rec.gp.pool;
+    state.remToken = rec.tokenSym;
+    state.remQuote = rec.quoteSym;
+  } else {
+    state.remPool = poolAddr;
+    state.remToken = row.tokenSym;
+    state.remQuote = row.quoteSym;
+  }
+  el('remLpInput').value = '';
+  syncRemTokenButton(); syncRemQuoteButton();
+  renderRemovePositions(); updateRemove();
+  showView('liquidity'); setMode('remove');
+}
+/* Claim all fees, one tx per position, SEQUENTIALLY (never parallel —
+   the wallet signs one at a time and each claim settles before the
+   next). doClaimFees toasts its own failures, so a failed position
+   never blocks the rest. */
+async function doClaimAll(){
+  var btn = el('claimAllBtn');
+  if(!btn || state.busy) return;
+  var rows = collectUserPositions().filter(function(pp){ return pp.claimable && pp.claimable.amount > 0n; });
+  if(!rows.length){ toast('No claimable fees yet.'); return; }
+  btn.disabled = true;
+  var done = 0;
+  for(var i = 0; i < rows.length; i++){
+    btn.textContent = 'Claiming ' + (i + 1) + '/' + rows.length + '…';
+    try{ await doClaimFees(rows[i].pool); done++; }catch(e){ /* doClaimFees already toasted */ }
+  }
+  btn.disabled = false;
+  btn.textContent = 'Claim all fees';
+  renderPositions(); renderPairs();
+  if(state.poolDetail) renderPoolDetail();
+  toast(done + ' fee claim' + (done === 1 ? '' : 's') + ' sent.');
+}
+/* Position totals (value + claimable) for the Liquidity positions panel
+   and the Portfolio card. Value is always the LP share of reserves in
+   asset symbols — never the raw LP count. */
+function positionTotalsHtml(){
+  if(!state.account) return '';
+  var pos = collectUserPositions();
+  if(!pos.length) return '';
+  var totalUsd = 0, totalClaimUsd = 0, claimKnown = true, known = true;
+  pos.forEach(function(pp){
+    var va = poolSideUsd(pp.valA, pp.tokenSym), vb = poolSideUsd(pp.valB, pp.quoteSym);
+    if(va === null || vb === null) known = false; else totalUsd += va + vb;
+    if(pp.claimable && pp.claimable.amount > 0n){
+      var cp = usdPriceOf(pp.claimable.assetSym);
+      if(cp === null || cp === undefined) claimKnown = false;
+      else totalClaimUsd += Number(weiToRaw(pp.claimable.amount, claimAssetDecimals(pp.claimable.asset))) * cp;
+    }
+  });
+  return '<span>Total value <strong>' + (known ? fmtUSD(totalUsd) : '—') + '</strong></span>'
+    + '<span>Claimable <strong>' + (claimKnown ? fmtUSD(totalClaimUsd) : '—') + '</strong></span>'
+    + '<span style="color:var(--muted)">' + pos.length + ' position' + (pos.length === 1 ? '' : 's') + '</span>';
+}
+function renderPositionTotals(){
+  var w = el('posTotals');
+  if(w){ var html = positionTotalsHtml(); w.style.display = html ? 'flex' : 'none'; w.innerHTML = html; }
+  var pf = el('pfPosTotals');
+  if(pf){ var html2 = positionTotalsHtml(); pf.style.display = html2 ? 'flex' : 'none'; pf.innerHTML = html2; }
+  var btn = el('claimAllBtn');
+  if(btn){
+    var n = collectUserPositions().filter(function(pp){ return pp.claimable && pp.claimable.amount > 0n; }).length;
+    btn.style.display = (state.account && n > 0) ? 'block' : 'none';
+    btn.textContent = 'Claim all fees (' + n + ')';
+  }
+}
+
 function bpsTxt(bps){ return (bps === null || bps === undefined) ? '—' : fmtNum(Number(bps) / 100, 2) + '%'; }
 /* The "Claimable fees" cell for a position: the accrued LP fee on a
    Gen-7 pair, paid in feeAsset(), claimable without removing LP. A pair
@@ -2608,6 +2888,7 @@ function positionsHtml(forPf){
   return rows.join('');
 }
 function renderPositions(){
+  renderPositionTotals();
   el('positionsList').innerHTML = positionsHtml(false);
   var pf = el('pfPositions');
   if(pf) pf.innerHTML = positionsHtml(true);
@@ -3796,6 +4077,117 @@ function updateSwap(){
     btn2.textContent = fromTok ? ('Sell ' + t.symbol) : ('Buy ' + t.symbol);
     return;
   }
+  /* --- LOOP <-> token with no LOOP pool: LOOP -> peg -> stable pair (and back) ---
+     Two legs, one quote: leg 1 through TestAssetPeg v2, leg 2 through the
+     pair's own Router02. The price impact shown is the POOL leg's only —
+     the peg leg is a fixed oracle price (0.5% spread), not a pool. */
+  if(route.kind === 'v2stableLoop'){
+    var t3 = route.token;
+    var sp3 = route.sp;
+    var stSym3 = route.stableSym;
+    var fromLoop3 = route.fromLoop;
+    var tokUsd3 = stableTokenPriceUsd(t3, sp3);
+    var poolIn3 = null, poolOut3 = null;
+    if(state.swap.lastEdited === 'from'){
+      amountIn = inputWei(fromEl, 18);
+      if(amountIn > 0n){
+        var leg1 = null, leg2 = null;
+        if(fromLoop3){
+          leg1 = pegQuoteOut('LOOP', stSym3, amountIn);
+          if(leg1 === null){ fetchPegQuote('LOOP', stSym3, amountIn); quotePending = true; }
+          else {
+            leg2 = stableQuoteOut(sp3, leg1, false);
+            if(leg2 === null){ fetchStableQuote(sp3, leg1, false); quotePending = true; }
+          }
+          poolIn3 = leg1; poolOut3 = leg2;
+        } else {
+          leg1 = stableQuoteOut(sp3, amountIn, true);
+          if(leg1 === null){ fetchStableQuote(sp3, amountIn, true); quotePending = true; }
+          else {
+            leg2 = pegQuoteOut(stSym3, 'LOOP', leg1);
+            if(leg2 === null){ fetchPegQuote(stSym3, 'LOOP', leg1); quotePending = true; }
+          }
+          poolIn3 = amountIn; poolOut3 = leg1;
+        }
+        if(leg1 !== null && leg2 !== null){
+          amountOut = leg2;
+          if(amountOut <= 0n) err = 'Amount too small — the swap output is below pool precision.';
+          setInputFromWei(toEl, amountOut, 18);
+        } else toEl.value = '';
+      } else if(parseInput(fromEl.value) === ''){ toEl.value = ''; }
+    } else {
+      amountOut = inputWei(toEl, 18);
+      if(amountOut > 0n){
+        if(fromLoop3){
+          var needSt = stableQuoteIn(sp3, amountOut, false);
+          if(needSt === null){ fetchStableQuoteIn(sp3, amountOut, false); quotePending = true; }
+          else {
+            var needLoop = pegQuoteIn('LOOP', stSym3, needSt);
+            if(needLoop === null){ err = 'Quote unavailable — the peg price is not loaded yet. Wait a moment and try again.'; }
+            else { amountIn = needLoop; setInputFromWei(fromEl, amountIn, 18); poolIn3 = needSt; poolOut3 = amountOut; }
+          }
+        } else {
+          var needSt2 = pegQuoteIn(stSym3, 'LOOP', amountOut);
+          if(needSt2 === null){ err = 'Quote unavailable — the peg price is not loaded yet. Wait a moment and try again.'; }
+          else {
+            var needTok = stableQuoteIn(sp3, needSt2, true);
+            if(needTok === null){ fetchStableQuoteIn(sp3, needSt2, true); quotePending = true; }
+            else { amountIn = needTok; setInputFromWei(fromEl, amountIn, 18); poolIn3 = needTok; poolOut3 = needSt2; }
+          }
+        }
+      } else if(parseInput(toEl.value) === ''){ fromEl.value = ''; }
+    }
+    var rate3 = el('rateLine');
+    if(tokUsd3 > 0){
+      rate3.style.display = 'flex';
+      if(!state.rateFlipped){ el('rateText').textContent = '1 ' + t3.symbol + ' ≈ ' + fmtUSDPrice(tokUsd3); }
+      else { el('rateText').textContent = '$1 ≈ ' + fmtNum(1 / tokUsd3, 0) + ' ' + t3.symbol; }
+    } else rate3.style.display = 'none';
+    el('fromUsd').textContent = amountIn > 0n ? (fromLoop3 ? usdLineForWei(amountIn) : (tokUsd3 > 0 ? '≈ ' + fmtUSD(Number(weiToRaw(amountIn, 18)) * tokUsd3) : '')) : '';
+    el('toUsd').textContent = amountOut > 0n ? (!fromLoop3 ? usdLineForWei(amountOut) : (tokUsd3 > 0 ? '≈ ' + fmtUSD(Number(weiToRaw(amountOut, 18)) * tokUsd3) : '')) : '';
+    var det3 = el('swapDetails');
+    if(amountIn > 0n && amountOut > 0n && !err && poolIn3 !== null && poolOut3 !== null){
+      det3.style.display = 'block';
+      el('dMinOut').textContent = fmtWei(applySlip(amountOut), 18, 8) + ' ' + state.swap.to;
+      /* Pool-leg impact only: buy = stable in / token out, sell = token in / stable out. */
+      var poolFromTok3 = !fromLoop3;
+      var resIn3 = poolFromTok3 ? sp3.resTokenWei : sp3.resStableWei;
+      var resOut3 = poolFromTok3 ? sp3.resStableWei : sp3.resTokenWei;
+      var decIn3 = poolFromTok3 ? 18 : 6, decOut3 = poolFromTok3 ? 6 : 18;
+      var spot3 = Number(weiToRaw(resOut3, decOut3)) / Number(weiToRaw(resIn3, decIn3));
+      var exec3 = Number(weiToRaw(poolOut3, decOut3)) / Number(weiToRaw(poolIn3, decIn3));
+      impact = spot3 > 0 ? Math.max(0, (1 - exec3 / spot3) * 100) : 0;
+      el('dImpact').textContent = fmtNum(impact, 2) + '%';
+      el('dImpactRow').className = 'drow' + (impact > 15 ? ' bad' : impact > 5 ? ' warn' : '');
+      el('dSlip').textContent = fmtNum(state.slippage, 2) + '%';
+      var feeBase3 = fromLoop3 ? loopWeiToUsd(amountIn) : Number(weiToRaw(amountIn, 18)) * tokUsd3;
+      el('dFeeUsd').textContent = fmtUSD(feeBase3 * 0.008); /* 0.5% peg spread + 0.3% pool fee */
+      el('dMev').textContent = state.mev ? 'On · slippage ≤ 0.5% · deadline 2 min' : 'Off';
+      el('dRoute').textContent = (fromLoop3 ? 'LOOP → ' + stSym3 + ' → ' + t3.symbol : t3.symbol + ' → ' + stSym3 + ' → LOOP') + ' · peg + ' + VINTAGES[sp3.vintage || 'corrected'].routerLabel;
+      el('dFeeSplit').textContent = '0.5% peg spread, then pool: ' + VINTAGES[sp3.vintage || 'corrected'].feeSplit;
+      el('thinPoolWarn').classList.toggle('show', impact > 1);
+    } else { det3.style.display = 'none'; el('thinPoolWarn').classList.remove('show'); }
+    showErr('swapErr', err);
+    var btn3 = el('swapAction');
+    btn3.classList.remove('btn-buy', 'btn-sell');
+    if(state.busy){ btn3.disabled = true; btn3.textContent = 'Processing…'; return; }
+    if(!state.account){ btn3.disabled = false; btn3.textContent = 'Connect Wallet'; return; }
+    if(!state.chainOk){ btn3.disabled = false; btn3.textContent = 'Switch to Loop Network'; return; }
+    if(quotePending){ btn3.disabled = true; btn3.textContent = 'Fetching quote…'; return; }
+    if(amountIn <= 0n){ btn3.disabled = true; btn3.textContent = 'Enter an amount'; return; }
+    if(err){ btn3.disabled = true; btn3.textContent = 'Swap'; return; }
+    if(state.mev && impact > MEV_MAX_IMPACT){
+      btn3.disabled = true; btn3.textContent = 'Blocked by Anti-MEV';
+      showErr('swapErr', 'Anti-MEV Protection blocked this swap: the price impact is ' + fmtNum(impact, 2) + '%, above the 5% safety limit. Lower the amount, or turn Anti-MEV Protection off in the swap settings (gear icon) if you want to proceed anyway.');
+      return;
+    }
+    var bal3 = balanceOf(state.swap.from);
+    if(bal3 !== undefined && bal3 < amountIn){ btn3.disabled = true; btn3.textContent = 'Insufficient ' + state.swap.from + ' balance'; return; }
+    btn3.disabled = false;
+    btn3.classList.add(fromLoop3 ? 'btn-buy' : 'btn-sell');
+    btn3.textContent = fromLoop3 ? ('Buy ' + state.swap.to) : ('Sell ' + state.swap.from);
+    return;
+  }
   /* --- LOOP pair: the existing flow, unchanged --- */
   r = swapReserves();
   pair = r.pair;
@@ -4149,6 +4541,9 @@ function updateRemove(){
       el('rOutLoop').textContent = fmtLoopUSD(lpAmt * t.resLoopWei / t.lpSupplyWei) + ' (' + fmtWei(lpAmt * t.resLoopWei / t.lpSupplyWei, 18, 6) + ' LOOP)';
       el('rOutToken').textContent = fmtWei(lpAmt * t.resTokenWei / t.lpSupplyWei, 18, 4) + ' ' + t.symbol;
       el('rRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
+      var oL = lpAmt * t.resLoopWei / t.lpSupplyWei, oT = lpAmt * t.resTokenWei / t.lpSupplyWei;
+      var pl = usdPriceOf('LOOP'), pt = usdPriceOf(state.remToken);
+      el('rOutUsd').textContent = (pl === null || pl === undefined || pt === null || pt === undefined) ? '—' : fmtUSD(Number(weiToRaw(oL, 18)) * pl + Number(weiToRaw(oT, t.decimals)) * pt);
     } else det.style.display = 'none';
     var btn = el('remAction');
     if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
@@ -4183,6 +4578,8 @@ function updateRemove(){
     el('rOutLoop').textContent = fmtUSD(Number(weiToRaw(lpAmt2 * sp.resStableWei / sp.lpSupplyWei, 6))) + ' (' + fmtWei(lpAmt2 * sp.resStableWei / sp.lpSupplyWei, 6, 6) + ' ' + state.remQuote + ')';
     el('rOutToken').textContent = fmtWei(lpAmt2 * sp.resTokenWei / sp.lpSupplyWei, 18, 4) + ' ' + t.symbol;
     el('rRoute').textContent = VINTAGES[sp.vintage || 'corrected'].routerLabel + ' · ' + shortAddr(stableRouter(sp));
+    var pt2 = usdPriceOf(state.remToken);
+    el('rOutUsd').textContent = (pt2 === null || pt2 === undefined) ? '—' : fmtUSD(Number(weiToRaw(lpAmt2 * sp.resStableWei / sp.lpSupplyWei, 6)) + Number(weiToRaw(lpAmt2 * sp.resTokenWei / sp.lpSupplyWei, 18)) * pt2);
   } else det2.style.display = 'none';
   var btn2 = el('remAction');
   if(state.busy){ btn2.disabled = true; btn2.textContent = 'Processing…'; return; }
@@ -4212,7 +4609,11 @@ function updateRemoveGen5(){
   } else if(lpAmt > 0n && gp.lpSupplyWei > 0n){
     det.style.display = 'block';
     var outA = lpAmt * gp.resTokenWei / gp.lpSupplyWei;
-    var outB = lpAmt * gp.resOtherWei / gp.lpSupplyWei;
+    /* Stable-pool records (stablePools / stablePoolsLegacy) carry the
+       other side as resStableWei, not resOtherWei — reading resOtherWei
+       here threw on the positions-list path (state.remPool pins the
+       stable record via genPairByPool). */
+    var outB = lpAmt * (gp.resOtherWei !== undefined ? gp.resOtherWei : gp.resStableWei) / gp.lpSupplyWei;
     if(state.remQuote === 'LOOP'){
       el('rOutLoop').textContent = fmtLoopUSD(outB) + ' (' + fmtWei(outB, 18, 6) + ' LOOP)';
     } else {
@@ -4221,6 +4622,8 @@ function updateRemoveGen5(){
     }
     el('rOutToken').textContent = fmtWei(outA, t.decimals, 4) + ' ' + t.symbol;
     el('rRoute').textContent = VINTAGES[gpVintage].routerLabel + ' · ' + shortAddr(VINTAGES[gpVintage].router);
+    var usdA3 = usdPriceOf(t.symbol), usdB3 = usdPriceOf(q.symbol);
+    el('rOutUsd').textContent = (usdA3 === null || usdA3 === undefined || usdB3 === null || usdB3 === undefined) ? '—' : fmtUSD(Number(weiToRaw(outA, t.decimals)) * usdA3 + Number(weiToRaw(outB, q.decimals)) * usdB3);
   } else det.style.display = 'none';
   var btn = el('remAction');
   if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
@@ -4274,7 +4677,7 @@ function renderTokenList(filter){
   if(/^0x[0-9a-f]{40}$/.test(f) && !modalSymbols().some(function(s){ return (TOKENS[s].address || '').toLowerCase() === f; })){
     html += '<button type="button" class="token-row" id="importRow">' + avatarHtml({ symbol:'?', color:'#5B5B61' }, 38) +
       '<span class="tr-main"><strong>Import this token</strong><span>' + esc(f) + '</span></span>' +
-      '<span class="tr-right"><strong>Check WLOOP pool →</strong></span></button>';
+      '<span class="tr-right"><strong>Check pools →</strong></span></button>';
   }
   if(!html) html = '<p style="color:var(--muted);font-weight:600;padding:12px 4px">No matching tokens. Paste a token contract address to import it from the chain.</p>';
   list.innerHTML = html;
@@ -4325,26 +4728,46 @@ function selectToken(sym){
 async function importToken(addr){
   showErr('importErr', '');
   if(!window.ethers){ showErr('importErr', 'The chain library failed to load — token import is unavailable.'); return; }
-  var btn = el('importRow'); if(btn) btn.querySelector('.tr-main strong').textContent = 'Checking on chain…';
+  var btn = el('importRow'); if(btn) btn.querySelector('.tr-main strong').textContent = 'Checking pools…';
   try{
     var rp = getReadProvider();
     var erc = new ethers.Contract(addr, ERC20_ABI, rp);
-    var name = await withTimeout(erc.name(), 20000, 'name');
-    var symbol = await withTimeout(erc.symbol(), 20000, 'symbol');
-    var pairAddr = null, vintage = null;
-    /* Search the token/WLOOP pair in ALL FOUR Sakura V2 factories
-       (legacy, fee-split, corrected, gen-7) — a graduated token lives in
-       exactly one of them, and its factory decides its router. */
-    var facKeys = ['current', 'legacy', 'corrected', 'gen7'];
-    for(var fi = 0; fi < facKeys.length && !pairAddr; fi++){
-      var fac = new ethers.Contract(VINTAGES[facKeys[fi]].factory, FACTORY_ABI, rp);
-      var got = await withTimeout(fac.getPair(addr, CFG.wloop), 20000, 'getPair ' + facKeys[fi]);
-      if(got && got !== ethers.ZeroAddress){ pairAddr = got; vintage = facKeys[fi]; }
+    /* Token metadata in parallel — name, symbol, decimals are independent reads. */
+    var meta = await Promise.all([
+      withTimeout(erc.name(), 20000, 'name'),
+      withTimeout(erc.symbol(), 20000, 'symbol'),
+      withTimeout(erc.decimals(), 20000, 'decimals').catch(function(){ return 18; })
+    ]);
+    var name = meta[0], symbol = meta[1], dec = meta[2];
+    /* A token can graduate into ANY quote asset — WLOOP, tUSDC or tUSDT —
+       on ANY of the four factories. Probe all 12 combinations IN PARALLEL
+       (Promise.allSettled): sequential probing could take 12 x 20s, and on
+       a slow phone RPC a single hanging getPair used to time the whole
+       import out. Each probe fails soft (null) so one slow factory never
+       blocks the others. First hit wins: gen-7 first, then current /
+       corrected / legacy; WLOOP first inside a factory. */
+    var facKeys = ['gen7', 'current', 'corrected', 'legacy'];
+    var quoteAddrs = { LOOP: CFG.wloop, tUSDC: TOKENS.tUSDC.address, tUSDT: TOKENS.tUSDT.address };
+    var probes = [];
+    facKeys.forEach(function(fk){
+      var fac = new ethers.Contract(VINTAGES[fk].factory, FACTORY_ABI, rp);
+      ['LOOP', 'tUSDC', 'tUSDT'].forEach(function(q){
+        probes.push({ fk: fk, q: q, p: withTimeout(fac.getPair(addr, quoteAddrs[q]), 20000, 'getPair ' + fk + '/' + q)
+          .then(function(got){ return { fk: fk, q: q, pair: got }; })
+          .catch(function(){ return { fk: fk, q: q, pair: null }; }) });
+      });
+    });
+    var results = await Promise.allSettled(probes.map(function(x){ return x.p; }));
+    var hit = null;
+    for(var i = 0; i < results.length; i++){
+      var r = results[i].value;
+      if(r && r.pair && r.pair !== ethers.ZeroAddress){ hit = r; break; }
     }
-    if(!pairAddr){
-      showErr('importErr', 'No WLOOP pool for this token was found in any of the four Sakura V2 factories — the token has not graduated or has no V2 pool yet.');
+    if(!hit){
+      showErr('importErr', 'No pool for this token was found in any Sakura V2 factory (checked WLOOP, tUSDC and tUSDT pairs on all four factories) — the token has not graduated or has no V2 pool yet.');
       renderTokenList(el('tokenSearch').value); return;
     }
+    var pairAddr = hit.pair, vintage = hit.fk, quoteSym = hit.q;
     var pair = new ethers.Contract(pairAddr, PAIR_ABI, rp);
     /* The pair's own factory() is the authority for the vintage (and
        therefore the router) — trust it over which getPair answered. */
@@ -4353,16 +4776,37 @@ async function importToken(addr){
       var vByFac = vintageByFactory(facOnChain);
       if(vByFac) vintage = vByFac;
     }catch(e){ /* keep the vintage of the factory whose getPair answered */ }
-    var res = await pair.getReserves();
-    var t0 = (await pair.token0()).toLowerCase();
-    var wloopFirst = t0 === CFG.wloop.toLowerCase();
-    var lps = await pair.totalSupply();
+    var res = await withTimeout(pair.getReserves(), 20000, 'getReserves');
+    var t0 = (await withTimeout(pair.token0(), 20000, 'token0')).toLowerCase();
+    var quoteAddr = quoteAddrs[quoteSym].toLowerCase();
+    var quoteFirst = t0 === quoteAddr;
+    var lps = await withTimeout(pair.totalSupply(), 20000, 'totalSupply');
     var key = symbol.toUpperCase().slice(0, 12);
     if(TOKENS[key]) key = key + 'X';
-    TOKENS[key] = { symbol: key, name: name, address: addr, decimals: 18, pool: pairAddr, vintage: vintage, _facChecked: true,
-      token0IsWloop: wloopFirst, color: '#5B5B61', totalSupply: null,
-      resLoopWei: wloopFirst ? res[0] : res[1], resTokenWei: wloopFirst ? res[1] : res[0],
-      lpSupplyWei: lps, lpLockedWei: 0n };
+    /* Never assume the quote is WLOOP: the entry records the quote asset
+       that was actually found. A WLOOP pair keeps the classic LOOP-pool
+       fields; a stable-quote pair (e.g. TSHIBA/tUSDC) keeps pool null and
+       carries the pair as a stablePools record instead — the token then
+       trades through the v2stable route (and LOOP via peg + stable pair),
+       never through a LOOP pool that does not exist. */
+    var entry = { symbol: key, name: name, address: addr, decimals: dec, vintage: vintage, _facChecked: true,
+      quoteAsset: quoteSym, color: '#5B5B61', totalSupply: null, lpSupplyWei: lps, lpLockedWei: 0n };
+    if(quoteSym === 'LOOP'){
+      entry.pool = pairAddr;
+      entry.token0IsWloop = quoteFirst;
+      entry.resLoopWei = quoteFirst ? res[0] : res[1];
+      entry.resTokenWei = quoteFirst ? res[1] : res[0];
+    } else {
+      entry.pool = null;
+      entry.token0IsWloop = false;
+      entry.resLoopWei = 0n;
+      entry.resTokenWei = quoteFirst ? res[1] : res[0];
+      entry.stablePools = {};
+      entry.stablePools[quoteSym] = { pool: pairAddr, stable: quoteSym, tokenAddr: addr, stableAddr: quoteAddrs[quoteSym],
+        vintage: vintage, resTokenWei: quoteFirst ? res[1] : res[0], resStableWei: quoteFirst ? res[0] : res[1],
+        lpSupplyWei: lps, checkedAt: Date.now() };
+    }
+    TOKENS[key] = entry;
     TOKEN_LIST.push(key);
     if(typeof loadStablePairs === 'function') loadStablePairs();
     renderPairs();
@@ -4373,6 +4817,7 @@ async function importToken(addr){
     showErr('importErr', 'Failed to read the token from the chain: ' + esc(txErr(e)));
     renderTokenList(el('tokenSearch').value);
   }
+
 }
 </script>
 
@@ -5173,6 +5618,184 @@ async function simulateSwapTokensCall(routerAddr, amountIn, minOut, path, deadli
   await withTimeout(bp.call({ to: routerAddr, from: state.account, data: data }), 20000, 'swap simulation');
   return true;
 }
+/* ================= TX: LOOP <-> TOKEN VIA PEG + STABLE PAIR =================
+   Two sequential transactions — the peg and the router are separate
+   contracts, so there is no single-tx path. Leg 1 goes through
+   TestAssetPeg v2, leg 2 through the pair's own Router02. Both legs are
+   simulated fresh before sending, and leg 2's amount is leg 1's enforced
+   minimum output: a worse-than-quoted leg 1 can never make leg 2 fail,
+   and any excess stays in the wallet as the intermediate asset. If leg 1
+   fails or is rejected, leg 2 never runs. If leg 2 fails AFTER leg 1
+   succeeded, the intermediate asset stays in the wallet — the error says
+   so plainly instead of pretending nothing happened. */
+async function doStableLoopSwap(){
+  var route = swapRoute();
+  if(route.kind !== 'v2stableLoop') return;
+  var t = route.token, sp = route.sp, stSym = route.stableSym;
+  var fromLoop = route.fromLoop;
+  var amountIn = inputWei(el('fromInput'), 18);
+  var shownOut = inputWei(el('toInput'), 18);
+  if(amountIn <= 0n || shownOut <= 0n){
+    showErr('swapErr', 'Enter an amount first — the quote has not loaded yet.');
+    return;
+  }
+  var minOut = applySlip(shownOut);
+  var deadline = swapDeadlineTs();
+  state.busy = true; updateSwap();
+  var ceilDiv = function(a, b){ return (a + b - 1n) / b; };
+  try{
+    var signer = await getSigner();
+    var routerAddr = stableRouter(sp);
+    if(fromLoop){
+      /* --- BUY: LOOP -> stable (peg) -> token (router) --- */
+      var freshStable;
+      try{ freshStable = await simulatePegCall('LOOP', stSym, amountIn, 0n); }
+      catch(e){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Peg simulation failed — nothing was sent. The peg said: ' + txErr(e));
+        toast('Peg simulation failed — nothing was sent.');
+        return;
+      }
+      var freshTok;
+      try{ freshTok = await freshStableQuoteOut(sp, freshStable, false); }
+      catch(e){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'The price could not be re-checked before sending (' + txErr(e) + '), so the swap was cancelled and nothing was sent. Try again in a moment.');
+        toast('Swap cancelled — the pre-send price re-check failed, so nothing was sent.');
+        return;
+      }
+      if(freshTok < minOut){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Price moved — re-quote: the pool price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote. No transaction was sent — the quote above has been updated; check it and try again if you still want to swap.');
+        toast('Price moved — re-quote. Nothing was sent; the quote has been updated.');
+        return;
+      }
+      /* Stablecoin needed for the minimum token output — leg 1's minOut. */
+      var needStable = ceilDiv(freshStable * minOut, freshTok);
+      var peg = new ethers.Contract(CFG.peg, PEG_ABI, signer);
+      var t1 = toast('Step 1 of 2: swapping LOOP for ' + stSym + ' via the peg — confirm in your wallet…', null, true);
+      var tx1 = await peg.buyWithLoop(TOKENS[stSym].address, needStable, { value: amountIn });
+      t1.remove();
+      var tw1 = toast('Step 1 sent — waiting for confirmation…', tx1.hash, true);
+      await tx1.wait(); tw1.remove();
+      /* Leg 2: stable -> token through the pair's router. */
+      var ercS = new ethers.Contract(sp.stableAddr, ERC20_ABI, signer);
+      var allowS = await ercS.allowance(state.account, routerAddr);
+      if(allowS < needStable){
+        var a0 = toast('Approve ' + stSym + ' for the router — confirm in your wallet…', null, true);
+        var atx = await ercS.approve(routerAddr, needStable);
+        a0.remove();
+        var a0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+        await atx.wait(); a0b.remove();
+      }
+      try{
+        await simulateSwapTokensCall(routerAddr, needStable, minOut, [sp.stableAddr, sp.tokenAddr], deadline);
+      }catch(simErr){
+        clearToasts();
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Step 2 simulation failed — step 1 already completed, so the ' + stSym + ' from step 1 is in your wallet. Nothing more was sent. The router said: ' + txErr(simErr));
+        toast('Step 2 simulation failed — the ' + stSym + ' from step 1 is in your wallet.');
+        return;
+      }
+      var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+      var t2 = toast('Step 2 of 2: swapping ' + stSym + ' for ' + t.symbol + ' — confirm in your wallet…', null, true);
+      var tx2 = await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(needStable, minOut, [sp.stableAddr, sp.tokenAddr], state.account, deadline);
+      t2.remove();
+      var tw2 = toast('Step 2 sent — waiting for confirmation…', tx2.hash, true);
+      await tx2.wait(); tw2.remove();
+      toast('Swap successful: ' + fmtWei(amountIn, 18, 6) + ' LOOP → ±' + fmtWei(freshTok, 18, 4) + ' ' + t.symbol + ' via peg + ' + stSym + ' pair.', tx2.hash);
+    } else {
+      /* --- SELL: token -> stable (router) -> LOOP (peg) --- */
+      var freshTokOut;
+      try{ freshTokOut = await freshStableQuoteOut(sp, amountIn, true); }
+      catch(e){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'The price could not be re-checked before sending (' + txErr(e) + '), so the swap was cancelled and nothing was sent. Try again in a moment.');
+        toast('Swap cancelled — the pre-send price re-check failed, so nothing was sent.');
+        return;
+      }
+      var freshLoop;
+      try{ freshLoop = await simulatePegCall(stSym, 'LOOP', freshTokOut, 0n); }
+      catch(e){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Peg simulation failed — nothing was sent. The peg said: ' + txErr(e));
+        toast('Peg simulation failed — nothing was sent.');
+        return;
+      }
+      if(freshLoop < minOut){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Price moved — re-quote: the peg price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote. No transaction was sent — the quote above has been updated; check it and try again if you still want to swap.');
+        toast('Price moved — re-quote. Nothing was sent; the quote has been updated.');
+        return;
+      }
+      /* Stablecoin needed for the minimum LOOP output — leg 1's minOut. */
+      var needStable2 = ceilDiv(freshTokOut * minOut, freshLoop);
+      var ercT = new ethers.Contract(t.address, ERC20_ABI, signer);
+      var allowT = await ercT.allowance(state.account, routerAddr);
+      if(allowT < amountIn){
+        var b0 = toast('Approve ' + t.symbol + ' for the router — confirm in your wallet…', null, true);
+        var btx = await ercT.approve(routerAddr, amountIn);
+        b0.remove();
+        var b0b = toast('Approve sent — waiting for confirmation…', btx.hash, true);
+        await btx.wait(); b0b.remove();
+      }
+      try{
+        await simulateSwapTokensCall(routerAddr, amountIn, needStable2, [sp.tokenAddr, sp.stableAddr], deadline);
+      }catch(simErr){
+        clearToasts();
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Swap simulation failed — nothing was sent. The router said: ' + txErr(simErr));
+        toast('Swap simulation failed — nothing was sent.');
+        return;
+      }
+      var router2 = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+      var s1 = toast('Step 1 of 2: swapping ' + t.symbol + ' for ' + stSym + ' — confirm in your wallet…', null, true);
+      var txs1 = await router2.swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, needStable2, [sp.tokenAddr, sp.stableAddr], state.account, deadline);
+      s1.remove();
+      var sw1 = toast('Step 1 sent — waiting for confirmation…', txs1.hash, true);
+      await txs1.wait(); sw1.remove();
+      /* Leg 2: stable -> LOOP through the peg. */
+      var ercS2 = new ethers.Contract(sp.stableAddr, ERC20_ABI, signer);
+      var allowS2 = await ercS2.allowance(state.account, CFG.peg);
+      if(allowS2 < needStable2){
+        var c0 = toast('Approve ' + stSym + ' for the peg — confirm in your wallet…', null, true);
+        var ctx2 = await ercS2.approve(CFG.peg, needStable2);
+        c0.remove();
+        var c0b = toast('Approve sent — waiting for confirmation…', ctx2.hash, true);
+        await ctx2.wait(); c0b.remove();
+      }
+      var freshLoop2;
+      try{ freshLoop2 = await simulatePegCall(stSym, 'LOOP', needStable2, minOut); }
+      catch(simErr2){
+        clearToasts();
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Step 2 simulation failed — step 1 already completed, so the ' + stSym + ' from step 1 is in your wallet. Nothing more was sent. The peg said: ' + txErr(simErr2));
+        toast('Step 2 simulation failed — the ' + stSym + ' from step 1 is in your wallet.');
+        return;
+      }
+      if(freshLoop2 < minOut){
+        state.busy = false; updateSwap();
+        showErr('swapErr', 'Price moved after step 1 — step 1 already completed, so the ' + stSym + ' from step 1 is in your wallet. Nothing more was sent; swap the ' + stSym + ' back when you are ready.');
+        toast('Price moved after step 1 — the ' + stSym + ' from step 1 is in your wallet.');
+        return;
+      }
+      var peg2 = new ethers.Contract(CFG.peg, PEG_ABI, signer);
+      var s2 = toast('Step 2 of 2: swapping ' + stSym + ' for LOOP via the peg — confirm in your wallet…', null, true);
+      var txs2 = await peg2.sellForLoop(sp.stableAddr, needStable2, minOut);
+      s2.remove();
+      var sw2 = toast('Step 2 sent — waiting for confirmation…', txs2.hash, true);
+      await txs2.wait(); sw2.remove();
+      toast('Swap successful: ' + fmtWei(amountIn, 18, 6) + ' ' + t.symbol + ' → ±' + fmtWei(freshLoop, 18, 4) + ' LOOP via ' + stSym + ' pair + peg.', txs2.hash);
+    }
+    el('fromInput').value = ''; el('toInput').value = '';
+    state.busy = false;
+    refreshBalances(); updateSwap();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateSwap();
+    showErr('swapErr', 'Swap failed: ' + txErr(e));
+  }
+}
 /* ================= TX: GEN-5 STABLE-PAIR SWAP ================= */
 async function doStableSwap(){
   var route = swapRoute();
@@ -5862,6 +6485,18 @@ async function loadStablePairs(){
   renderPairs();
   refreshBalancesAfterDiscovery();
 }
+/* The stable pair a LOOP<->token swap routes through when the token has
+   no LOOP pool (graduation into a stable pair, e.g. TSHIBA/tUSDC):
+   LOOP -> peg -> stable -> pair, and back. Prefers tUSDC. */
+function stablePairForLoop(t){
+  if(!t || !t.stablePools) return null;
+  var pref = ['tUSDC', 'tUSDT'];
+  for(var i = 0; i < pref.length; i++){
+    var sp = t.stablePools[pref[i]];
+    if(sp && sp.pool) return { sp: sp, stableSym: pref[i] };
+  }
+  return null;
+}
 /* Which venue a swap uses. Peg when BOTH sides are peg assets; the
    LOOP pool when one side is LOOP; a Gen-5 stable pair when a graduated
    token meets a stablecoin; 'none' when no pool exists for the pair
@@ -5893,7 +6528,12 @@ function swapRoute(){
   }
   if(f === 'LOOP' || t === 'LOOP'){
     var pair = pairTokenOf(f, t);
-    return (pair && pair.pool) ? { kind:'v2loop', pair: pair } : { kind:'none' };
+    if(pair && pair.pool) return { kind:'v2loop', pair: pair };
+    /* No LOOP pool — but a stable pair exists: LOOP <-> peg <-> stable pair. */
+    var tokSym = f === 'LOOP' ? t : f;
+    var via = stablePairForLoop(TOKENS[tokSym]);
+    if(via) return { kind:'v2stableLoop', token: TOKENS[tokSym], stableSym: via.stableSym, sp: via.sp, fromLoop: f === 'LOOP' };
+    return { kind:'none' };
   }
   var tokSym = isGraduated(f) ? f : (isGraduated(t) ? t : null);
   var stSym = isStable(f) ? f : (isStable(t) ? t : null);
@@ -5965,6 +6605,7 @@ async function doSwap(){
   if(_route.kind === 'peg') return doPegSwap();
   if(_route.kind === 'poolpeg') return doPoolPegSwap();
   if(_route.kind === 'v2stable') return doStableSwap();
+  if(_route.kind === 'v2stableLoop') return doStableLoopSwap();
   var r = swapReserves();
   var pair = r.pair;
   var amountIn = inputWei(el('fromInput'), 18);
@@ -6583,8 +7224,11 @@ function setSlippage(v){
   hideSlipWarn();
 }
 function syncSlipUI(){
-  Array.prototype.forEach.call(el('slipRow').querySelectorAll('button[data-slip]'), function(x){
-    x.classList.toggle('sel', parseFloat(x.getAttribute('data-slip')) === state.slippage);
+  ['slipRow', 'addSlipRow'].forEach(function(rid){
+    var row = el(rid); if(!row) return;
+    Array.prototype.forEach.call(row.querySelectorAll('button[data-slip]'), function(x){
+      x.classList.toggle('sel', parseFloat(x.getAttribute('data-slip')) === state.slippage);
+    });
   });
 }
 function syncMevUI(){
@@ -7421,6 +8065,21 @@ function bindEvents(){
       syncSlipUI(); updateSwap(); updateRemove();
     }
   });
+  /* Add Liquidity slippage (same shared setting as Swap) */
+  Array.prototype.forEach.call(el('addSlipRow').querySelectorAll('button[data-slip]'), function(b){
+    b.addEventListener('click', function(){
+      setSlippage(parseFloat(b.getAttribute('data-slip')));
+      el('addSlipCustom').value = '';
+      syncSlipUI(); updateSwap(); updateAdd(); updateRemove();
+    });
+  });
+  el('addSlipCustom').addEventListener('input', function(){
+    var v = parseFloat(parseInput(el('addSlipCustom').value));
+    if(!isNaN(v) && v > 0 && v <= 50){
+      setSlippage(v);
+      syncSlipUI(); updateSwap(); updateAdd(); updateRemove();
+    }
+  });
   el('deadlineInput').addEventListener('change', function(){
     var v = parseInt(el('deadlineInput').value, 10);
     if(!isNaN(v) && v >= 1 && v <= 4320) state.deadline = v;
@@ -7450,8 +8109,17 @@ function bindEvents(){
       if(!state.account){ toast('Connect your wallet first.'); return; }
       if(lp === undefined){ toast('LP balance not loaded yet — please wait a moment.'); return; }
       setInputFromWeiFull(el('remLpInput'), lp * BigInt(b.getAttribute('data-pct')) / 100n, 18);
+      el('remSlider').value = b.getAttribute('data-pct');
       updateRemove();
     });
+  });
+  el('remSlider').addEventListener('input', function(){
+    var lpPool = remLpPool();
+    var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
+    if(!state.account){ toast('Connect your wallet first.'); return; }
+    if(lp === undefined){ toast('LP balance not loaded yet — please wait a moment.'); return; }
+    setInputFromWeiFull(el('remLpInput'), lp * BigInt(parseInt(el('remSlider').value, 10)) / 100n, 18);
+    updateRemove();
   });
   el('remAction').addEventListener('click', doRemove);
   Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q]'), function(b){
@@ -7466,6 +8134,31 @@ function bindEvents(){
     state.poolFilter = el('poolSearch').value;
     renderPairs();
   });
+  /* Pools filters + sorting (Meteora-style table) */
+  Array.prototype.forEach.call(document.querySelectorAll('#poolCats button[data-cat]'), function(b){
+    b.addEventListener('click', function(){
+      state.poolCat = b.getAttribute('data-cat');
+      Array.prototype.forEach.call(document.querySelectorAll('#poolCats button[data-cat]'), function(x){ x.classList.toggle('sel', x === b); });
+      renderPairs();
+    });
+  });
+  function setPoolSort(s){
+    state.poolSort = s;
+    Array.prototype.forEach.call(document.querySelectorAll('#poolSorts button[data-sort]'), function(x){ x.classList.toggle('sel', x.getAttribute('data-sort') === s); });
+    renderPairs();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#poolSorts button[data-sort]'), function(b){
+    b.addEventListener('click', function(){ setPoolSort(b.getAttribute('data-sort')); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.pool-table th.sortable'), function(th){
+    th.addEventListener('click', function(){ setPoolSort(th.getAttribute('data-sort')); });
+  });
+  /* Tap a pool row -> pool detail */
+  el('pairsBody').addEventListener('click', function(ev){
+    var tr = ev.target && ev.target.closest ? ev.target.closest('tr[data-pool]') : null;
+    if(tr) openPoolDetail(tr.getAttribute('data-pool'));
+  });
+  el('claimAllBtn').addEventListener('click', doClaimAll);
   /* Locker */
   el('lockTokenBtn').addEventListener('click', function(){ openTokenModal('lock'); });
   el('lockAmountInput').addEventListener('input', updateLock);
@@ -7552,7 +8245,7 @@ renderLocks();
 function currentMode(){
   return document.body.getAttribute('data-view') === 'liquidity' ? liqMode : swapMode;
 }
-var VIEW_HEADS = { home: 'headHome', swap: 'headSwap', liquidity: 'headLiquidity', pools: 'headPools', locker: 'headLocker', portfolio: 'headPortfolio', farming: 'headFarming', staking: 'headStaking', analytics: 'headAnalytics' };
+var VIEW_HEADS = { home: 'headHome', swap: 'headSwap', liquidity: 'headLiquidity', pools: 'headPools', pool: 'headPool', locker: 'headLocker', portfolio: 'headPortfolio', farming: 'headFarming', staking: 'headStaking', analytics: 'headAnalytics' };
 var currentView = 'home';
 var viewHistory = [];
 function applyViewChrome(v){
@@ -7584,6 +8277,7 @@ function showView(v, fromBack){
   if(v === 'locker'){ updateLock(); renderLocks(); }
   if(v === 'portfolio'){ renderPortfolio(); renderPositions(); }
   if(v === 'pools' || v === 'analytics'){ loadPoolActivity(); }
+  if(v === 'pool'){ renderPoolDetail(); }
   if(v === 'home'){ if(typeof renderHomeExtras === 'function') renderHomeExtras(); if(typeof loadHomeActivity === 'function') loadHomeActivity(); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
