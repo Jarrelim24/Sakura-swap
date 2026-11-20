@@ -133,11 +133,6 @@ body[data-view="home"] #homeHero,body[data-view="home"] #homeBelow{display:block
 .hero h1{font-size:52px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.05}
 .hero-grad{background:linear-gradient(92deg,#FF9CC6,#FF3D7F);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero-tag{color:#fff;font-size:21px;font-weight:800;margin:10px 0 0;letter-spacing:.01em}
-.hero-sub{color:#F6DCE9;font-size:14.5px;font-weight:500;margin:8px 0 0;line-height:1.65}
-.hero-btns{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
-.hero-btns .btn{width:auto;padding:12px 26px}
-.hero-btns .btn-ghost{background:rgba(8,6,8,.55);color:#fff;border-color:rgba(255,158,199,.5)}
-.hero-btns .btn-ghost:hover{color:#FFB9D6;border-color:#FF5CA8}
 /* ===== Feature cards (Home) ===== */
 .feat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px}
 .feat-card{display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:17px 16px;cursor:pointer;text-align:left;color:var(--ink);box-shadow:var(--shadow);transition:border-color .15s;min-height:0;width:100%}
@@ -725,6 +720,48 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   .wallet-pill.connecting{animation:none;opacity:.7}
   .btn:active,.token-btn:active,.icon-btn:active,.theme-btn:active,.flip-btn:active,.feat-card:active,.pf-act:active{transform:none}
 }
+
+/* ===== Home final design: hero mark, compact stats, contracts one-line, mobile bottom nav ===== */
+.hero-in{display:flex;align-items:center;gap:22px}
+.hero-text{min-width:0}
+.hero-mark{width:104px;height:104px;flex:none;border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+.hero-mark img{width:100%;height:100%;object-fit:cover;display:block}
+.home-grid2{grid-template-columns:minmax(0,1fr)}
+.stats-grid .stat-card{padding:12px 14px}
+.stats-grid .stat-card .sic{width:30px;height:30px;border-radius:9px}
+.stats-grid .stat-card .sic svg{width:16px;height:16px}
+.stats-grid .stat-card strong{font-size:19px}
+.home-pool-row{cursor:pointer}
+.home-pool-row:hover .hp-main strong{color:var(--pink-dark)}
+#homeSwapCard{margin-top:20px;cursor:pointer}
+#homeSwapCard .tbox + .tbox{margin-top:10px}
+.foot-one-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.foot-one-line strong{color:var(--ink)}
+.foot-chip{background:var(--surface);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.foot-chip:hover{border-color:var(--pink);color:var(--pink-dark)}
+.foot-chip .mono{font-size:12.5px}
+.foot-grid[hidden]{display:none}
+#bottomNav{display:none}
+#moreSheetWrap[hidden]{display:none}
+.more-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:96}
+.more-sheet{position:fixed;left:0;right:0;bottom:0;z-index:97;background:var(--side);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:10px 14px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:2px;box-shadow:0 -8px 32px rgba(0,0,0,.35)}
+.more-sheet button{display:flex;align-items:center;justify-content:space-between;gap:10px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);font-size:15px;font-weight:700;padding:14px 6px;cursor:pointer;text-align:left;font-family:inherit}
+.more-sheet button:last-child{border-bottom:0}
+.more-sheet button.soon{color:var(--faint)}
+@media(max-width:960px){
+  .nav-toggle{display:none !important}
+  main.wrap{padding-bottom:88px}
+  #bottomNav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:95;background:var(--side);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));align-items:flex-end;justify-content:space-around;box-shadow:0 -6px 24px rgba(0,0,0,.28)}
+  #bottomNav .bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:var(--muted);font-size:11px;font-weight:700;padding:6px 8px;cursor:pointer;min-width:54px;font-family:inherit}
+  #bottomNav .bn-item svg{width:22px;height:22px}
+  #bottomNav .bn-item.active{color:var(--pink)}
+  #bottomNav .bn-center{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:var(--muted);font-size:11px;font-weight:700;padding:0 8px 6px;cursor:pointer;min-width:64px;font-family:inherit}
+  #bottomNav .bn-center.active{color:var(--pink)}
+  #bottomNav .bn-raise{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FF5CA8,#FF3D7F);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(255,61,127,.45);margin-top:-26px;flex:none}
+  #bottomNav .bn-raise svg{width:26px;height:26px}
+}
+@media(min-width:561px){ .stats-grid{grid-template-columns:repeat(4,1fr)} }
+@media(max-width:560px){ .hero-mark{width:72px;height:72px;border-radius:16px} .hero-in{gap:14px} }
 </style>
 </head>
 <body data-view="home">
@@ -815,12 +852,10 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   <section id="homeHero" aria-label="SakuraPad">
     <div class="hero">
       <div class="hero-in">
-        <h1><span class="hero-grad">Sakura</span>Pad</h1>
-        <p class="hero-tag">Swap · Launch · Earn · Grow</p>
-        <p class="hero-sub">A DeFi platform on Loop Network for tokens that have graduated from Sakura Launchpad and migrated to Uniswap V2.<br/>Simple. Fast. Secure.</p>
-        <div class="hero-btns">
-          <button type="button" class="btn btn-primary" data-goto="swap">Swap</button>
-          <a class="btn btn-ghost" href="https://jarrelim24.github.io/sakura-launchpad/" target="_blank" rel="noopener">Launchpad ↗</a>
+        <div class="hero-mark" id="heroMark" aria-hidden="true"></div>
+        <div class="hero-text">
+          <h1><span class="hero-grad">Sakura</span>Pad</h1>
+          <p class="hero-tag">Swap · Launch · Earn · Grow</p>
         </div>
       </div>
     </div>
@@ -1171,6 +1206,25 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
   <!-- ======= HOME: FEATURES, POOLS, TRENDING, ACTIVITY, STATS ======= -->
   <section id="homeBelow" aria-label="SakuraPad overview">
+    <section class="card" id="homeSwapCard" aria-label="Swap">
+      <div class="card-head"><h2>Swap</h2></div>
+      <div class="tbox">
+        <div class="tb-top"><label for="homeFromInput">You pay</label></div>
+        <div class="tb-row">
+          <input id="homeFromInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/>
+          <button class="token-btn" id="homeFromTokenBtn" type="button" aria-label="Choose token to pay"></button>
+        </div>
+      </div>
+      <div class="tbox">
+        <div class="tb-top"><label for="homeToInput">You receive</label></div>
+        <div class="tb-row">
+          <input id="homeToInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/>
+          <button class="token-btn" id="homeToTokenBtn" type="button" aria-label="Choose token to receive"></button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="homeSwapGo" type="button" style="margin-top:14px">Swap</button>
+      <p class="form-note">Tap the card to open the Swap page — your amounts carry over.</p>
+    </section>
     <div class="feat-grid">
       <button type="button" class="feat-card" data-goto="liquidity"><span class="fic" style="background:#123B5C;color:#6FD3FF"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/></svg></span><strong>Liquidity</strong><span>Add / Remove</span><span class="farr">→</span></button>
       <a class="feat-card" href="https://jarrelim24.github.io/sakura-launchpad/" target="_blank" rel="noopener"><span class="fic" style="background:#57152F;color:#FF9CC6"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.8-.8.8-2.1 0-2.9a2.05 2.05 0 0 0-3-.1z"/><path d="m12 15-3-3c1-4.5 3.5-8.5 10-10.5C20.5 8 18 12.5 12 15z"/><circle cx="15" cy="9" r="2"/></svg></span><strong>Launchpad</strong><span>Create Token</span><span class="farr">→</span></a>
@@ -1182,12 +1236,10 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     <div class="home-grid">
       <section class="card" aria-label="Featured liquidity pools">
         <div class="card-head"><h2>Liquidity Pools</h2><button type="button" class="btn btn-soft btn-sm" data-goto="pools">All Pools →</button></div>
-        <p class="card-desc">Uniswap V2 pools — new Gen-7 pools first. Provide liquidity and earn a share of the pool's trading fees.</p>
         <div id="homePools"><div class="empty-note">Loading pools from the chain…</div></div>
       </section>
       <section class="card" aria-label="Trending tokens">
         <div class="card-head"><h2>Trending Tokens</h2><span class="soon-tag">Largest pools</span></div>
-        <p class="card-desc">Tokens sorted by pool value — new Gen-7 pools first. Prices in USD, calculated from current V2 pool reserves and the LOOP/USD rate.</p>
         <div id="trendingList"><div class="empty-note">Loading tokens…</div></div>
       </section>
     </div>
@@ -1195,14 +1247,13 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     <div class="home-grid2">
       <section class="card" aria-label="Recent activity">
         <div class="card-head"><h2>Recent Activity</h2></div>
-        <p class="card-desc">The latest swaps across all Sakura V2 pools, read directly from on-chain events on Loop Network.</p>
         <ul class="act-list" id="homeActivity"><li><span style="color:var(--muted)">Scanning the latest trades from the chain…</span></li></ul>
       </section>
       <div class="stats-grid">
-        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-11M21 21v-4"/></svg></span><small>Total TVL</small><strong id="statTvl">…</strong><span>in USD, from all pool reserves</span></div>
-        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><small>Volume ±24h</small><strong id="statVol">Scanning…</strong><span>total swaps across all pools, in USD</span></div>
-        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 4 12L16 12h5"/></svg></span><small>Trades ±24h</small><strong id="statTrades">…</strong><span>on-chain swaps across all pools</span></div>
-        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.8-.8.8-2.1 0-2.9a2.05 2.05 0 0 0-3-.1z"/><path d="m12 15-3-3c1-4.5 3.5-8.5 10-10.5C20.5 8 18 12.5 12 15z"/><circle cx="15" cy="9" r="2"/></svg></span><small>Tokens in Pools</small><strong id="statTokens">…</strong><span>with live Uniswap V2 pools</span></div>
+        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-11M21 21v-4"/></svg></span><small>Total TVL</small><strong id="statTvl">…</strong></div>
+        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><small>Volume ±24h</small><strong id="statVol">Scanning…</strong></div>
+        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 4 12L16 12h5"/></svg></span><small>Trades ±24h</small><strong id="statTrades">…</strong></div>
+        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.8-.8.8-2.1 0-2.9a2.05 2.05 0 0 0-3-.1z"/><path d="m12 15-3-3c1-4.5 3.5-8.5 10-10.5C20.5 8 18 12.5 12 15z"/><circle cx="15" cy="9" r="2"/></svg></span><small>Tokens in Pools</small><strong id="statTokens">…</strong></div>
       </div>
     </div>
   </section>
@@ -1487,8 +1538,14 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
 <footer>
   <div class="wrap">
-    <strong style="color:var(--ink)">Contracts — Loop Network (chainId 15551)</strong>
-    <div class="foot-grid">
+    <div class="foot-one-line">
+      <strong>Contracts — Gen-7</strong>
+      <button type="button" class="foot-chip" data-copy-addr="0xb9696898Ff377D7dfCbFd9C9270972814173176b" title="Copy Factory address">Factory <span class="mono">0xb969…176b</span></button>
+      <button type="button" class="foot-chip" data-copy-addr="0xcB589238585c007e2B71ad104DA622057485b323" title="Copy Router address">Router <span class="mono">0xcB58…b323</span></button>
+      <button type="button" class="btn btn-ghost btn-sm" id="footCopyBtn">Copy</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="footShowAllBtn" aria-expanded="false">Show all</button>
+    </div>
+    <div class="foot-grid" id="footContractsList" hidden>
       <span>Factory (gen-7): <span class="mono">0xb9696898Ff377D7dfCbFd9C9270972814173176b</span></span>
       <span>Router V2 (gen-7): <span class="mono">0xcB589238585c007e2B71ad104DA622057485b323</span></span>
       <span>ClaimDex (fee-split adapter, gen-7): <span class="mono">0x77F971f3E9d26376b7E60b7E68D8719bEf186f4E</span></span>
@@ -1528,6 +1585,26 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 </div>
 
 <div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Mobile bottom nav (mobile only via CSS — desktop keeps the sidebar) -->
+<nav id="bottomNav" aria-label="Mobile navigation">
+  <button type="button" class="bn-item active" data-view="home"><svg class="ic" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 9.5V21h14V9.5"/></svg><span>Home</span></button>
+  <button type="button" class="bn-item" data-view="liquidity"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/></svg><span>Liquidity</span></button>
+  <button type="button" class="bn-center" data-view="swap" aria-label="Swap"><span class="bn-raise"><svg class="ic" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><span>Swap</span></button>
+  <button type="button" class="bn-item" data-view="pools"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m7 14 4-4 3 3 5-6"/></svg><span>Pools</span></button>
+  <button type="button" class="bn-item" id="bnMoreBtn" aria-label="More"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg><span>More</span></button>
+</nav>
+<div id="moreSheetWrap" hidden>
+  <div class="more-backdrop" id="moreBackdrop"></div>
+  <div class="more-sheet" role="dialog" aria-label="More">
+    <button type="button" data-view="launchpad">Launchpad</button>
+    <button type="button" data-view="analytics">Analytics</button>
+    <button type="button" data-view="locker">Locker</button>
+    <button type="button" data-view="portfolio">Portfolio</button>
+    <button type="button" class="soon" data-view="farming">Farming <span class="soon-tag">Coming Soon</span></button>
+    <button type="button" class="soon" data-view="staking">Staking <span class="soon-tag">Coming Soon</span></button>
+  </div>
+</div>
 
 <script>
 /* =====================================================================
@@ -1846,6 +1923,19 @@ function fmtUSDPrice(usd){
   if(a < 0.01) return '$' + fmtNum(usd, 8);
   if(a < 1) return '$' + fmtNum(usd, 6);
   return '$' + fmtNum(usd, 4);
+}
+function fmtTrendUSD(t){ /* Trending only: tiny prices read as $2.1e-11 instead of a run of zeros — display only, price math unchanged */
+  var p = tokenPriceUsd(t);
+  if(!usdAvailable()) return 'USD price unavailable';
+  if(p === null || p === undefined || !isFinite(p)) return '—';
+  var a = Math.abs(p);
+  if(a > 0 && a < 0.0001){
+    var exp = Math.floor(Math.log10(a));
+    var m = fmtNum(a / Math.pow(10, exp), 1);
+    if(m === '10'){ m = '1'; exp = exp + 1; }
+    return '$' + m + 'e' + exp;
+  }
+  return fmtUSDPrice(p);
 }
 function fmtCompactUSD(usd){
   if(!usdAvailable()) return 'USD price unavailable';
@@ -3797,6 +3887,7 @@ function renderBalances(){
 function syncSwapTokenButtons(){
   el('fromTokenBtn').innerHTML = tokenBtnHtml(TOKENS[state.swap.from]);
   el('toTokenBtn').innerHTML = tokenBtnHtml(TOKENS[state.swap.to]);
+  if(typeof syncHomeSwapCard === 'function') syncHomeSwapCard();
 }
 function swapReserves(){
   var pair = pairTokenOf(state.swap.from, state.swap.to);
@@ -8645,6 +8736,7 @@ function showView(v, fromBack){
   if(v === 'pool'){ renderPoolDetail(); }
   if(v === 'home'){ if(typeof renderHomeExtras === 'function') renderHomeExtras(); if(typeof loadHomeActivity === 'function') loadHomeActivity(); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  if(typeof syncBottomNav === 'function') syncBottomNav(v);
 }
 Array.prototype.forEach.call(document.querySelectorAll('.main-nav button'), function(b){
   b.addEventListener('click', function(){ showView(b.getAttribute('data-view')); });
@@ -8765,7 +8857,7 @@ function renderHomeExtras(){
       var t = TOKENS[entry.sym];
       return '<div class="trend-row"><span class="rank">' + (i + 1) + '</span>' + avatarHtml(t, 36) +
         '<span class="tr-main"><strong>' + esc(t.symbol) + '</strong><span>' + esc(t.name) + '</span></span>' +
-        '<span class="tr-nums"><strong>' + fmtTokenUSD(t) + '</strong><span>Pool ' + (entry.value === null ? '—' : fmtUSD(entry.value)) + '</span></span></div>';
+        '<span class="tr-nums"><strong>' + fmtTrendUSD(t) + '</strong><span>Pool ' + (entry.value === null ? '—' : fmtUSD(entry.value)) + '</span></span></div>';
     }).join('');
   }
   if(hp){
@@ -8773,18 +8865,17 @@ function renderHomeExtras(){
       var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
       var lockPct = (p.lpLockedWei !== null && p.lpLockedWei !== undefined && p.lpSupplyWei > 0n)
         ? Number(p.lpLockedWei * 10000n / p.lpSupplyWei) / 100 : null;
-      return '<div class="home-pool-row"><span class="pc-avatars">' + avatarHtml(t, 36) + avatarHtml(q, 36) + '</span>' +
+      return '<div class="home-pool-row" data-homepool="' + esc(p.pool) + '" tabindex="0" role="button"><span class="pc-avatars">' + avatarHtml(t, 36) + avatarHtml(q, 36) + '</span>' +
         '<span class="hp-main"><strong>' + esc(t.symbol) + ' / ' + esc(q.symbol) + '</strong><span>' + esc(t.name) + '</span></span>' +
-        '<span class="hp-nums"><strong>' + (p._tvl === null ? '—' : fmtUSD(p._tvl)) + '</strong><span>Locked LP ' + (lockPct === null ? '—' : fmtNum(lockPct, 0) + '%') + '</span></span>' +
-        '<button type="button" class="btn btn-primary" data-homeadd="' + esc(p.pool) + '">Add</button></div>';
+        '<span class="hp-nums"><strong>' + (p._tvl === null ? '—' : fmtUSD(p._tvl)) + '</strong><span>Locked LP ' + (lockPct === null ? '—' : fmtNum(lockPct, 0) + '%') + '</span></span></div>';
     }).join('');
-    Array.prototype.forEach.call(hp.querySelectorAll('button[data-homeadd]'), function(b){
-      b.addEventListener('click', function(){
-        /* The pool address pins the exact pair (a pair can exist on two
-           factories) — openAddForPool sets addToken + addQuote from the
-           row, so a Gen-7 tUSDC-quoted pair opens Add with tUSDC. */
-        openAddForPool(b.getAttribute('data-homeadd'));
-      });
+    Array.prototype.forEach.call(hp.querySelectorAll('[data-homepool]'), function(row){
+      /* The whole row opens Add for that pool — the pool address pins
+         the exact pair (a pair can exist on two factories), so a Gen-7
+         tUSDC-quoted pair opens Add with tUSDC. */
+      function open(){ openAddForPool(row.getAttribute('data-homepool')); }
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', function(e){ if(e && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); open(); } });
     });
     bindLiveRetryButtons();
   }
@@ -8883,6 +8974,117 @@ renderAll = function(){ _renderAllOrig(); renderHomeExtras(); };
 Array.prototype.forEach.call(document.querySelectorAll('[data-goto]'), function(elm){
   elm.addEventListener('click', function(){ showView(elm.getAttribute('data-goto')); });
 });
+/* ===== Home final design: hero mark, swap shortcut card, contracts one-line, mobile bottom nav ===== */
+/* Hero mark: reuse the Sakura logo already embedded in the sidebar —
+   the file carries it once as base64; cloning it adds no new image. */
+(function(){
+  var mark = document.getElementById('heroMark');
+  var logo = document.querySelector ? document.querySelector('.side-brand img') : null;
+  if(mark && logo && logo.cloneNode){ mark.appendChild(logo.cloneNode(false)); }
+})();
+/* Home Swap card = shortcut to the Swap view, NOT a second swap form.
+   Tapping the card (or its Swap button) carries the typed amounts and
+   the chosen tokens into the real Swap form and opens it. The card
+   never quotes or executes anything itself. */
+function syncHomeSwapCard(){
+  var f = document.getElementById('homeFromTokenBtn');
+  var t = document.getElementById('homeToTokenBtn');
+  if(f && TOKENS[state.swap.from]) f.innerHTML = tokenBtnHtml(TOKENS[state.swap.from]);
+  if(t && TOKENS[state.swap.to]) t.innerHTML = tokenBtnHtml(TOKENS[state.swap.to]);
+}
+function goHomeSwap(openModal){
+  var fi = document.getElementById('homeFromInput');
+  var ti = document.getElementById('homeToInput');
+  var fromEl = document.getElementById('fromInput');
+  var toEl = document.getElementById('toInput');
+  if(fi && fromEl) fromEl.value = fi.value || '';
+  if(ti && toEl) toEl.value = ti.value || '';
+  showView('swap');
+  if(typeof updateSwap === 'function') updateSwap();
+  if(openModal && typeof openTokenModal === 'function') openTokenModal(openModal);
+}
+(function(){
+  var card = document.getElementById('homeSwapCard');
+  if(!card) return;
+  syncHomeSwapCard();
+  card.addEventListener('click', function(e){
+    var t = e && e.target;
+    if(t && t.closest && t.closest('input,button')) return; /* inputs + token/swap buttons handle themselves */
+    goHomeSwap();
+  });
+  var go = document.getElementById('homeSwapGo');
+  if(go) go.addEventListener('click', function(){ goHomeSwap(); });
+  var fb = document.getElementById('homeFromTokenBtn');
+  if(fb) fb.addEventListener('click', function(e){ if(e && e.stopPropagation) e.stopPropagation(); goHomeSwap('swapFrom'); });
+  var tb = document.getElementById('homeToTokenBtn');
+  if(tb) tb.addEventListener('click', function(e){ if(e && e.stopPropagation) e.stopPropagation(); goHomeSwap('swapTo'); });
+})();
+/* Contracts footer: one collapsed line, full list on demand. Copy uses
+   the clipboard API with a plain fallback; nothing is deleted — the
+   expanded list keeps every entry, Gen-7 first. */
+function copyAddrText(addr){
+  try{
+    if(typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(addr).then(function(){ toast('Address copied'); }, function(){ toast(addr); });
+      return;
+    }
+  }catch(e){}
+  try{
+    if(document.execCommand){
+      var ta = document.createElement('textarea');
+      ta.value = addr; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('Address copied'); return;
+    }
+  }catch(e){}
+  toast(addr);
+}
+(function(){
+  var list = document.getElementById('footContractsList');
+  var btn = document.getElementById('footShowAllBtn');
+  if(btn) btn.addEventListener('click', function(){
+    if(!list) return;
+    var open = list.hidden;
+    list.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.textContent = open ? 'Hide' : 'Show all';
+  });
+  var copyBtn = document.getElementById('footCopyBtn');
+  if(copyBtn) copyBtn.addEventListener('click', function(){ copyAddrText('0xb9696898Ff377D7dfCbFd9C9270972814173176b'); });
+  Array.prototype.forEach.call(document.querySelectorAll('.foot-chip'), function(chip){
+    chip.addEventListener('click', function(){ copyAddrText(chip.getAttribute('data-copy-addr')); });
+  });
+})();
+/* Mobile bottom nav: fixed bar on phones only (CSS), desktop sidebar
+   untouched. More opens a bottom sheet with the remaining views. */
+function syncBottomNav(v){
+  var nav = document.getElementById('bottomNav');
+  if(!nav) return;
+  var map = { home: 'home', swap: 'swap', liquidity: 'liquidity', pools: 'pools', pool: 'pools' };
+  var want = map[v] || null;
+  Array.prototype.forEach.call(nav.querySelectorAll('[data-view]'), function(b){
+    if(b.classList) b.classList.toggle('active', want !== null && b.getAttribute('data-view') === want);
+  });
+  closeMoreSheet();
+}
+function openMoreSheet(){ var w = document.getElementById('moreSheetWrap'); if(w) w.hidden = false; }
+function closeMoreSheet(){ var w = document.getElementById('moreSheetWrap'); if(w) w.hidden = true; }
+(function(){
+  var nav = document.getElementById('bottomNav');
+  if(!nav) return;
+  Array.prototype.forEach.call(nav.querySelectorAll('[data-view]'), function(b){
+    b.addEventListener('click', function(){ showView(b.getAttribute('data-view')); });
+  });
+  var more = document.getElementById('bnMoreBtn');
+  if(more) more.addEventListener('click', function(){ openMoreSheet(); });
+  var back = document.getElementById('moreBackdrop');
+  if(back) back.addEventListener('click', function(){ closeMoreSheet(); });
+  var sheet = document.querySelector ? document.querySelector('.more-sheet') : null;
+  if(sheet) Array.prototype.forEach.call(sheet.querySelectorAll('[data-view]'), function(b){
+    b.addEventListener('click', function(){ closeMoreSheet(); showView(b.getAttribute('data-view')); });
+  });
+  syncBottomNav(currentView);
+})();
 renderHomeExtras();
 loadHomeActivity();
 renderUsdRateBar();
