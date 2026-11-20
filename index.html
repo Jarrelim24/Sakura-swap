@@ -261,6 +261,7 @@ body[data-view="analytics"] .panel-positions{display:none}
 .slip-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .slip-row button{border:1px solid var(--line2);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;min-height:36px}
 .slip-row button.sel{border-color:var(--pink);background:var(--pink-pale);color:var(--pink-dark)}
+.pct-row button.sel{border-color:var(--pink);background:var(--pink-pale);color:var(--pink-dark)}
 .slip-custom{display:flex;align-items:center;gap:4px;border:1px solid var(--line2);border-radius:999px;padding:0 12px;background:var(--surface)}
 .slip-custom input{width:52px;border:0;outline:none;background:transparent;font-weight:700;font-size:13.5px;color:var(--ink);min-height:36px;padding:0}
 .slip-custom span{font-weight:700;font-size:13px;color:var(--muted)}
@@ -867,7 +868,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="thin-warn" id="thinPoolWarn" role="alert">Thin pool — price moves fast, consider smaller amount or higher slippage</div>
         <div class="form-err" id="swapErr"></div>
         <button class="btn btn-primary" id="swapAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim. Fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown.</p>
+        <p class="form-note">The router is picked automatically from the pool's own factory, per token — never one router for everything. Corrected pools (Gen-3/4/5 graduations) route through Router02 (Corrected): the 0.3% fee splits 0.10% to the pool · 0.05% creator · 0.15% platform, plus creator tax, with every fee settled in LOOP, and quotes come from that router itself because sell quotes are net of the LOOP skim. Fee-split pools split 0.20% pool · 0.05% creator · 0.05% platform, taken from your input; legacy pools keep the full 0.3% inside the pool. Every swap uses the router's fee-on-transfer–supporting swap functions (so tokens with a creator / transfer tax can swap), is re-quoted fresh right before sending, and is simulated with eth_call first — if the simulation says the swap would fail, nothing is sent and the real reason is shown. Stablecoins (tUSDC, tUSDT) and the 12 test xStocks trade through TestAssetPeg v2 at the USD oracle price with a single 0.5% spread per swap — there are no V2 pools for xStocks. Graduated tokens can also pair with tUSDC/tUSDT in the corrected (Gen-5) factory once a stable pair exists; until then the form says the pair does not exist yet.</p>
       </div>
 
       <!-- LIMIT MODE -->
@@ -875,7 +876,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <p class="card-desc">Set a target market cap for a graduated token. Your funds move into the SakuraLimitOrder contract, which holds them until a keeper fills the order at your target — or you cancel and get a full refund.</p>
         <div class="lock-note">
           <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          <span><strong>How execution works — please read:</strong> orders are created on-chain in the SakuraLimitOrder contract (<span class="mono">0x1e620F…40A494</span>) and your funds are held by that contract — <strong>an order stays live even if you close this page</strong>. It is <strong>not filled instantly</strong>: a keeper executes it once the pool price reaches your target, and the keeper takes a <strong>0.25% fee from the swap output</strong>. Execution needs a running keeper, and <strong>a 24/7 keeper is not running yet</strong>, so a reached order can wait until a keeper is active. You can cancel any open order at any time and the contract refunds your funds in full.</span>
+          <span><strong>How execution works — please read:</strong> orders are created on-chain in the SakuraLimitOrder contract (<span class="mono">0xa28656…16d52</span>) and your funds are held by that contract — <strong>an order stays live even if you close this page</strong>. It is <strong>not filled instantly</strong>: a keeper executes it once the pool price reaches your target, and the keeper takes a <strong>1% fee, always paid in LOOP</strong>. A 24/7 keeper is running, so a reached order is executed automatically. You can cancel any open order at any time and the contract refunds your funds in full.</span>
         </div>
         <div class="dir-row" id="limitDirRow">
           <button type="button" data-dir="buy" class="active">Buy</button>
@@ -931,7 +932,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Distance from current price</span><strong id="limDist"></strong></div>
           <div class="drow"><span>Route</span><strong id="limRoute"></strong></div>
           <div class="drow"><span>Contract</span><strong>SakuraLimitOrder · 0x1e62…A494</strong></div>
-          <div class="drow"><span>Keeper fee</span><strong>0.25% of the swap output, paid to the keeper on execution</strong></div>
+          <div class="drow"><span>Keeper fee</span><strong>1% of the trade value, paid in LOOP to the keeper on execution</strong></div>
         </div>
         <div class="form-err" id="limitErr"></div>
         <button class="btn btn-primary create-order-btn" id="limitAction" type="button">Create order</button>
@@ -945,7 +946,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <p class="card-desc">Split one total amount into equal orders on a fixed schedule, so your average entry price smooths out over time instead of depending on one moment. The full budget moves into the SakuraDCA contract up front.</p>
         <div class="lock-note">
           <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          <span><strong>How execution works — please read:</strong> plans are created on-chain in the SakuraDCA contract (<span class="mono">0xc3f635…630ef0</span>) and the contract holds the budget — <strong>a plan keeps its schedule even if you close this page</strong>. Each order is executed by a keeper when it comes due (the first order is due immediately), <strong>not instantly by this page</strong>, and the keeper takes a <strong>0.25% fee from each swap's output</strong>. Execution needs a running keeper, and <strong>a 24/7 keeper is not running yet</strong>, so due orders can wait until a keeper is active. You can cancel a plan at any time and the contract refunds whatever is left.</span>
+          <span><strong>How execution works — please read:</strong> plans are created on-chain in the SakuraDCA contract (<span class="mono">0x44d10d…e7d1Dd</span>) and the contract holds the budget — <strong>a plan keeps its schedule even if you close this page</strong>. Each order is executed by a keeper when it comes due (the first order is due immediately), <strong>not instantly by this page</strong>, and the keeper takes a <strong>1% fee, always paid in LOOP, from each swap</strong>. A 24/7 keeper is running, so due orders are executed automatically. You can cancel a plan at any time and the contract refunds whatever is left.</span>
         </div>
         <div class="tbox" style="margin-top:14px">
           <div class="tb-top"><label for="dcaAmountInput">Sell</label><span class="bal" id="dcaSellMeta"></span></div>
@@ -1005,7 +1006,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Route</span><strong id="dcaRoute"></strong></div>
           <div class="drow"><span>First order</span><strong>Due immediately — executed by the keeper</strong></div>
           <div class="drow"><span>Contract</span><strong>SakuraDCA · 0xc3f6…0ef0</strong></div>
-          <div class="drow"><span>Keeper fee</span><strong>0.25% of each swap's output, paid to the keeper</strong></div>
+          <div class="drow"><span>Keeper fee</span><strong>1% of each swap, paid in LOOP to the keeper</strong></div>
         </div>
         <div class="form-err" id="dcaErr"></div>
         <button class="btn btn-primary create-order-btn" id="dcaAction" type="button">Create DCA Plan</button>
@@ -1031,12 +1032,17 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <!-- ADD LIQUIDITY MODE -->
       <div id="modeAdd">
         <div class="card-head"><h2>Add Liquidity</h2></div>
-        <p class="card-desc">Deposit LOOP + tokens at the pool ratio and receive LP as proof of your share.</p>
+        <p class="card-desc">Deposit two assets at the pool ratio and receive LP as proof of your share. Pair with LOOP, tUSDC, tUSDT, xStocks or any graduated token — new pairs use the Gen-5 router.</p>
+        <div class="pct-row" id="addQuoteRow" style="margin-top:12px"><span style="align-self:center;font-weight:700;color:var(--muted);font-size:13px">Pair with</span>
+          <button type="button" data-q="LOOP" class="sel">LOOP</button>
+          <button type="button" data-q="tUSDC">tUSDC</button>
+          <button type="button" data-q="tUSDT">tUSDT</button>
+        </div>
         <div class="tbox">
-          <div class="tb-top"><label for="addLoopInput">LOOP amount</label><span class="bal" id="addLoopBalance"></span></div>
+          <div class="tb-top"><label for="addLoopInput" id="addQuoteLabel">LOOP amount</label><span class="bal" id="addLoopBalance"></span></div>
           <div class="tb-row">
             <input id="addLoopInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/>
-            <button class="token-btn" type="button" data-fixed="LOOP"></button>
+            <button class="token-btn" id="addQuoteBtn" type="button"></button>
           </div>
           <div class="usd" id="addLoopUsd"></div>
         </div>
@@ -1055,6 +1061,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Your pool share</span><strong id="aShare"></strong></div>
           <div class="drow"><span>Router</span><strong id="aRoute"></strong></div>
         </div>
+        <div class="thin-warn" id="addOracleWarn" role="alert"></div>
         <div class="form-err" id="addErr"></div>
         <button class="btn btn-primary" id="addAction" type="button" style="margin-top:14px">Connect Wallet</button>
         <p class="form-note">Both amounts follow the current pool reserve ratio. LP you receive from adding your own liquidity <strong>can be withdrawn at any time</strong> — unlike graduation LP, which is permanently locked in the locker.</p>
@@ -1063,7 +1070,13 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <!-- REMOVE LIQUIDITY MODE -->
       <div id="modeRemove" style="display:none">
         <div class="card-head"><h2>Remove Liquidity</h2></div>
-        <p class="card-desc">Burn your LP and receive LOOP + tokens back according to your pool share.</p>
+        <p class="card-desc">Burn your LP and receive your share of the pair back according to your pool share.</p>
+        <div class="pct-row" id="remQuoteRow" style="margin-top:12px"><span style="align-self:center;font-weight:700;color:var(--muted);font-size:13px">Pair with</span>
+          <button type="button" data-q="LOOP" class="sel">LOOP</button>
+          <button type="button" data-q="tUSDC">tUSDC</button>
+          <button type="button" data-q="tUSDT">tUSDT</button>
+          <button type="button" data-q-more="1">More…</button>
+        </div>
         <div class="tbox">
           <div class="tb-top"><label>Pair</label><span class="bal" id="remLpBalance"></span></div>
           <div class="tb-row">
@@ -1081,7 +1094,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="tb-row"><input id="remLpInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/></div>
         </div>
         <div class="details" id="remDetails" style="display:none">
-          <div class="drow"><span>You receive LOOP</span><strong id="rOutLoop"></strong></div>
+          <div class="drow"><span id="rOutLoopLabel">You receive LOOP</span><strong id="rOutLoop"></strong></div>
           <div class="drow"><span>You receive tokens</span><strong id="rOutToken"></strong></div>
           <div class="drow"><span>Router</span><strong id="rRoute"></strong></div>
         </div>
@@ -1161,7 +1174,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       </div>
     </div>
     <div class="pools-grid" id="pairsBody"></div>
-    <p class="form-note" style="margin-top:14px">Pool value is estimated as twice the LOOP reserve (50/50 pairs) and shown in USD at the current LOOP/USD rate. Volume and trade counts come from scanning on-chain Swap events over the last ±50,000 blocks (±24 hours); if the RPC fails to scan, that column is marked unavailable — never a made-up number.</p>
+    <p class="form-note" style="margin-top:14px">Pool value is estimated as twice the LOOP reserve (50/50 pairs) and shown in USD at the current LOOP/USD rate. Volume and trade counts come from scanning on-chain Swap events over the last ±50,000 blocks (±24 hours); if the RPC fails to scan, that column is marked unavailable — never a made-up number. Stable pairs (TOKEN / tUSDC or tUSDT) are valued at twice the stablecoin reserve, since the stablecoin is $1; their volume and trade counts are not scanned yet.</p>
   </section>
 
   <!-- ======= TOKEN LOCKER ======= -->
@@ -1432,6 +1445,8 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <span>WLOOP: <span class="mono">0x4Fc02eBf3B31F74ccb1866CAdB98f2ABE9296eE7</span></span>
       <span>Token Locker: <span class="mono">0xA4C46795Bc6116e0286ea13e1439622E9727B50f</span></span>
       <span>SAKURA: <span class="mono">0x6D3855b49e65D7F4403Fef6e4d29068f068EF644</span></span>
+      <span>TestAssetPeg v2: <span class="mono">0xd79B3553806F1c3e70e6640a21439Ae6B613f6Be</span></span>
+      <span>Factory (corrected / gen-5): <span class="mono">0xE0C83452969eC0E06F0a62Bb99f3c44A50b10929</span></span>
     </div>
     <span id="footNote">Initial data: on-chain snapshot at block 45269686 (Nov 15, 2026 · 17:47 UTC), verified from the Loop RPC. The page tries to re-read live when opened — figures never go back to an older block than the one already shown.</span>
   </div>
@@ -1444,7 +1459,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 <div class="modal-overlay" id="tokenModal">
   <div class="modal" role="dialog" aria-label="Select token">
     <div class="modal-head">
-      <div><h3>Select Token</h3><p>Only tokens that have graduated from Sakura Launchpad — all of them have a Uniswap V2 pool with LOOP.</p></div>
+      <div><h3>Select Token</h3><p>Graduated tokens, stablecoins and xStocks. xStocks and stablecoins trade through the TestAssetPeg at the USD oracle price; graduated tokens trade through their Uniswap V2 pools.</p></div>
       <button class="icon-btn" id="tokenModalClose" type="button" aria-label="Close"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="search-box">
@@ -1493,11 +1508,20 @@ var CFG = {
      (SakuraLimitOrder block 45384813, SakuraDCA block 45384815). No owner,
      no admin: funds are held by the contract itself, orders/plans survive
      closing this page, and a keeper executes them when their condition is
-     met (keeper fee 0.25% of the swap output). Constructor defaults for
+     met (keeper fee 1% in LOOP). Constructor defaults for
      both: WLOOP (CFG.wloop) + the fee-split router (CFG.router); every
      order/plan still records its own per-vintage router at creation. */
-  limitOrder: '0x1e620F59ef5957Dedaf5cA8563c728EbFE40A494',
-  dcaContract: '0xc3f635ed3AA857a2E17e925433d9D76be4630ef0'
+  limitOrder: '0xa2865661A79B28154374F782363dE5F25DD16d52',
+  dcaContract: '0x44d10def3783CD805d867127771a232884e7d1Dd',
+  /* TestAssetPeg v2 — USD-priced swap venue for the test assets (tUSDC,
+     tUSDT and the 12 test xStocks) on Loop Network, deployed 2026-11-20.
+     Swaps settle at the keeper-updated USD oracle price with a single
+     0.5% spread per transaction (SPREAD_BPS 50/10000, verified on-chain).
+     There are NO Uniswap V2 pools for xStocks — the peg IS their venue.
+     Quotes already include the spread; decimals are handled inside the
+     peg (amounts are always in each token's smallest unit). */
+  peg: '0xd79B3553806F1c3e70e6640a21439Ae6B613f6Be',
+  pegSpreadBps: 50
 };
 var SNAPSHOT_BLOCK = 45269686;
 var SAKURA_POOL_CREATED_BLOCK = 45268585;
@@ -1528,9 +1552,102 @@ var TOKENS = {
   SG75:  { symbol:'SG75', name:'Sakura Graduation 75 Test', address:'0x8a758b0c238428ae4dd83ec0809d6e3d9d74ad92',
            pool:'0x3D50F9c56Fbde006e38CB32F8DA704836DA26724', vintage:'corrected', token0IsWloop:true,
            color:'#C05B2E', totalSupply:'1000000000',
-           resLoop:'15.03965131911523', resToken:'999999999', lpSupply:'122488.98864727821', lpLocked:'122488.98864727821' }
+           resLoop:'15.03965131911523', resToken:'999999999', lpSupply:'122488.98864727821', lpLocked:'122488.98864727821' },
+  tUSDC:{ symbol:'tUSDC', name:'Test USD Coin', address:'0x7cd5a641d7325bf81566D24F3D6184df40b9bE8b',
+           decimals:6, color:'#2775CA', peg:true },
+  tUSDT:{ symbol:'tUSDT', name:'Test Tether USD', address:'0x60725bcC7226d4B67Ad6b851BbcF8bC3BB322D0d',
+           decimals:6, color:'#26A17B', peg:true },
+  tAAPLx:{ symbol:'tAAPLx', name:'Test Apple xStock', address:'0x8A5C8aC2336b486b4714bA03512b9eBe77113BE1',
+           decimals:18, color:'#555555', peg:true },
+  tNVDAx:{ symbol:'tNVDAx', name:'Test Nvidia xStock', address:'0x708f33172a59e9d07838189384dE056950E44dB1',
+           decimals:18, color:'#76B900', peg:true },
+  tTSLAx:{ symbol:'tTSLAx', name:'Test Tesla xStock', address:'0x244b219Cc00Cb3083019B11f23338c27b7e4fB98',
+           decimals:18, color:'#E82127', peg:true },
+  tGOOGLx:{ symbol:'tGOOGLx', name:'Test Google xStock', address:'0xd500Cb302e447221CdABa97c7Bc6D779C7E748bE',
+           decimals:18, color:'#4285F4', peg:true },
+  tAMZNx:{ symbol:'tAMZNx', name:'Test Amazon xStock', address:'0x7d72C178a19CcfBd96035b3a75dBc518Bdaf128a',
+           decimals:18, color:'#FF9900', peg:true },
+  tMSFTx:{ symbol:'tMSFTx', name:'Test Microsoft xStock', address:'0x50119A956ab7E529B87fD02407230997EAd6BC2d',
+           decimals:18, color:'#00A4EF', peg:true },
+  tMETAx:{ symbol:'tMETAx', name:'Test Meta xStock', address:'0xf233AB9972bdA8A83e6349A514D0B13a59f2E194',
+           decimals:18, color:'#0082FB', peg:true },
+  tGMEx:{ symbol:'tGMEx', name:'Test GameStop xStock', address:'0xA6b8E5ef6078aeB53F2C2559f7bA1cE816293E1B',
+           decimals:18, color:'#E31837', peg:true },
+  tCOINx:{ symbol:'tCOINx', name:'Test Coinbase xStock', address:'0xEC1197228CBC1D0aafAc4b6A8Ae868aDf615ba22',
+           decimals:18, color:'#0052FF', peg:true },
+  tMSTRx:{ symbol:'tMSTRx', name:'Test MicroStrategy xStock', address:'0x19323Aa7CD77C77629146dE7D670D009D16AAF1b',
+           decimals:18, color:'#F7931A', peg:true },
+  tPLTRx:{ symbol:'tPLTRx', name:'Test Palantir xStock', address:'0xaDC20cb6Dc0692184269FF82E37e5ebaCD04a986',
+           decimals:18, color:'#40C4AA', peg:true },
+  tSPYx:{ symbol:'tSPYx', name:'Test S&P 500 xStock', address:'0x30F09e04975f0bC5fbc33728d097deEC418dE9e7',
+           decimals:18, color:'#2E7D32', peg:true }
 };
 var TOKEN_LIST = ['MESIAH','SAKURA','GANGEL','SGL2','SFSL','SG75'];
+/* Peg assets: trade through TestAssetPeg v2 at the USD oracle price
+   (LOOP + the two test stablecoins + the 12 test xStocks). Stablecoins
+   are the quote assets for Gen-5 (corrected-factory) V2 pairs. */
+var PEG_LIST = ['LOOP','tUSDC','tUSDT','tAAPLx','tNVDAx','tTSLAx','tGOOGLx','tAMZNx','tMSFTx','tMETAx','tGMEx','tCOINx','tMSTRx','tPLTRx','tSPYx'];
+var STABLE_LIST = ['tUSDC','tUSDT'];
+function isPegAsset(sym){ return PEG_LIST.indexOf(sym) >= 0; }
+function isStable(sym){ return STABLE_LIST.indexOf(sym) >= 0; }
+function isGraduated(sym){ return TOKEN_LIST.indexOf(sym) >= 0; }
+/* Chain address of a symbol for pair lookups: LOOP pairs are WLOOP pairs. */
+function sideAddr(sym){ return sym === 'LOOP' ? CFG.wloop : TOKENS[sym].address; }
+/* USD price of one whole token, or null when unknown. Peg assets use the
+   TestAssetPeg oracle price; LOOP uses the CoinGecko rate; graduated
+   tokens use their LOOP-pool price. */
+function usdPriceOf(sym){
+  if(isPegAsset(sym)){ var p = pegUsdPrice(sym); return (p === undefined || !isFinite(p) || p <= 0) ? null : p; }
+  if(sym === 'LOOP') return usdAvailable() ? loopUsd : null;
+  var t = TOKENS[sym];
+  if(!t) return null;
+  var v = tokenPriceUsd(t);
+  return (v && isFinite(v) && v > 0) ? v : null;
+}
+/* Oracle-implied price of A in B (whole units) from the TestAssetPeg
+   oracle — only when BOTH sides are peg assets. Null otherwise. */
+function oracleRatioUsd(aSym, bSym){
+  if(!isPegAsset(aSym) || !isPegAsset(bSym)) return null;
+  var pa = pegUsdPrice(aSym), pb = pegUsdPrice(bSym);
+  if(pa === undefined || pb === undefined || !pa || !pb || pa <= 0 || pb <= 0) return null;
+  return pa / pb;
+}
+/* Price of A in B (whole units) implied by a Gen-5 pair's reserves. */
+function gen5PairPrice(aSym, bSym, gp){
+  if(!gp || !gp.pool || gp.resTokenWei <= 0n || gp.resOtherWei <= 0n) return null;
+  var decA = TOKENS[aSym].decimals, decB = TOKENS[bSym].decimals;
+  return Number(weiToRaw(gp.resOtherWei, decB)) / Number(weiToRaw(gp.resTokenWei, decA));
+}
+/* USD value of a whole Gen-5 pool (both sides), or null when unpriceable. */
+function gen5PairUsdValue(aSym, bSym, gp){
+  if(!gp || !gp.pool) return null;
+  var pa = usdPriceOf(aSym), pb = usdPriceOf(bSym);
+  var decA = TOKENS[aSym].decimals, decB = TOKENS[bSym].decimals;
+  var vA = pa !== null ? Number(weiToRaw(gp.resTokenWei, decA)) * pa : null;
+  var vB = pb !== null ? Number(weiToRaw(gp.resOtherWei, decB)) * pb : null;
+  if(vA !== null && vB !== null) return vA + vB;
+  if(vA !== null) return vA * 2;
+  if(vB !== null) return vB * 2;
+  return null;
+}
+/* Cached Gen-5 pair record for (t, otherSym), if discovered. */
+function gen5PairOf(t, otherSym){ return (t.gen5Pairs && t.gen5Pairs[otherSym]) || null; }
+/* USD line for an Add-form amount: peg oracle price for peg assets,
+   CoinGecko LOOP rate for LOOP, pool price for graduated tokens. */
+function addUsdLine(sym, wei){
+  if(wei <= 0n) return '';
+  if(isPegAsset(sym)) return pegUsdLine(sym, wei);
+  if(sym === 'LOOP') return usdLineForWei(wei);
+  return usdLineForToken(TOKENS[sym], wei);
+}
+/* Pool address behind the current Remove selection, whatever its venue. */
+function remLpPool(){
+  var t = TOKENS[state.remToken];
+  if(state.remQuote === 'LOOP' && isGraduated(state.remToken) && t.pool) return t.pool;
+  if(isStable(state.remQuote) && isGraduated(state.remToken) && t.stablePools && t.stablePools[state.remQuote]) return t.stablePools[state.remQuote].pool;
+  var gp = gen5PairOf(t, state.remQuote);
+  return gp ? gp.pool : null;
+}
 
 var state = {
   block: SNAPSHOT_BLOCK, live: false,
@@ -1548,7 +1665,7 @@ var state = {
   limit: { dir:'buy', token:'MESIAH', mcPct:0, exact:false }, orders: [], ordersLoadedFor: null, ordersLoading: false,
   dca: { token:'MESIAH', dir:'buy' }, dcaPlans: [], plansLoadedFor: null, plansLoading: false, dcaPlan: null, dcaHistory: [],
   swap: { from:'LOOP', to:'MESIAH', lastEdited:'from' },
-  addToken: 'MESIAH', remToken: 'MESIAH',
+  addToken: 'MESIAH', remToken: 'MESIAH', addQuote: 'LOOP', remQuote: 'LOOP',
   lockToken: 'MESIAH', lockDays: 90,
   chartSym: 'MESIAH', poolFilter: '',
   rateFlipped: false, selectingFor: 'swapFrom'
@@ -1912,7 +2029,8 @@ function balText(sym){
   var b = balanceOf(sym);
   if(b === undefined) return 'Balance: …';
   if(b === null) return 'Balance: unavailable';
-  return 'Balance: ' + fmtWei(b, 18, 6);
+  var dec = TOKENS[sym] ? TOKENS[sym].decimals : 18;
+  return 'Balance: ' + fmtWei(b, dec, 6);
 }
 
 /* ---------- Toast ---------- */
@@ -1937,11 +2055,7 @@ function renderPairs(){
     var t = TOKENS[sym];
     return !f || t.symbol.toLowerCase().indexOf(f) >= 0 || t.name.toLowerCase().indexOf(f) >= 0;
   });
-  if(!syms.length){
-    grid.innerHTML = '<div class="empty-note" style="grid-column:1/-1">No pools match that search.</div>';
-    return;
-  }
-  grid.innerHTML = syms.map(function(sym){
+  var cards = syms.map(function(sym){
     var t = TOKENS[sym];
     var lockPct = t.lpSupplyWei > 0n ? Number(t.lpLockedWei * 10000n / t.lpSupplyWei) / 100 : 0;
     var act = poolActivity[sym];
@@ -1965,6 +2079,85 @@ function renderPairs(){
       '<button type="button" class="btn btn-ghost" data-act="add" data-sym="' + sym + '">Add Liquidity</button>' +
       '</div></article>';
   }).join('');
+  /* Gen-5 stable-pair cards (TOKEN / tUSDC or tUSDT) — only for pairs
+     that actually exist on-chain; until the first stable-pair graduation
+     this list is empty and nothing is shown. Pool value is twice the
+     stablecoin reserve, since the stablecoin is $1. */
+  var sCards = [];
+  TOKEN_LIST.forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.stablePools) return;
+    STABLE_LIST.forEach(function(stSym){
+      var sp = t.stablePools[stSym];
+      if(!sp || !sp.pool) return;
+      if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && stSym.toLowerCase().indexOf(f) < 0) return;
+      var tvlUsd = Number(weiToRaw(sp.resStableWei, 6)) * 2;
+      var priceUsd = stableTokenPriceUsd(t, sp);
+      sCards.push('<article class="pool-card">' +
+        '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(TOKENS[stSym], 38) + '</span>' +
+        '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(stSym) + '</strong><small>' + esc(t.name) + '</small></span>' +
+        '<span class="soon-tag pc-tag">Gen-5 stable</span></div>' +
+        '<div class="pc-stats">' +
+        '<div><small>Price</small><strong>' + fmtUSDPrice(priceUsd) + '</strong></div>' +
+        '<div><small>Pool Value (±)</small><strong>' + fmtUSD(tvlUsd) + '</strong></div>' +
+        '<div><small>' + esc(stSym) + ' Reserve (value)</small><strong>' + fmtUSD(Number(weiToRaw(sp.resStableWei, 6))) + '</strong></div>' +
+        '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(sp.resTokenWei, 18, 0) + '</strong></div>' +
+        '<div><small>LP Supply</small><strong>' + fmtWei(sp.lpSupplyWei, 18, 0) + '</strong></div>' +
+        '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + sp.pool + '" target="_blank" rel="noopener">' + shortAddr(sp.pool) + ' ↗</a></strong></div>' +
+        '<div><small>Volume ±24h</small><strong>—</strong></div>' +
+        '<div><small>Trades ±24h</small><strong>—</strong></div>' +
+        '</div>' +
+        '<div class="pc-actions">' +
+        '<button type="button" class="btn btn-primary" data-swap-stable="' + sym + '|' + stSym + '">Swap</button>' +
+        '<button type="button" class="btn btn-ghost" data-add-stable="' + sym + '|' + stSym + '">Add Liquidity</button>' +
+        '</div></article>');
+    });
+  });
+  /* Gen-5 pair cards (xStock / stable, xStock / LOOP, xStock / xStock,
+     tUSDC / tUSDT, graduated / xStock) — only for pairs that actually
+     exist on-chain; until the first one is created this list is empty.
+     Graduated/stable pairs are already shown as stable cards above. */
+  var g5Cards = [];
+  var seenG5 = {};
+  Object.keys(TOKENS).forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.gen5Pairs) return;
+    Object.keys(t.gen5Pairs).forEach(function(oSym){
+      var gp = t.gen5Pairs[oSym];
+      if(!gp || !gp.pool) return;
+      if(seenG5[gp.pool.toLowerCase()]) return;
+      seenG5[gp.pool.toLowerCase()] = true;
+      if(isGraduated(sym) && isStable(oSym)) return; /* already a stable card */
+      var o = TOKENS[oSym];
+      if(f && t.symbol.toLowerCase().indexOf(f) < 0 && t.name.toLowerCase().indexOf(f) < 0 && oSym.toLowerCase().indexOf(f) < 0 && (o.name || '').toLowerCase().indexOf(f) < 0) return;
+      var tvlUsd = gen5PairUsdValue(sym, oSym, gp);
+      var price = gen5PairPrice(sym, oSym, gp);
+      var tag = (isPegAsset(sym) && isPegAsset(oSym)) ? 'Gen-5 · peg' : 'Gen-5';
+      g5Cards.push('<article class="pool-card">' +
+        '<div class="pc-head"><span class="pc-avatars">' + avatarHtml(t, 38) + avatarHtml(o, 38) + '</span>' +
+        '<span style="min-width:0"><strong>' + esc(t.symbol) + ' / ' + esc(oSym) + '</strong><small>' + esc(t.name) + ' · ' + esc(o.name) + '</small></span>' +
+        '<span class="soon-tag pc-tag">' + tag + '</span></div>' +
+        '<div class="pc-stats">' +
+        '<div><small>Price</small><strong>' + (price !== null ? ('1 ' + esc(t.symbol) + ' ≈ ' + fmtNum(price, 6) + ' ' + esc(oSym)) : '—') + '</strong></div>' +
+        '<div><small>Pool Value (±)</small><strong>' + (tvlUsd !== null ? fmtUSD(tvlUsd) : '—') + '</strong></div>' +
+        '<div><small>' + esc(t.symbol) + ' Reserve</small><strong>' + fmtWei(gp.resTokenWei, t.decimals, 0) + '</strong></div>' +
+        '<div><small>' + esc(oSym) + ' Reserve</small><strong>' + fmtWei(gp.resOtherWei, o.decimals, 0) + '</strong></div>' +
+        '<div><small>LP Supply</small><strong>' + fmtWei(gp.lpSupplyWei, 18, 0) + '</strong></div>' +
+        '<div><small>Pool</small><strong><a href="' + CFG.explorer + '/address/' + gp.pool + '" target="_blank" rel="noopener">' + shortAddr(gp.pool) + ' ↗</a></strong></div>' +
+        '<div><small>Volume ±24h</small><strong>—</strong></div>' +
+        '<div><small>Trades ±24h</small><strong>—</strong></div>' +
+        '</div>' +
+        '<div class="pc-actions">' +
+        '<button type="button" class="btn btn-primary" data-g5-swap="' + sym + '|' + oSym + '">Swap</button>' +
+        '<button type="button" class="btn btn-ghost" data-g5-add="' + sym + '|' + oSym + '">Add Liquidity</button>' +
+        '</div></article>');
+    });
+  });
+  if(!syms.length && !sCards.length && !g5Cards.length){
+    grid.innerHTML = '<div class="empty-note" style="grid-column:1/-1">No pools match that search.</div>';
+    return;
+  }
+  grid.innerHTML = cards + sCards.join('') + g5Cards.join('');
   Array.prototype.forEach.call(grid.querySelectorAll('button[data-act]'), function(btn){
     btn.addEventListener('click', function(){
       var sym = btn.getAttribute('data-sym');
@@ -1977,6 +2170,38 @@ function renderPairs(){
         syncAddTokenButton(); renderBalances(); updateAdd();
         showView('liquidity'); setMode('add');
       }
+    });
+  });
+  Array.prototype.forEach.call(grid.querySelectorAll('button[data-swap-stable]'), function(btn){
+    btn.addEventListener('click', function(){
+      var parts = btn.getAttribute('data-swap-stable').split('|');
+      state.swap.from = parts[1]; state.swap.to = parts[0]; state.swap.lastEdited = 'from';
+      syncSwapTokenButtons(); renderBalances(); updateSwap();
+      showView('swap'); setChartSym(parts[0]);
+    });
+  });
+  Array.prototype.forEach.call(grid.querySelectorAll('button[data-add-stable]'), function(btn){
+    btn.addEventListener('click', function(){
+      var parts = btn.getAttribute('data-add-stable').split('|');
+      state.addToken = parts[0]; state.addQuote = parts[1];
+      syncAddTokenButton(); syncAddQuoteButton(); renderBalances(); updateAdd();
+      showView('liquidity'); setMode('add');
+    });
+  });
+  Array.prototype.forEach.call(grid.querySelectorAll('button[data-g5-swap]'), function(btn){
+    btn.addEventListener('click', function(){
+      var parts = btn.getAttribute('data-g5-swap').split('|');
+      state.swap.from = parts[0]; state.swap.to = parts[1]; state.swap.lastEdited = 'from';
+      syncSwapTokenButtons(); renderBalances(); updateSwap();
+      showView('swap'); setChartSym(parts[1]);
+    });
+  });
+  Array.prototype.forEach.call(grid.querySelectorAll('button[data-g5-add]'), function(btn){
+    btn.addEventListener('click', function(){
+      var parts = btn.getAttribute('data-g5-add').split('|');
+      state.addToken = parts[0]; state.addQuote = parts[1];
+      syncAddTokenButton(); syncAddQuoteButton(); renderBalances(); updateAdd();
+      showView('liquidity'); setMode('add');
     });
   });
 }
@@ -2025,6 +2250,7 @@ function positionsHtml(forPf){
   var LPB = forPf ? pfEffLp() : state.lpBalances;
   if(!addr) return '<div class="empty-note">Connect your wallet — or paste an address in “View a Wallet” above — to see LP across all Sakura pools.</div>';
   var rows = [], pending = false;
+  var seenPools = {}; /* pool address -> rendered already (a pair must never render twice) */
   TOKEN_LIST.forEach(function(sym){
     var t = TOKENS[sym];
     var lp = LPB[t.pool.toLowerCase()];
@@ -2033,12 +2259,68 @@ function positionsHtml(forPf){
     var share = t.lpSupplyWei > 0n ? Number(lp * 1000000n / t.lpSupplyWei) / 10000 : 0;
     var uLoop = t.lpSupplyWei > 0n ? lp * t.resLoopWei / t.lpSupplyWei : 0n;
     var uTok = t.lpSupplyWei > 0n ? lp * t.resTokenWei / t.lpSupplyWei : 0n;
+    seenPools[t.pool.toLowerCase()] = true;
     rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / LOOP</span></div>' +
       '<div class="pos-grid">' +
       '<div><small>Your LP</small><strong>' + fmtWei(lp, 18, 4) + '</strong></div>' +
       '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
       '<div><small>Underlying Value</small><strong>' + fmtLoopUSD(uLoop) + ' + ' + fmtWei(uTok, 18, 2) + ' ' + esc(t.symbol) + '</strong></div>' +
       '</div></div>');
+  });
+  /* Gen-5 stable-pair positions (only for pairs discovered so far; in
+     read-only watch mode the stable LP balances are not loaded, so a
+     missing balance there is skipped, never left pending). */
+  TOKEN_LIST.forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.stablePools) return;
+    STABLE_LIST.forEach(function(stSym){
+      var sp = t.stablePools[stSym];
+      if(!sp || !sp.pool) return;
+      var lp = LPB[sp.pool.toLowerCase()];
+      if(lp === undefined){ if(!forPf) pending = true; return; }
+      if(lp === null || lp <= 0n) return;
+      var share = sp.lpSupplyWei > 0n ? Number(lp * 1000000n / sp.lpSupplyWei) / 10000 : 0;
+      var uSt = sp.lpSupplyWei > 0n ? lp * sp.resStableWei / sp.lpSupplyWei : 0n;
+      var uTok = sp.lpSupplyWei > 0n ? lp * sp.resTokenWei / sp.lpSupplyWei : 0n;
+      seenPools[sp.pool.toLowerCase()] = true;
+      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(stSym) + '</span></div>' +
+        '<div class="pos-grid">' +
+        '<div><small>Your LP</small><strong>' + fmtWei(lp, 18, 4) + '</strong></div>' +
+        '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
+        '<div><small>Underlying Value</small><strong>' + fmtUSD(Number(weiToRaw(uSt, 6))) + ' + ' + fmtWei(uTok, 18, 2) + ' ' + esc(t.symbol) + '</strong></div>' +
+        '</div></div>');
+    });
+  });
+  /* Gen-5 pairs beyond the stable ones (xStock / stable, xStock / LOOP,
+     xStock / xStock, tUSDC / tUSDT) — only for pairs discovered so far;
+     in read-only watch mode the Gen-5 LP balances are not loaded, so a
+     missing balance there is skipped, never left pending. */
+  Object.keys(TOKENS).forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.gen5Pairs) return;
+    Object.keys(t.gen5Pairs).forEach(function(oSym){
+      var gp = t.gen5Pairs[oSym];
+      if(!gp || !gp.pool) return;
+      var pk = gp.pool.toLowerCase();
+      if(seenPools[pk]) return;
+      seenPools[pk] = true;
+      var lp = LPB[pk];
+      if(lp === undefined){ if(!forPf) pending = true; return; }
+      if(lp === null || lp <= 0n) return;
+      var o = TOKENS[oSym];
+      var share = gp.lpSupplyWei > 0n ? Number(lp * 1000000n / gp.lpSupplyWei) / 10000 : 0;
+      var uA = gp.lpSupplyWei > 0n ? lp * gp.resTokenWei / gp.lpSupplyWei : 0n;
+      var uB = gp.lpSupplyWei > 0n ? lp * gp.resOtherWei / gp.lpSupplyWei : 0n;
+      var usdA = usdPriceOf(sym), usdB = usdPriceOf(oSym);
+      var valTxt = (usdA !== null ? fmtUSD(Number(weiToRaw(uA, t.decimals)) * usdA) : fmtWei(uA, t.decimals, 2) + ' ' + esc(t.symbol)) + ' + ' +
+                   (usdB !== null ? fmtUSD(Number(weiToRaw(uB, o.decimals)) * usdB) : fmtWei(uB, o.decimals, 2) + ' ' + esc(o.symbol));
+      rows.push('<div class="pos-item"><div class="pos-head">' + avatarHtml(t, 30) + '<span>' + esc(t.symbol) + ' / ' + esc(oSym) + '</span></div>' +
+        '<div class="pos-grid">' +
+        '<div><small>Your LP</small><strong>' + fmtWei(lp, 18, 4) + '</strong></div>' +
+        '<div><small>Pool Share</small><strong>' + fmtNum(share, 4) + '%</strong></div>' +
+        '<div><small>Underlying Value</small><strong>' + valTxt + '</strong></div>' +
+        '</div></div>');
+    });
   });
   if(pending && rows.length === 0) return '<div class="empty-note">Loading positions from the chain…</div>';
   if(rows.length === 0) return forPf && pfIsWatch()
@@ -2782,14 +3064,16 @@ function initPortfolio(){
 function renderAll(){
   renderPairs(); renderPositions(); renderPortfolio();
   syncSwapTokenButtons(); syncAddTokenButton(); syncRemTokenButton(); syncLockTokenButton();
+  syncAddQuoteButton(); syncRemQuoteButton();
   renderBalances();
 }
 function renderBalances(){
   el('fromBalance').innerHTML = state.account ? esc(balText(state.swap.from)) + ' <button type="button" id="maxFrom">MAX</button>' : '';
   el('toBalance').textContent = state.account ? balText(state.swap.to) : '';
-  el('addLoopBalance').textContent = state.account ? balText('LOOP') : '';
+  el('addLoopBalance').textContent = state.account ? balText(state.addQuote) : '';
   el('addTokenBalance').textContent = state.account ? balText(state.addToken) : '';
-  var lp = state.lpBalances[TOKENS[state.remToken].pool.toLowerCase()];
+  var lpPool = remLpPool();
+  var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
   el('remLpBalance').textContent = state.account ? ('Your LP: ' + (lp === undefined ? '…' : (lp === null ? 'unavailable' : fmtWei(lp, 18, 4)))) : '';
   el('lockBalance').textContent = state.account ? balText(state.lockToken) : '';
   var mx = el('maxFrom');
@@ -2798,7 +3082,7 @@ function renderBalances(){
     if(b === undefined || b === null) return;
     var v = b;
     if(state.swap.from === 'LOOP'){ var buf = toWei('0.005', 18); v = b > buf ? b - buf : 0n; }
-    setInputFromWei(el('fromInput'), v, 18);
+    setInputFromWei(el('fromInput'), v, TOKENS[state.swap.from].decimals);
     state.swap.lastEdited = 'from'; updateSwap();
   });
 }
@@ -2821,12 +3105,184 @@ function showErr(id, msg){
 }
 function updateSwap(){
   var fromEl = el('fromInput'), toEl = el('toInput');
-  var r = swapReserves();
+  var route = swapRoute();
   var err = '';
   var amountIn = 0n, amountOut = 0n;
   var impact = 0;
   var quotePending = false;
   var fromLoop = state.swap.from === 'LOOP';
+  var decFrom = TOKENS[state.swap.from].decimals, decTo = TOKENS[state.swap.to].decimals;
+  var r = null, pair = null;
+  /* --- No venue for this pair --- */
+  if(route.kind === 'none'){
+    showErr('swapErr', 'No pool for this pair yet — xStocks trade against LOOP, stablecoins and other xStocks through the peg, and graduated tokens pair with LOOP (or with a stablecoin once that pair exists).');
+    el('swapDetails').style.display = 'none'; el('thinPoolWarn').classList.remove('show');
+    el('rateLine').style.display = 'none';
+    el('fromUsd').textContent = ''; el('toUsd').textContent = '';
+    var btn0 = el('swapAction');
+    btn0.classList.remove('btn-buy', 'btn-sell');
+    if(state.busy){ btn0.disabled = true; btn0.textContent = 'Processing…'; }
+    else if(!state.account){ btn0.disabled = false; btn0.textContent = 'Connect Wallet'; }
+    else if(!state.chainOk){ btn0.disabled = false; btn0.textContent = 'Switch to Loop Network'; }
+    else { btn0.disabled = true; btn0.textContent = 'Swap'; }
+    return;
+  }
+  /* --- TestAssetPeg v2: fixed USD oracle price, 0.5% spread, no pool --- */
+  if(route.kind === 'peg'){
+    if(state.swap.lastEdited === 'from'){
+      amountIn = inputWei(fromEl, decFrom);
+      if(amountIn > 0n){
+        var pq = pegQuoteOut(state.swap.from, state.swap.to, amountIn);
+        if(pq === null){
+          toEl.value = '';
+          if(pegQFail === pegQuoteKey(state.swap.from, state.swap.to, amountIn)) err = 'The peg quote could not be fetched — check your connection, then change the amount to retry.';
+          else { quotePending = true; fetchPegQuote(state.swap.from, state.swap.to, amountIn); }
+        } else {
+          amountOut = pq;
+          if(amountOut <= 0n) err = 'Amount too small — the swap output is below peg precision.';
+          setInputFromWei(toEl, amountOut, decTo);
+        }
+      } else if(parseInput(fromEl.value) === ''){ toEl.value = ''; }
+    } else {
+      amountOut = inputWei(toEl, decTo);
+      if(amountOut > 0n){
+        var need = pegQuoteIn(state.swap.from, state.swap.to, amountOut);
+        if(need === null){ err = 'The peg USD price is not loaded yet — wait a moment and try again.'; amountIn = 0n; }
+        else { amountIn = need; setInputFromWei(fromEl, amountIn, decFrom); }
+      } else if(parseInput(toEl.value) === ''){ fromEl.value = ''; }
+    }
+    var rate = el('rateLine');
+    var pFrom = pegUsdPrice(state.swap.from), pTo = pegUsdPrice(state.swap.to);
+    if(pFrom !== undefined && pTo !== undefined && pFrom > 0 && pTo > 0){
+      rate.style.display = 'flex';
+      if(!state.rateFlipped){
+        el('rateText').textContent = '1 ' + state.swap.from + ' ≈ ' + fmtUSDPrice(pFrom);
+      } else {
+        el('rateText').textContent = '1 ' + state.swap.to + ' ≈ ' + fmtUSDPrice(pTo);
+      }
+    } else { rate.style.display = 'none'; fetchPegPrices(); }
+    el('fromUsd').textContent = pegUsdLine(state.swap.from, amountIn);
+    el('toUsd').textContent = pegUsdLine(state.swap.to, amountOut);
+    var det = el('swapDetails');
+    if(amountIn > 0n && amountOut > 0n && !err){
+      det.style.display = 'block';
+      el('dMinOut').textContent = fmtWei(applySlip(amountOut), decTo, 8) + ' ' + state.swap.to;
+      el('dImpact').textContent = '0%';
+      el('dImpactRow').className = 'drow';
+      el('dSlip').textContent = fmtNum(state.slippage, 2) + '%';
+      var feeUsd = Number(weiToRaw(amountIn, decFrom)) * (pFrom || 0) * 0.005;
+      el('dFeeUsd').textContent = fmtUSD(feeUsd);
+      el('dMev').textContent = 'N/A · fixed oracle price';
+      el('dRoute').textContent = state.swap.from + ' → ' + state.swap.to + ' · TestAssetPeg v2';
+      el('dFeeSplit').textContent = '0.5% spread · USD oracle price · no pool fee';
+      el('thinPoolWarn').classList.remove('show');
+    } else { det.style.display = 'none'; el('thinPoolWarn').classList.remove('show'); }
+    showErr('swapErr', err);
+    var btn = el('swapAction');
+    btn.classList.remove('btn-buy', 'btn-sell');
+    if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
+    if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
+    if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
+    if(quotePending){ btn.disabled = true; btn.textContent = 'Fetching quote…'; return; }
+    if(amountIn <= 0n){ btn.disabled = true; btn.textContent = 'Enter an amount'; return; }
+    if(err){ btn.disabled = true; btn.textContent = 'Swap'; return; }
+    var bal = balanceOf(state.swap.from);
+    if(bal !== undefined && bal < amountIn){ btn.disabled = true; btn.textContent = 'Insufficient ' + state.swap.from + ' balance'; return; }
+    btn.disabled = false; btn.classList.add('btn-buy'); btn.textContent = 'Swap';
+    return;
+  }
+  /* --- Gen-5 stable pair: TOKEN / tUSDC or tUSDT via the corrected router --- */
+  if(route.kind === 'v2stable'){
+    var t = route.token;
+    var sp = t.stablePools ? t.stablePools[route.stableSym] : null;
+    var decTok = 18, decSt = 6;
+    var fromTok = route.fromToken;
+    var inDec = fromTok ? decTok : decSt, outDec = fromTok ? decSt : decTok;
+    if(!sp){
+      toEl.value = '';
+      quotePending = true;
+      ensureStablePair(t, route.stableSym).then(function(){ if(typeof updateSwap === 'function') updateSwap(); });
+    } else if(!sp.pool){
+      err = 'This pair does not exist yet — no ' + t.symbol + ' / ' + route.stableSym + ' liquidity has been added. Add it on the Liquidity page, or swap against LOOP instead.';
+    } else {
+      if(state.swap.lastEdited === 'from'){
+        amountIn = inputWei(fromEl, inDec);
+        if(amountIn > 0n){
+          var sq = stableQuoteOut(sp, amountIn, fromTok);
+          if(sq === null){
+            toEl.value = '';
+            if(sp._rqFail === stableRqKey(sp, amountIn, fromTok)) err = 'The corrected router quote could not be fetched — check your connection, then change the amount to retry.';
+            else { quotePending = true; fetchStableQuote(sp, amountIn, fromTok); }
+          } else {
+            amountOut = sq;
+            if(amountOut <= 0n) err = 'Amount too small — the swap output is below pool precision.';
+            setInputFromWei(toEl, amountOut, outDec);
+          }
+        } else if(parseInput(fromEl.value) === ''){ toEl.value = ''; }
+      } else {
+        amountOut = inputWei(toEl, outDec);
+        if(amountOut > 0n){
+          var si = stableQuoteIn(sp, amountOut, fromTok);
+          if(si === null){
+            fromEl.value = ''; amountIn = 0n;
+            if(sp._rqiFail === stableRqKeyIn(sp, amountOut, fromTok)) err = 'The corrected router quote could not be fetched — check your connection, then change the amount to retry.';
+            else { quotePending = true; fetchStableQuoteIn(sp, amountOut, fromTok); }
+          } else { amountIn = si; setInputFromWei(fromEl, amountIn, inDec); }
+        } else if(parseInput(toEl.value) === ''){ fromEl.value = ''; }
+      }
+    }
+    var rate2 = el('rateLine');
+    var tokUsd = sp && sp.pool ? stableTokenPriceUsd(t, sp) : tokenPriceUsd(t);
+    if(tokUsd > 0){
+      rate2.style.display = 'flex';
+      if(!state.rateFlipped){ el('rateText').textContent = '1 ' + t.symbol + ' ≈ ' + fmtUSDPrice(tokUsd); }
+      else { el('rateText').textContent = '$1 ≈ ' + fmtNum(1 / tokUsd, 0) + ' ' + t.symbol; }
+    } else rate2.style.display = 'none';
+    el('fromUsd').textContent = state.swap.from === route.stableSym ? (amountIn > 0n ? '≈ ' + fmtUSD(Number(weiToRaw(amountIn, 6))) : '') : (amountIn > 0n && tokUsd > 0 ? '≈ ' + fmtUSD(Number(weiToRaw(amountIn, 18)) * tokUsd) : '');
+    el('toUsd').textContent = state.swap.to === route.stableSym ? (amountOut > 0n ? '≈ ' + fmtUSD(Number(weiToRaw(amountOut, 6))) : '') : (amountOut > 0n && tokUsd > 0 ? '≈ ' + fmtUSD(Number(weiToRaw(amountOut, 18)) * tokUsd) : '');
+    var det2 = el('swapDetails');
+    if(amountIn > 0n && amountOut > 0n && !err && sp && sp.pool){
+      det2.style.display = 'block';
+      el('dMinOut').textContent = fmtWei(applySlip(amountOut), outDec, 8) + ' ' + state.swap.to;
+      var resIn = fromTok ? sp.resTokenWei : sp.resStableWei;
+      var resOut = fromTok ? sp.resStableWei : sp.resTokenWei;
+      var spot = Number(weiToRaw(resOut, outDec)) / Number(weiToRaw(resIn, inDec));
+      var exec = Number(weiToRaw(amountOut, outDec)) / Number(weiToRaw(amountIn, inDec));
+      impact = spot > 0 ? Math.max(0, (1 - exec / spot) * 100) : 0;
+      el('dImpact').textContent = fmtNum(impact, 2) + '%';
+      el('dImpactRow').className = 'drow' + (impact > 15 ? ' bad' : impact > 5 ? ' warn' : '');
+      el('dSlip').textContent = fmtNum(state.slippage, 2) + '%';
+      var feeBaseUsd2 = state.swap.from === route.stableSym ? Number(weiToRaw(amountIn, 6)) : Number(weiToRaw(amountIn, 18)) * tokUsd;
+      el('dFeeUsd').textContent = fmtUSD(feeBaseUsd2 * 0.003);
+      el('dMev').textContent = state.mev ? 'On · slippage ≤ 0.5% · deadline 2 min' : 'Off';
+      el('dRoute').textContent = (fromTok ? t.symbol + ' → ' + route.stableSym : route.stableSym + ' → ' + t.symbol) + ' · Router02 (Corrected) · gen-5 stable pair';
+      el('dFeeSplit').textContent = VINTAGES.corrected.feeSplit;
+      el('thinPoolWarn').classList.toggle('show', impact > 1);
+    } else { det2.style.display = 'none'; el('thinPoolWarn').classList.remove('show'); }
+    showErr('swapErr', err);
+    var btn2 = el('swapAction');
+    btn2.classList.remove('btn-buy', 'btn-sell');
+    if(state.busy){ btn2.disabled = true; btn2.textContent = 'Processing…'; return; }
+    if(!state.account){ btn2.disabled = false; btn2.textContent = 'Connect Wallet'; return; }
+    if(!state.chainOk){ btn2.disabled = false; btn2.textContent = 'Switch to Loop Network'; return; }
+    if(quotePending){ btn2.disabled = true; btn2.textContent = 'Fetching quote…'; return; }
+    if(amountIn <= 0n){ btn2.disabled = true; btn2.textContent = 'Enter an amount'; return; }
+    if(err){ btn2.disabled = true; btn2.textContent = 'Swap'; return; }
+    if(state.mev && impact > MEV_MAX_IMPACT){
+      btn2.disabled = true; btn2.textContent = 'Blocked by Anti-MEV';
+      showErr('swapErr', 'Anti-MEV Protection blocked this swap: the price impact is ' + fmtNum(impact, 2) + '%, above the 5% safety limit. Lower the amount, or turn Anti-MEV Protection off in the swap settings (gear icon) if you want to proceed anyway.');
+      return;
+    }
+    var bal2 = balanceOf(state.swap.from);
+    if(bal2 !== undefined && bal2 < amountIn){ btn2.disabled = true; btn2.textContent = 'Insufficient ' + state.swap.from + ' balance'; return; }
+    btn2.disabled = false;
+    btn2.classList.add(fromTok ? 'btn-sell' : 'btn-buy');
+    btn2.textContent = fromTok ? ('Sell ' + t.symbol) : ('Buy ' + t.symbol);
+    return;
+  }
+  /* --- LOOP pair: the existing flow, unchanged --- */
+  r = swapReserves();
+  pair = r.pair;
   if(state.swap.lastEdited === 'from'){
     amountIn = inputWei(fromEl, 18);
     if(amountIn > 0n){
@@ -2872,7 +3328,6 @@ function updateSwap(){
   /* Rate line — USD only, same form as Limit & DCA: "1 TOKEN ≈ $…".
      LOOP is only the input currency behind the scenes; never show a
      LOOP-denominated rate here. The flip button shows tokens per $1. */
-  var pair = r.pair;
   var rate = el('rateLine');
   if(pair.resLoopWei > 0n){
     rate.style.display = 'flex';
@@ -2928,66 +3383,280 @@ function updateSwap(){
   btn.classList.add(state.swap.from === 'LOOP' ? 'btn-buy' : 'btn-sell');
   btn.textContent = state.swap.from === 'LOOP' ? ('Buy ' + state.swap.to) : ('Sell ' + state.swap.from);
 }
-
 /* ================= ADD LIQUIDITY UI ================= */
 function syncAddTokenButton(){ el('addTokenBtn').innerHTML = tokenBtnHtml(TOKENS[state.addToken]); }
 function updateAdd(source){
   var t = TOKENS[state.addToken];
   var loopEl = el('addLoopInput'), tokEl = el('addTokenInput');
-  var loopAmt = inputWei(loopEl, 18), tokAmt = inputWei(tokEl, 18);
-  if(source === 'loop' && loopAmt > 0n && t.resLoopWei > 0n){
-    tokAmt = loopAmt * t.resTokenWei / t.resLoopWei;
-    setInputFromWei(tokEl, tokAmt, 18);
-  } else if(source === 'token' && tokAmt > 0n && t.resTokenWei > 0n){
-    loopAmt = tokAmt * t.resLoopWei / t.resTokenWei;
-    setInputFromWei(loopEl, loopAmt, 18);
-  } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; tokAmt = 0n; }
-  else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; loopAmt = 0n; }
-  el('addLoopUsd').textContent = usdLineForWei(loopAmt);
-  el('addTokenUsd').textContent = usdLineForToken(t, tokAmt);
+  /* Classic pairs keep their existing branches (graduated token + LOOP
+     on its vintage router; graduated token + stable on the corrected
+     router). Everything else — xStock on either side, stable/stable,
+     graduated/xStock — goes through the generic Gen-5 branch below. */
+  if(!((state.addQuote === 'LOOP' && isGraduated(state.addToken) && t.pool) || (isStable(state.addQuote) && isGraduated(state.addToken)))){
+    return updateAddGen5(source);
+  }
+  if(state.addQuote === 'LOOP'){
+    var loopAmt = inputWei(loopEl, 18), tokAmt = inputWei(tokEl, 18);
+    if(source === 'loop' && loopAmt > 0n && t.resLoopWei > 0n){
+      tokAmt = loopAmt * t.resTokenWei / t.resLoopWei;
+      setInputFromWei(tokEl, tokAmt, 18);
+    } else if(source === 'token' && tokAmt > 0n && t.resTokenWei > 0n){
+      loopAmt = tokAmt * t.resLoopWei / t.resTokenWei;
+      setInputFromWei(loopEl, loopAmt, 18);
+    } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; tokAmt = 0n; }
+    else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; loopAmt = 0n; }
+    el('addLoopUsd').textContent = usdLineForWei(loopAmt);
+    el('addTokenUsd').textContent = usdLineForToken(t, tokAmt);
+    var det = el('addDetails');
+    if(loopAmt > 0n && tokAmt > 0n && t.lpSupplyWei > 0n){
+      det.style.display = 'block';
+      el('aPrice').textContent = '1 ' + t.symbol + ' ≈ ' + fmtTokenUSD(t);
+      var lpFromLoop = loopAmt * t.lpSupplyWei / t.resLoopWei;
+      var lpFromTok = tokAmt * t.lpSupplyWei / t.resTokenWei;
+      var lpOut = lpFromLoop < lpFromTok ? lpFromLoop : lpFromTok;
+      el('aLpOut').textContent = '≈ ' + fmtWei(lpOut, 18, 4) + ' LP';
+      el('aShare').textContent = fmtNum(Number(lpOut * 1000000n / (t.lpSupplyWei + lpOut)) / 10000, 4) + '%';
+      el('aRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
+    } else det.style.display = 'none';
+    var btn = el('addAction');
+    if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
+    if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
+    if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
+    if(loopAmt <= 0n || tokAmt <= 0n){ btn.disabled = true; btn.textContent = 'Enter an amount'; return; }
+    var bL = balanceOf('LOOP'), bT = balanceOf(state.addToken);
+    if(bL !== undefined && bL < loopAmt){ btn.disabled = true; btn.textContent = 'Insufficient LOOP balance'; return; }
+    if(bT !== undefined && bT < tokAmt){ btn.disabled = true; btn.textContent = 'Insufficient ' + state.addToken + ' balance'; return; }
+    btn.disabled = false; btn.textContent = 'Add Liquidity';
+    return;
+  }
+  /* --- Stable quote (tUSDC / tUSDT) via the corrected router --- */
+  var stAmt = inputWei(loopEl, 6), tokAmt2 = inputWei(tokEl, 18);
+  var sp = t.stablePools ? t.stablePools[state.addQuote] : null;
+  if(!sp){
+    ensureStablePair(t, state.addQuote).then(function(){ if(typeof updateAdd === 'function') updateAdd(); });
+  } else if(sp.pool){
+    if(source === 'loop' && stAmt > 0n && sp.resStableWei > 0n){
+      tokAmt2 = stAmt * sp.resTokenWei / sp.resStableWei;
+      setInputFromWei(tokEl, tokAmt2, 18);
+    } else if(source === 'token' && tokAmt2 > 0n && sp.resTokenWei > 0n){
+      stAmt = tokAmt2 * sp.resStableWei / sp.resTokenWei;
+      setInputFromWei(loopEl, stAmt, 6);
+    } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; tokAmt2 = 0n; }
+    else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; stAmt = 0n; }
+  }
+  el('addLoopUsd').textContent = stAmt > 0n ? '≈ ' + fmtUSD(Number(weiToRaw(stAmt, 6))) : '';
+  var tokUsd = sp && sp.pool ? stableTokenPriceUsd(t, sp) : tokenPriceUsd(t);
+  el('addTokenUsd').textContent = tokAmt2 > 0n ? (tokUsd > 0 ? '≈ ' + fmtUSD(Number(weiToRaw(tokAmt2, 18)) * tokUsd) : 'USD price unavailable') : '';
+  var det2 = el('addDetails');
+  if(stAmt > 0n && tokAmt2 > 0n){
+    det2.style.display = 'block';
+    el('aPrice').textContent = tokUsd > 0 ? ('1 ' + t.symbol + ' ≈ ' + fmtUSDPrice(tokUsd)) : 'First liquidity — you set the initial price';
+    var lpOut2 = 0n;
+    if(sp && sp.pool && sp.lpSupplyWei > 0n){
+      var lpFromSt = stAmt * sp.lpSupplyWei / sp.resStableWei;
+      var lpFromTok2 = tokAmt2 * sp.lpSupplyWei / sp.resTokenWei;
+      lpOut2 = lpFromSt < lpFromTok2 ? lpFromSt : lpFromTok2;
+      el('aLpOut').textContent = '≈ ' + fmtWei(lpOut2, 18, 4) + ' LP';
+      el('aShare').textContent = fmtNum(Number(lpOut2 * 1000000n / (sp.lpSupplyWei + lpOut2)) / 10000, 4) + '%';
+    } else if(!sp) {
+      el('aLpOut').textContent = 'Loading pair…';
+      el('aShare').textContent = '—';
+    } else {
+      /* New pair: LP ≈ sqrt(amountA x amountB) in raw units (display only). */
+      lpOut2 = bigSqrt(stAmt * tokAmt2);
+      el('aLpOut').textContent = '≈ ' + fmtWei(lpOut2, 18, 4) + ' LP (new pool)';
+      el('aShare').textContent = '100%';
+    }
+    el('aRoute').textContent = 'Router02 (Corrected) · ' + shortAddr(CFG.routerCorrected) + (sp && sp.pool ? ' · existing pair' : ' · new pair');
+  } else det2.style.display = 'none';
+  var btn2 = el('addAction');
+  if(state.busy){ btn2.disabled = true; btn2.textContent = 'Processing…'; return; }
+  if(!state.account){ btn2.disabled = false; btn2.textContent = 'Connect Wallet'; return; }
+  if(!state.chainOk){ btn2.disabled = false; btn2.textContent = 'Switch to Loop Network'; return; }
+  if(stAmt <= 0n || tokAmt2 <= 0n){ btn2.disabled = true; btn2.textContent = 'Enter an amount'; return; }
+  var bQ = balanceOf(state.addQuote), bT2 = balanceOf(state.addToken);
+  if(bQ !== undefined && bQ < stAmt){ btn2.disabled = true; btn2.textContent = 'Insufficient ' + state.addQuote + ' balance'; return; }
+  if(bT2 !== undefined && bT2 < tokAmt2){ btn2.disabled = true; btn2.textContent = 'Insufficient ' + state.addToken + ' balance'; return; }
+  btn2.disabled = false; btn2.textContent = 'Add Liquidity';
+}
+/* ================= ADD LIQUIDITY (GENERIC GEN-5 PAIRS) =================
+   Any pair not covered by the classic branches: xStock/tUSDC, xStock/
+   tUSDT, xStock/LOOP, xStock/xStock, tUSDC/tUSDT, graduated/xStock.
+   All through the corrected factory/router. For a pair that does not
+   exist yet the user sets the initial price — when both sides have a
+   TestAssetPeg oracle price, the oracle-implied ratio is shown and a
+   warning appears if the user's ratio is more than 2% away from it. */
+function updateAddGen5(source){
+  var t = TOKENS[state.addToken];
+  var q = TOKENS[state.addQuote];
+  var decA = t.decimals, decB = q.decimals;
+  var loopEl = el('addLoopInput'), tokEl = el('addTokenInput');
+  var amtA = inputWei(tokEl, decA), amtB = inputWei(loopEl, decB);
+  var gp = gen5PairOf(t, state.addQuote);
+  if(!gp){
+    ensureGen5Pair(t, state.addQuote).then(function(){ if(typeof updateAdd === 'function') updateAdd(); });
+  } else if(gp.pool){
+    if(source === 'loop' && amtB > 0n && gp.resOtherWei > 0n){
+      amtA = amtB * gp.resTokenWei / gp.resOtherWei;
+      setInputFromWei(tokEl, amtA, decA);
+    } else if(source === 'token' && amtA > 0n && gp.resTokenWei > 0n){
+      amtB = amtA * gp.resOtherWei / gp.resTokenWei;
+      setInputFromWei(loopEl, amtB, decB);
+    } else if(source === 'loop' && parseInput(loopEl.value) === ''){ tokEl.value = ''; amtA = 0n; }
+    else if(source === 'token' && parseInput(tokEl.value) === ''){ loopEl.value = ''; amtB = 0n; }
+  }
+  fetchPegPrices();
+  el('addLoopUsd').textContent = addUsdLine(state.addQuote, amtB);
+  el('addTokenUsd').textContent = addUsdLine(state.addToken, amtA);
   var det = el('addDetails');
-  if(loopAmt > 0n && tokAmt > 0n && t.lpSupplyWei > 0n){
+  var warn = el('addOracleWarn');
+  var oracle = oracleRatioUsd(state.addToken, state.addQuote); /* B per A, whole units */
+  if(amtA > 0n && amtB > 0n){
     det.style.display = 'block';
-    el('aPrice').textContent = '1 ' + t.symbol + ' ≈ ' + fmtTokenUSD(t);
-    var lpFromLoop = loopAmt * t.lpSupplyWei / t.resLoopWei;
-    var lpFromTok = tokAmt * t.lpSupplyWei / t.resTokenWei;
-    var lpOut = lpFromLoop < lpFromTok ? lpFromLoop : lpFromTok;
-    el('aLpOut').textContent = '≈ ' + fmtWei(lpOut, 18, 4) + ' LP';
-    el('aShare').textContent = fmtNum(Number(lpOut * 1000000n / (t.lpSupplyWei + lpOut)) / 10000, 4) + '%';
-    el('aRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
-  } else det.style.display = 'none';
+    if(gp && gp.pool && gp.lpSupplyWei > 0n){
+      var lpFromA = amtA * gp.lpSupplyWei / gp.resTokenWei;
+      var lpFromB = amtB * gp.lpSupplyWei / gp.resOtherWei;
+      var lpOut = lpFromA < lpFromB ? lpFromA : lpFromB;
+      el('aLpOut').textContent = '≈ ' + fmtWei(lpOut, 18, 4) + ' LP';
+      el('aShare').textContent = fmtNum(Number(lpOut * 1000000n / (gp.lpSupplyWei + lpOut)) / 10000, 4) + '%';
+      var p = gen5PairPrice(state.addToken, state.addQuote, gp);
+      el('aPrice').textContent = p !== null ? ('1 ' + t.symbol + ' ≈ ' + fmtNum(p, 6) + ' ' + q.symbol) : '—';
+    } else if(!gp){
+      el('aLpOut').textContent = 'Loading pair…';
+      el('aShare').textContent = '—';
+      el('aPrice').textContent = oracle !== null ? ('Oracle price: 1 ' + t.symbol + ' ≈ ' + fmtNum(oracle, 6) + ' ' + q.symbol + ' (TestAssetPeg)') : 'First liquidity — you set the initial price';
+    } else {
+      /* New pair: LP ≈ sqrt(amountA x amountB) in raw units (display only). */
+      var lpOut2 = bigSqrt(amtA * amtB);
+      el('aLpOut').textContent = '≈ ' + fmtWei(lpOut2, 18, 4) + ' LP (new pool)';
+      el('aShare').textContent = '100%';
+      el('aPrice').textContent = oracle !== null ? ('Oracle price: 1 ' + t.symbol + ' ≈ ' + fmtNum(oracle, 6) + ' ' + q.symbol + ' (TestAssetPeg)') : 'First liquidity — you set the initial price';
+    }
+    el('aRoute').textContent = 'Router02 (Corrected) · ' + shortAddr(CFG.routerCorrected) + (gp && gp.pool ? ' · existing pair' : ' · new pair');
+    /* Oracle deviation warning — first liquidity only. */
+    if((!gp || !gp.pool) && oracle !== null && oracle > 0){
+      var implied = Number(weiToRaw(amtB, decB)) / Number(weiToRaw(amtA, decA));
+      var dev = Math.abs(implied - oracle) / oracle;
+      if(dev > 0.02){
+        warn.textContent = 'Your ratio is ' + fmtNum(dev * 100, 1) + '% away from the oracle price (1 ' + t.symbol + ' ≈ ' + fmtNum(oracle, 6) + ' ' + q.symbol + '). A pool started far from the oracle price can be arbitraged — check the amounts before adding.';
+        warn.classList.add('show');
+      } else warn.classList.remove('show');
+    } else warn.classList.remove('show');
+  } else { det.style.display = 'none'; warn.classList.remove('show'); }
   var btn = el('addAction');
   if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
   if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
   if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
-  if(loopAmt <= 0n || tokAmt <= 0n){ btn.disabled = true; btn.textContent = 'Enter an amount'; return; }
-  var bL = balanceOf('LOOP'), bT = balanceOf(state.addToken);
-  if(bL !== undefined && bL < loopAmt){ btn.disabled = true; btn.textContent = 'Insufficient LOOP balance'; return; }
-  if(bT !== undefined && bT < tokAmt){ btn.disabled = true; btn.textContent = 'Insufficient ' + state.addToken + ' balance'; return; }
+  if(amtA <= 0n || amtB <= 0n){ btn.disabled = true; btn.textContent = 'Enter an amount'; return; }
+  var bQ = balanceOf(state.addQuote), bT = balanceOf(state.addToken);
+  if(bQ !== undefined && bQ < amtB){ btn.disabled = true; btn.textContent = 'Insufficient ' + state.addQuote + ' balance'; return; }
+  if(bT !== undefined && bT < amtA){ btn.disabled = true; btn.textContent = 'Insufficient ' + state.addToken + ' balance'; return; }
   btn.disabled = false; btn.textContent = 'Add Liquidity';
 }
-
 /* ================= REMOVE LIQUIDITY UI ================= */
 function syncRemTokenButton(){
   var t = TOKENS[state.remToken];
-  el('remTokenBtn').innerHTML = avatarHtml(t, 32) + '<span>' + esc(t.symbol) + ' / LOOP</span><svg class="ic" viewBox="0 0 24 24" style="margin-left:auto"><path d="m6 9 6 6 6-6"/></svg>';
+  el('remTokenBtn').innerHTML = avatarHtml(t, 32) + '<span>' + esc(t.symbol) + ' / ' + esc(state.remQuote) + '</span><svg class="ic" viewBox="0 0 24 24" style="margin-left:auto"><path d="m6 9 6 6 6-6"/></svg>';
+}
+function syncAddQuoteButton(){
+  var q = TOKENS[state.addQuote];
+  el('addQuoteBtn').innerHTML = tokenBtnHtml(q);
+  el('addQuoteLabel').textContent = q.symbol + ' amount';
+  Array.prototype.forEach.call(el('addQuoteRow').querySelectorAll('button[data-q]'), function(b){
+    b.classList.toggle('sel', b.getAttribute('data-q') === state.addQuote);
+  });
+}
+function syncRemQuoteButton(){
+  Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q]'), function(b){
+    b.classList.toggle('sel', b.getAttribute('data-q') === state.remQuote);
+  });
+  syncRemTokenButton();
+  var lbl = el('rOutLoopLabel');
+  if(lbl) lbl.textContent = state.remQuote === 'LOOP' ? 'You receive LOOP' : ('You receive ' + state.remQuote);
 }
 function updateRemove(){
   var t = TOKENS[state.remToken];
+  if(!((state.remQuote === 'LOOP' && isGraduated(state.remToken) && t.pool) || (isStable(state.remQuote) && isGraduated(state.remToken)))){
+    return updateRemoveGen5();
+  }
+  if(state.remQuote === 'LOOP'){
+    var lpAmt = inputWei(el('remLpInput'), 18);
+    var det = el('remDetails');
+    if(lpAmt > 0n && t.lpSupplyWei > 0n){
+      det.style.display = 'block';
+      el('rOutLoop').textContent = fmtLoopUSD(lpAmt * t.resLoopWei / t.lpSupplyWei) + ' (' + fmtWei(lpAmt * t.resLoopWei / t.lpSupplyWei, 18, 6) + ' LOOP)';
+      el('rOutToken').textContent = fmtWei(lpAmt * t.resTokenWei / t.lpSupplyWei, 18, 4) + ' ' + t.symbol;
+      el('rRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
+    } else det.style.display = 'none';
+    var btn = el('remAction');
+    if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
+    if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
+    if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
+    if(lpAmt <= 0n){ btn.disabled = true; btn.textContent = 'Enter an LP amount'; return; }
+    var lpBal = state.lpBalances[t.pool.toLowerCase()];
+    if(lpBal !== undefined && lpBal < lpAmt){ btn.disabled = true; btn.textContent = 'Insufficient LP balance'; return; }
+    if(lpBal !== undefined && lpBal <= 0n){ btn.disabled = true; btn.textContent = 'You don\'t have LP in this pool'; return; }
+    btn.disabled = false; btn.textContent = 'Remove Liquidity';
+    return;
+  }
+  /* --- Stable quote (tUSDC / tUSDT): burn LP of the Gen-5 stable pair --- */
+  var sp = t.stablePools ? t.stablePools[state.remQuote] : null;
+  var lpAmt2 = inputWei(el('remLpInput'), 18);
+  var det2 = el('remDetails');
+  if(!sp){
+    ensureStablePair(t, state.remQuote).then(function(){ if(typeof updateRemove === 'function') updateRemove(); });
+    det2.style.display = 'none';
+  } else if(!sp.pool){
+    det2.style.display = 'none';
+  } else if(lpAmt2 > 0n && sp.lpSupplyWei > 0n){
+    det2.style.display = 'block';
+    el('rOutLoop').textContent = fmtUSD(Number(weiToRaw(lpAmt2 * sp.resStableWei / sp.lpSupplyWei, 6))) + ' (' + fmtWei(lpAmt2 * sp.resStableWei / sp.lpSupplyWei, 6, 6) + ' ' + state.remQuote + ')';
+    el('rOutToken').textContent = fmtWei(lpAmt2 * sp.resTokenWei / sp.lpSupplyWei, 18, 4) + ' ' + t.symbol;
+    el('rRoute').textContent = 'Router02 (Corrected) · ' + shortAddr(CFG.routerCorrected);
+  } else det2.style.display = 'none';
+  var btn2 = el('remAction');
+  if(state.busy){ btn2.disabled = true; btn2.textContent = 'Processing…'; return; }
+  if(!state.account){ btn2.disabled = false; btn2.textContent = 'Connect Wallet'; return; }
+  if(!state.chainOk){ btn2.disabled = false; btn2.textContent = 'Switch to Loop Network'; return; }
+  if(lpAmt2 <= 0n){ btn2.disabled = true; btn2.textContent = 'Enter an LP amount'; return; }
+  if(!sp || !sp.pool){ btn2.disabled = true; btn2.textContent = 'No ' + t.symbol + ' / ' + state.remQuote + ' pair yet'; return; }
+  var lpBal2 = state.lpBalances[sp.pool.toLowerCase()];
+  if(lpBal2 !== undefined && lpBal2 < lpAmt2){ btn2.disabled = true; btn2.textContent = 'Insufficient LP balance'; return; }
+  if(lpBal2 !== undefined && lpBal2 <= 0n){ btn2.disabled = true; btn2.textContent = 'You don\'t have LP in this pool'; return; }
+  btn2.disabled = false; btn2.textContent = 'Remove Liquidity';
+}
+/* ================= REMOVE LIQUIDITY (GENERIC GEN-5 PAIRS) ================= */
+function updateRemoveGen5(){
+  var t = TOKENS[state.remToken];
+  var q = TOKENS[state.remQuote];
+  var gp = gen5PairOf(t, state.remQuote);
   var lpAmt = inputWei(el('remLpInput'), 18);
   var det = el('remDetails');
-  if(lpAmt > 0n && t.lpSupplyWei > 0n){
+  if(!gp){
+    ensureGen5Pair(t, state.remQuote).then(function(){ if(typeof updateRemove === 'function') updateRemove(); });
+    det.style.display = 'none';
+  } else if(!gp.pool){
+    det.style.display = 'none';
+  } else if(lpAmt > 0n && gp.lpSupplyWei > 0n){
     det.style.display = 'block';
-    el('rOutLoop').textContent = fmtLoopUSD(lpAmt * t.resLoopWei / t.lpSupplyWei) + ' (' + fmtWei(lpAmt * t.resLoopWei / t.lpSupplyWei, 18, 6) + ' LOOP)';
-    el('rOutToken').textContent = fmtWei(lpAmt * t.resTokenWei / t.lpSupplyWei, 18, 4) + ' ' + t.symbol;
-    el('rRoute').textContent = vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
+    var outA = lpAmt * gp.resTokenWei / gp.lpSupplyWei;
+    var outB = lpAmt * gp.resOtherWei / gp.lpSupplyWei;
+    if(state.remQuote === 'LOOP'){
+      el('rOutLoop').textContent = fmtLoopUSD(outB) + ' (' + fmtWei(outB, 18, 6) + ' LOOP)';
+    } else {
+      var usdB = usdPriceOf(state.remQuote);
+      el('rOutLoop').textContent = fmtWei(outB, q.decimals, 6) + ' ' + q.symbol + (usdB !== null ? ' (≈ ' + fmtUSD(Number(weiToRaw(outB, q.decimals)) * usdB) + ')' : '');
+    }
+    el('rOutToken').textContent = fmtWei(outA, t.decimals, 4) + ' ' + t.symbol;
+    el('rRoute').textContent = 'Router02 (Corrected) · ' + shortAddr(CFG.routerCorrected);
   } else det.style.display = 'none';
   var btn = el('remAction');
   if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
   if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
   if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
   if(lpAmt <= 0n){ btn.disabled = true; btn.textContent = 'Enter an LP amount'; return; }
-  var lpBal = state.lpBalances[t.pool.toLowerCase()];
+  if(!gp || !gp.pool){ btn.disabled = true; btn.textContent = 'No ' + t.symbol + ' / ' + q.symbol + ' pair yet'; return; }
+  var lpBal = state.lpBalances[gp.pool.toLowerCase()];
   if(lpBal !== undefined && lpBal < lpAmt){ btn.disabled = true; btn.textContent = 'Insufficient LP balance'; return; }
   if(lpBal !== undefined && lpBal <= 0n){ btn.disabled = true; btn.textContent = 'You don\'t have LP in this pool'; return; }
   btn.disabled = false; btn.textContent = 'Remove Liquidity';
@@ -2999,14 +3668,21 @@ function openTokenModal(forWhat){
   state.selectingFor = forWhat;
   el('tokenSearch').value = '';
   showErr('importErr', '');
+  fetchPegPrices();
   renderTokenList('');
   el('tokenModal').classList.add('open');
   setTimeout(function(){ el('tokenSearch').focus(); }, 60);
 }
 function closeTokenModal(){ el('tokenModal').classList.remove('open'); }
 function modalSymbols(){
-  if(state.selectingFor === 'add' || state.selectingFor === 'remove' || state.selectingFor === 'lock' || state.selectingFor === 'limit' || state.selectingFor === 'dca') return TOKEN_LIST.slice();
-  return ['LOOP'].concat(TOKEN_LIST);
+  /* Add/Remove token side: graduated tokens plus xStocks and stablecoins
+     (LOOP stays quote-only — it is picked on the other side). The quote
+     side picker offers every peg asset: LOOP, stablecoins, xStocks. */
+  if(state.selectingFor === 'add' || state.selectingFor === 'remove') return PEG_LIST.filter(function(s){ return s !== 'LOOP'; }).concat(TOKEN_LIST);
+  if(state.selectingFor === 'addQuote' || state.selectingFor === 'remQuote') return PEG_LIST.slice();
+  if(state.selectingFor === 'lock' || state.selectingFor === 'limit' || state.selectingFor === 'dca') return TOKEN_LIST.slice();
+  if(state.selectingFor === 'pfSend') return ['LOOP'].concat(TOKEN_LIST);
+  return PEG_LIST.concat(TOKEN_LIST);
 }
 function renderTokenList(filter){
   var list = el('tokenList');
@@ -3017,7 +3693,7 @@ function renderTokenList(filter){
   });
   var html = syms.map(function(sym){
     var t = TOKENS[sym];
-    var price = sym === 'LOOP' ? ('1 LOOP ≈ ' + fmtUSDPrice(loopUsd)) : ('1 ' + sym + ' ≈ ' + fmtTokenUSD(t));
+    var price = sym === 'LOOP' ? ('1 LOOP ≈ ' + fmtUSDPrice(loopUsd)) : (isPegAsset(sym) ? ('1 ' + sym + ' ≈ ' + (pegUsdPrice(sym) !== undefined ? fmtUSDPrice(pegUsdPrice(sym)) : 'peg price loading…')) : ('1 ' + sym + ' ≈ ' + fmtTokenUSD(t)));
     var bal = state.account ? balText(sym) : '';
     return '<button type="button" class="token-row" data-sym="' + sym + '">' + avatarHtml(t, 38) +
       '<span class="tr-main"><strong>' + esc(t.symbol) + '</strong><span>' + esc(t.name) + '</span></span>' +
@@ -3038,19 +3714,27 @@ function renderTokenList(filter){
 }
 function selectToken(sym){
   if(state.selectingFor === 'swapFrom'){
+    /* Any two different assets may pair: both peg assets route through
+       the peg, a graduated token + a stablecoin uses its Gen-5 pair, and
+       a graduated token + LOOP uses the LOOP pool. Pairs with no venue
+       are reported by the form, not forced back to LOOP here. */
     if(sym === state.swap.to){ state.swap.to = state.swap.from; }
     state.swap.from = sym;
-    if(state.swap.from !== 'LOOP' && state.swap.to !== 'LOOP') state.swap.to = 'LOOP';
-    if(state.swap.from === 'LOOP' && state.swap.to === 'LOOP') state.swap.to = 'MESIAH';
   } else if(state.selectingFor === 'swapTo'){
     if(sym === state.swap.from){ state.swap.from = state.swap.to; }
     state.swap.to = sym;
-    if(state.swap.to !== 'LOOP' && state.swap.from !== 'LOOP') state.swap.from = 'LOOP';
-    if(state.swap.to === 'LOOP' && state.swap.from === 'LOOP') state.swap.from = 'MESIAH';
   } else if(state.selectingFor === 'add'){
+    if(sym === state.addQuote){ state.addQuote = state.addToken; }
     state.addToken = sym;
+  } else if(state.selectingFor === 'addQuote'){
+    if(sym === state.addToken){ state.addToken = state.addQuote; }
+    state.addQuote = sym;
   } else if(state.selectingFor === 'remove'){
+    if(sym === state.remQuote){ state.remQuote = state.remToken; }
     state.remToken = sym; el('remLpInput').value = '';
+  } else if(state.selectingFor === 'remQuote'){
+    if(sym === state.remToken){ state.remToken = state.remQuote; }
+    state.remQuote = sym; el('remLpInput').value = '';
   } else if(state.selectingFor === 'lock'){
     state.lockToken = sym;
   } else if(state.selectingFor === 'limit'){
@@ -3108,6 +3792,7 @@ async function importToken(addr){
       resLoopWei: wloopFirst ? res[0] : res[1], resTokenWei: wloopFirst ? res[1] : res[0],
       lpSupplyWei: lps, lpLockedWei: 0n };
     TOKEN_LIST.push(key);
+    if(typeof loadStablePairs === 'function') loadStablePairs();
     renderPairs();
     if(state.account) refreshBalances();
     selectToken(key);
@@ -3144,7 +3829,8 @@ var PAIR_ABI = [
   'event Mint(address indexed sender, uint256 amount0, uint256 amount1)',
   'event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)'
 ];
-var FACTORY_ABI = ['function getPair(address,address) view returns (address)'];
+var FACTORY_ABI = ['function getPair(address,address) view returns (address)',
+  'function allPairsLength() view returns (uint256)', 'function allPairs(uint256) view returns (address)'];
 var ROUTER_ABI = [
   'function getAmountsOut(uint256,address[]) view returns (uint256[])',
   'function getAmountsIn(uint256,address[]) view returns (uint256[])',
@@ -3156,8 +3842,11 @@ var ROUTER_ABI = [
      variants return nothing on-chain, so no return type is declared. */
   'function swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256) payable',
   'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)',
+  'function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)',
   'function addLiquidityETH(address,uint256,uint256,uint256,address,uint256) payable returns (uint256,uint256,uint256)',
-  'function removeLiquidityETH(address,uint256,uint256,uint256,address,uint256) returns (uint256,uint256)'
+  'function removeLiquidityETH(address,uint256,uint256,uint256,address,uint256) returns (uint256,uint256)',
+  'function addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256) returns (uint256,uint256,uint256)',
+  'function removeLiquidity(address,address,uint256,uint256,uint256,address,uint256) returns (uint256,uint256)'
 ];
 var readProvider = null;
 function getReadProvider(){
@@ -3282,6 +3971,7 @@ async function refreshLive(){
         t._facChecked = true;
       }
     });
+    loadStablePairs();
     state.live = true;
     setBadge('live', 'Live · Loop · block ' + bn.toLocaleString('en-US'));
     el('footNote').textContent = 'Live data from the Loop RPC at block ' + bn.toLocaleString('en-US') + '. Figures never go back to an older block than the one already shown.';
@@ -3346,6 +4036,43 @@ async function loadConnectedBalances(onlyKey, force){
     if(want(pKey) && (onlyKey || force || state.lpBalances[pKey] === undefined)){
       settle(pKey, true, function(p){ return new ethers.Contract(t.pool, PAIR_ABI, p).balanceOf(addr); }, sym + ' LP balance');
     }
+  });
+  /* Peg assets (stablecoins + xStocks): balances by address, so the Swap
+     form and the token picker show real balances for them too. */
+  PEG_LIST.forEach(function(sym){
+    if(sym === 'LOOP') return;
+    var t = TOKENS[sym];
+    var bKey = t.address.toLowerCase();
+    if(want(bKey) && (onlyKey || force || state.balances[bKey] === undefined)){
+      settle(bKey, false, function(p){ return new ethers.Contract(t.address, ERC20_ABI, p).balanceOf(addr); }, sym + ' balance');
+    }
+  });
+  /* Stable-pair LP balances for pairs discovered so far. */
+  TOKEN_LIST.forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.stablePools) return;
+    STABLE_LIST.forEach(function(stSym){
+      var sp = t.stablePools[stSym];
+      if(!sp || !sp.pool) return;
+      var pKey = sp.pool.toLowerCase();
+      if(want(pKey) && (onlyKey || force || state.lpBalances[pKey] === undefined)){
+        settle(pKey, true, function(p){ return new ethers.Contract(sp.pool, PAIR_ABI, p).balanceOf(addr); }, sym + '/' + stSym + ' LP balance');
+      }
+    });
+  });
+  /* Gen-5 pair LP balances for pairs discovered so far (xStock / stable,
+     xStock / LOOP, xStock / xStock, tUSDC / tUSDT). */
+  Object.keys(TOKENS).forEach(function(sym){
+    var t = TOKENS[sym];
+    if(!t.gen5Pairs) return;
+    Object.keys(t.gen5Pairs).forEach(function(oSym){
+      var gp = t.gen5Pairs[oSym];
+      if(!gp || !gp.pool) return;
+      var pKey = gp.pool.toLowerCase();
+      if(want(pKey) && (onlyKey || force || state.lpBalances[pKey] === undefined)){
+        settle(pKey, true, function(p){ return new ethers.Contract(gp.pool, PAIR_ABI, p).balanceOf(addr); }, sym + '/' + oSym + ' LP balance');
+      }
+    });
   });
   if(!jobs.length) return;
   if(!onlyKey) state.balLoading = true;
@@ -3564,16 +4291,12 @@ function swapDeadlineTs(){ return Math.floor(Date.now() / 1000) + (state.mev ? M
    form re-renders when it lands. A failed fetch is remembered per key so
    the form never loops refetching the same quote. */
 async function routerAmountsOut(pair, amountIn, fromLoop){
-  var router = new ethers.Contract(routerOf(pair), ROUTER_ABI, getReadProvider());
   var path = fromLoop ? [CFG.wloop, pair.address] : [pair.address, CFG.wloop];
-  var amounts = await withTimeout(router.getAmountsOut(amountIn, path), 20000, 'router quote');
-  return amounts[amounts.length - 1];
+  return routerAmountsOutPath(routerOf(pair), amountIn, path);
 }
 async function routerAmountsIn(pair, amountOut, fromLoop){
-  var router = new ethers.Contract(routerOf(pair), ROUTER_ABI, getReadProvider());
   var path = fromLoop ? [CFG.wloop, pair.address] : [pair.address, CFG.wloop];
-  var amounts = await withTimeout(router.getAmountsIn(amountOut, path), 20000, 'router quote in');
-  return amounts[0];
+  return routerAmountsInPath(routerOf(pair), amountOut, path);
 }
 function correctedQuoteOut(t, amountIn, fromLoop){
   var q = t._rq;
@@ -3611,6 +4334,489 @@ function fetchCorrectedQuoteIn(t, amountOut, fromLoop){
     if(typeof updateSwap === 'function') updateSwap();
   });
 }
+/* ================= TESTASSETPEG V2 (xStock + stablecoins) =================
+   Peg swaps settle at the keeper-updated USD oracle price with a single
+   0.5% spread per transaction (SPREAD_BPS 50/10000). Quotes already
+   include the spread. There are no V2 pools for xStocks — the peg is
+   their only venue. All amounts are in each token's smallest unit;
+   the peg handles the 6-decimal stablecoins vs 18-decimal xStocks
+   internally. */
+var PEG_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"inputs":[{"internalType":"address","name":"token","type":"address"}],"name":"SafeERC20FailedOperation","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"asset","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"AssetWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"buyer","type":"address"},{"indexed":true,"internalType":"address","name":"asset","type":"address"},{"indexed":false,"internalType":"uint256","name":"loopIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"tokenOut","type":"uint256"}],"name":"Bought","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FloatFunded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"loopUsdX18","type":"uint256"}],"name":"LoopUsdSet","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"LoopWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"asset","type":"address"},{"indexed":false,"internalType":"uint256","name":"priceUsdX18","type":"uint256"}],"name":"PriceSet","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"seller","type":"address"},{"indexed":true,"internalType":"address","name":"asset","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokenIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"loopOut","type":"uint256"}],"name":"Sold","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"trader","type":"address"},{"indexed":true,"internalType":"address","name":"assetIn","type":"address"},{"indexed":true,"internalType":"address","name":"assetOut","type":"address"},{"indexed":false,"internalType":"uint256","name":"amountIn","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amountOut","type":"uint256"}],"name":"Swapped","type":"event"},{"inputs":[],"name":"BPS_DENOMINATOR","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"SPREAD_BPS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"minOut","type":"uint256"}],"name":"buyWithLoop","outputs":[{"internalType":"uint256","name":"tokenOut","type":"uint256"}],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"loopUsdX18","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"priceUsdX18","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"loopIn","type":"uint256"}],"name":"quoteBuyWithLoop","outputs":[{"internalType":"uint256","name":"tokenOut","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenIn","type":"uint256"}],"name":"quoteSellForLoop","outputs":[{"internalType":"uint256","name":"loopOut","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"assetIn","type":"address"},{"internalType":"address","name":"assetOut","type":"address"},{"internalType":"uint256","name":"amountIn","type":"uint256"}],"name":"quoteSwap","outputs":[{"internalType":"uint256","name":"amountOut","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenIn","type":"uint256"},{"internalType":"uint256","name":"minOut","type":"uint256"}],"name":"sellForLoop","outputs":[{"internalType":"uint256","name":"loopOut","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"loopUsdX18_","type":"uint256"}],"name":"setLoopUsd","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"priceUsdX18_","type":"uint256"}],"name":"setPriceUsd","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address[]","name":"assets","type":"address[]"},{"internalType":"uint256[]","name":"pricesUsdX18","type":"uint256[]"}],"name":"setPricesUsd","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"assetIn","type":"address"},{"internalType":"address","name":"assetOut","type":"address"},{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"uint256","name":"minOut","type":"uint256"}],"name":"swap","outputs":[{"internalType":"uint256","name":"amountOut","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdrawAsset","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdrawLoop","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+var pegPrices = {}; /* lowercase asset address -> USD price (float, per whole token); 'loop' -> LOOP USD price from the peg */
+var pegPricesLoaded = false, pegPricesLoading = false;
+function pegContract(rp){ return new ethers.Contract(CFG.peg, PEG_ABI, rp || getReadProvider()); }
+async function fetchPegPrices(){
+  if(pegPricesLoaded || pegPricesLoading || !window.ethers) return;
+  pegPricesLoading = true;
+  try{
+    var peg = pegContract();
+    var loopUsdX18 = await withTimeout(peg.loopUsdX18(), 20000, 'peg loopUsd');
+    pegPrices['loop'] = Number(loopUsdX18) / 1e18;
+    var addrs = PEG_LIST.filter(function(s){ return s !== 'LOOP'; }).map(function(s){ return TOKENS[s].address; });
+    var prices = await Promise.all(addrs.map(function(a){ return withTimeout(peg.priceUsdX18(a), 20000, 'peg price'); }));
+    addrs.forEach(function(a, i){ pegPrices[a.toLowerCase()] = Number(prices[i]) / 1e18; });
+    pegPricesLoaded = true;
+    if(typeof updateSwap === 'function') updateSwap();
+    if(typeof updateAdd === 'function') updateAdd();
+    if(el('tokenModal') && el('tokenModal').classList.contains('open')) renderTokenList(el('tokenSearch').value);
+  }catch(e){ /* prices stay unavailable; the form says so instead of guessing */ }
+  pegPricesLoading = false;
+}
+function pegUsdPrice(sym){
+  if(sym === 'LOOP') return pegPrices['loop'];
+  var t = TOKENS[sym];
+  if(!t || !t.address || t.address === 'NATIVE') return undefined;
+  return pegPrices[t.address.toLowerCase()];
+}
+function pegUsdLine(sym, wei){
+  var p = pegUsdPrice(sym);
+  if(wei <= 0n) return '';
+  if(p === undefined || !isFinite(p) || p <= 0) return 'USD price unavailable';
+  return '≈ ' + fmtUSD(Number(weiToRaw(wei, TOKENS[sym].decimals)) * p);
+}
+function pegQuoteKey(from, to, amountIn){ return from + '>' + to + ':' + amountIn.toString(); }
+var pegQ = null, pegQFail = null, pegQInFlight = {};
+function pegQuoteOut(from, to, amountIn){
+  return (pegQ && pegQ.key === pegQuoteKey(from, to, amountIn)) ? pegQ.amountOut : null;
+}
+function fetchPegQuote(from, to, amountIn){
+  var key = pegQuoteKey(from, to, amountIn);
+  if(pegQInFlight[key] || pegQFail === key) return;
+  pegQInFlight[key] = true;
+  var peg = pegContract();
+  var pr;
+  if(from === 'LOOP') pr = peg.quoteBuyWithLoop(TOKENS[to].address, amountIn);
+  else if(to === 'LOOP') pr = peg.quoteSellForLoop(TOKENS[from].address, amountIn);
+  else pr = peg.quoteSwap(TOKENS[from].address, TOKENS[to].address, amountIn);
+  withTimeout(pr, 20000, 'peg quote').then(function(out){
+    pegQ = { key: key, from: from, to: to, amountIn: amountIn, amountOut: out };
+    if(pegQFail === key) pegQFail = null;
+  }).catch(function(){ pegQFail = key; }).then(function(){
+    delete pegQInFlight[key];
+    if(typeof updateSwap === 'function') updateSwap();
+  });
+}
+/* Exact-output estimate for peg pairs: invert the peg's price-ratio math
+   (output = input x priceIn / priceOut x 0.995). Uses the cached oracle
+   prices; the swap itself still re-quotes fresh on-chain before sending,
+   so this is only the form's input estimate. */
+function pegQuoteIn(from, to, amountOut){
+  var pIn = pegUsdPrice(from), pOut = pegUsdPrice(to);
+  if(pIn === undefined || pOut === undefined || pIn <= 0 || pOut <= 0 || amountOut <= 0n) return null;
+  var usdOut = Number(weiToRaw(amountOut, TOKENS[to].decimals)) * pOut;
+  var inWhole = usdOut / pIn / 0.995;
+  return toWei(inWhole.toFixed(10), TOKENS[from].decimals);
+}
+async function freshPegQuoteOut(from, to, amountIn){
+  var peg = pegContract();
+  if(from === 'LOOP') return await withTimeout(peg.quoteBuyWithLoop(TOKENS[to].address, amountIn), 20000, 'peg fresh quote');
+  if(to === 'LOOP') return await withTimeout(peg.quoteSellForLoop(TOKENS[from].address, amountIn), 20000, 'peg fresh quote');
+  return await withTimeout(peg.quoteSwap(TOKENS[from].address, TOKENS[to].address, amountIn), 20000, 'peg fresh quote');
+}
+/* Simulate the exact peg call with eth_call before sending anything.
+   Called with minOut 0 it also returns the output the transaction
+   would produce, so it doubles as the fresh quote at send time. The
+   caller must have approved the peg first for token inputs. */
+async function simulatePegCall(from, to, amountIn, minOut){
+  var bp = new ethers.BrowserProvider(window.ethereum);
+  var iface = new ethers.Interface(PEG_ABI);
+  var data, value = 0n, fn;
+  if(from === 'LOOP'){ fn = 'buyWithLoop'; data = iface.encodeFunctionData(fn, [TOKENS[to].address, minOut]); value = amountIn; }
+  else if(to === 'LOOP'){ fn = 'sellForLoop'; data = iface.encodeFunctionData(fn, [TOKENS[from].address, amountIn, minOut]); }
+  else { fn = 'swap'; data = iface.encodeFunctionData(fn, [TOKENS[from].address, TOKENS[to].address, amountIn, minOut]); }
+  var ret = await withTimeout(bp.call({ to: CFG.peg, from: state.account, data: data, value: value }), 20000, 'peg simulation');
+  return iface.decodeFunctionResult(fn, ret)[0];
+}
+/* ================= TX: PEG SWAP ================= */
+async function doPegSwap(){
+  var from = state.swap.from, to = state.swap.to;
+  var decFrom = TOKENS[from].decimals, decTo = TOKENS[to].decimals;
+  var amountIn = inputWei(el('fromInput'), decFrom);
+  if(amountIn <= 0n) return;
+  var shownOut = pegQuoteOut(from, to, amountIn);
+  var amountOut = shownOut !== null ? shownOut : 0n;
+  var minOut = applySlip(amountOut);
+  state.busy = true; updateSwap();
+  try{
+    var signer = await getSigner();
+    /* Approve the peg first for token inputs, so the simulation below
+       tests the swap itself, not the allowance. */
+    if(from !== 'LOOP'){
+      var erc = new ethers.Contract(TOKENS[from].address, ERC20_ABI, signer);
+      var allow = await erc.allowance(state.account, CFG.peg);
+      if(allow < amountIn){
+        var t0 = toast('Approve ' + from + ' for the peg — confirm in your wallet…', null, true);
+        var atx = await erc.approve(CFG.peg, amountIn);
+        t0.remove();
+        var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+        await atx.wait(); t0b.remove();
+      }
+    }
+    /* Simulate with minOut 0: the call returns the output the
+       transaction would produce, so it is the fresh quote. If that
+       output is below the minimum from the shown quote, stop and let
+       the user decide — never send a swap already known to fail. */
+    var freshOut;
+    try{
+      freshOut = await simulatePegCall(from, to, amountIn, 0n);
+    }catch(simErr){
+      clearToasts();
+      state.busy = false;
+      showErr('swapErr', 'Peg swap simulation failed — nothing was sent. The peg said: ' + txErr(simErr));
+      toast('Peg swap simulation failed — nothing was sent.');
+      updateSwap();
+      return;
+    }
+    if(freshOut < minOut){
+      state.busy = false;
+      updateSwap();
+      showErr('swapErr', 'Price moved — re-quote: the peg price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote (expected ±' + fmtWei(amountOut, decTo, 6) + ' ' + to + ', now ±' + fmtWei(freshOut, decTo, 6) + ' ' + to + '). No transaction was sent — the quote above has been updated; check it and try again if you still want to swap.');
+      toast('Price moved — re-quote. Nothing was sent; the quote has been updated.');
+      return;
+    }
+    amountOut = freshOut;
+    minOut = applySlip(amountOut);
+    updateSwap();
+    var tx;
+    var t1 = toast('Waiting for confirmation in your wallet…', null, true);
+    var peg = new ethers.Contract(CFG.peg, PEG_ABI, signer);
+    if(from === 'LOOP'){
+      tx = await peg.buyWithLoop(TOKENS[to].address, minOut, { value: amountIn });
+    } else if(to === 'LOOP'){
+      tx = await peg.sellForLoop(TOKENS[from].address, amountIn, minOut);
+    } else {
+      tx = await peg.swap(TOKENS[from].address, TOKENS[to].address, amountIn, minOut);
+    }
+    t1.remove();
+    var tw = toast('Swap sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Swap successful: ' + fmtWei(amountIn, decFrom, 6) + ' ' + from + ' → ±' + fmtWei(amountOut, decTo, 4) + ' ' + to + ' via TestAssetPeg v2.', tx.hash);
+    el('fromInput').value = ''; el('toInput').value = '';
+    state.busy = false;
+    refreshBalances(); updateSwap();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateSwap();
+    showErr('swapErr', 'Swap failed: ' + txErr(e));
+  }
+}
+async function simulateSwapTokensCall(routerAddr, amountIn, minOut, path, deadline){
+  var bp = new ethers.BrowserProvider(window.ethereum);
+  var iface = new ethers.Interface(SWAP_SIM_ABI);
+  var data = iface.encodeFunctionData('swapExactTokensForTokensSupportingFeeOnTransferTokens', [amountIn, minOut, path, state.account, deadline]);
+  await withTimeout(bp.call({ to: routerAddr, from: state.account, data: data }), 20000, 'swap simulation');
+  return true;
+}
+/* ================= TX: GEN-5 STABLE-PAIR SWAP ================= */
+async function doStableSwap(){
+  var route = swapRoute();
+  if(route.kind !== 'v2stable') return;
+  var t = route.token, st = TOKENS[route.stableSym];
+  var sp = t.stablePools ? t.stablePools[route.stableSym] : null;
+  if(!sp || !sp.pool) return;
+  var fromTok = route.fromToken;
+  var inDec = fromTok ? 18 : 6, outDec = fromTok ? 6 : 18;
+  var amountIn = inputWei(el('fromInput'), inDec);
+  if(amountIn <= 0n) return;
+  var shownOut = stableQuoteOut(sp, amountIn, fromTok);
+  var amountOut = shownOut !== null ? shownOut : 0n;
+  var minOut = applySlip(amountOut);
+  state.busy = true; updateSwap();
+  /* ALWAYS re-quote fresh right before sending — the corrected router's
+     quote is direction-aware (sells are net of the LOOP skim), so a
+     stale shown quote can already be beyond the slippage. */
+  var freshOut;
+  try{
+    freshOut = await freshStableQuoteOut(sp, amountIn, fromTok);
+  }catch(e){
+    state.busy = false;
+    showErr('swapErr', 'The price could not be re-checked before sending (' + txErr(e) + '), so the swap was cancelled and nothing was sent. Try again in a moment.');
+    toast('Swap cancelled — the pre-send price re-check failed, so nothing was sent.');
+    updateSwap();
+    return;
+  }
+  if(freshOut < minOut){
+    state.busy = false;
+    updateSwap();
+    showErr('swapErr', 'Price moved — re-quote: the pool price moved more than your ' + fmtNum(state.slippage, 2) + '% slippage since the quote (expected ±' + fmtWei(amountOut, outDec, 6) + ' ' + state.swap.to + ', now ±' + fmtWei(freshOut, outDec, 6) + ' ' + state.swap.to + '). No transaction was sent — the quote above has been updated; check it and try again if you still want to swap.');
+    toast('Price moved — re-quote. Nothing was sent; the quote has been updated.');
+    return;
+  }
+  amountOut = freshOut;
+  minOut = applySlip(amountOut);
+  updateSwap();
+  var routerAddr = CFG.routerCorrected;
+  var deadline = swapDeadlineTs();
+  state.busy = true; updateSwap();
+  try{
+    var signer = await getSigner();
+    var path = fromTok ? [t.address, st.address] : [st.address, t.address];
+    var inAddr = fromTok ? t.address : st.address;
+    var erc = new ethers.Contract(inAddr, ERC20_ABI, signer);
+    var allow = await erc.allowance(state.account, routerAddr);
+    if(allow < amountIn){
+      var t0 = toast('Approve ' + state.swap.from + ' for the router — confirm in your wallet…', null, true);
+      var atx = await erc.approve(routerAddr, amountIn);
+      t0.remove();
+      var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+      await atx.wait(); t0b.remove();
+    }
+    try{
+      await simulateSwapTokensCall(routerAddr, amountIn, minOut, path, deadline);
+    }catch(simErr){
+      clearToasts();
+      state.busy = false;
+      refreshLive(); updateSwap();
+      if(isInsufficientOutput(revertReason(simErr))){
+        showErr('swapErr', 'Price moved — re-quote: simulation shows the output would fall below your minimum received (' + revertReason(simErr) + '). No transaction was sent — the quote has been refreshed; check it and try again.');
+        toast('Price moved — re-quote. Simulation stopped a swap that would have failed; nothing was sent.');
+      } else {
+        showErr('swapErr', 'Swap simulation failed — nothing was sent. The router said: ' + txErr(simErr));
+        toast('Swap simulation failed — nothing was sent.');
+      }
+      return;
+    }
+    var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+    var t1 = toast('Waiting for swap confirmation in your wallet…', null, true);
+    var tx = await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn, minOut, path, state.account, deadline);
+    t1.remove();
+    var tw = toast('Swap sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Swap successful: ' + fmtWei(amountIn, inDec, 6) + ' ' + state.swap.from + ' → ±' + fmtWei(amountOut, outDec, 4) + ' ' + state.swap.to + '.', tx.hash);
+    el('fromInput').value = ''; el('toInput').value = '';
+    state.busy = false;
+    refreshLive(); refreshBalances(); updateSwap();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateSwap();
+    showErr('swapErr', 'Swap failed: ' + txErr(e));
+  }
+}
+
+/* ---------- Router-native quotes with an explicit path ---------- */
+async function routerAmountsOutPath(routerAddr, amountIn, path){
+  var router = new ethers.Contract(routerAddr, ROUTER_ABI, getReadProvider());
+  var amounts = await withTimeout(router.getAmountsOut(amountIn, path), 20000, 'router quote');
+  return amounts[amounts.length - 1];
+}
+async function routerAmountsInPath(routerAddr, amountOut, path){
+  var router = new ethers.Contract(routerAddr, ROUTER_ABI, getReadProvider());
+  var amounts = await withTimeout(router.getAmountsIn(amountOut, path), 20000, 'router quote in');
+  return amounts[0];
+}
+
+/* ---------- Gen-5 stable pairs (TOKEN / tUSDC or tUSDT) ---------- */
+function bigSqrt(n){
+  if(n <= 0n) return 0n;
+  var x = n, y = (x + 1n) / 2n;
+  while(y < x){ x = y; y = (x + n / x) / 2n; }
+  return x;
+}
+/* A stable pair is discovered lazily via the corrected factory's getPair
+   and cached on the token object. Until the first stable-pair graduation
+   there are none on-chain — the form says so plainly instead of quoting
+   a price that does not exist. A missing pair is re-checked after
+   5 minutes, so a pair created later still shows up without a reload. */
+async function ensureStablePair(t, stableSym){
+  if(!t.stablePools) t.stablePools = {};
+  var sp = t.stablePools[stableSym];
+  if(sp && sp.pool) return sp;
+  if(sp && !sp.pool && Date.now() - (sp.checkedAt || 0) < 300000) return sp;
+  if(!t._spLoading) t._spLoading = {};
+  if(t._spLoading[stableSym]) return t._spLoading[stableSym];
+  var p = (async function(){
+    var st = TOKENS[stableSym];
+    var fac = new ethers.Contract(CFG.factoryCorrected, FACTORY_ABI, getReadProvider());
+    var pairAddr = await withTimeout(fac.getPair(t.address, st.address), 20000, 'stable getPair');
+    var out;
+    if(!pairAddr || pairAddr === ethers.ZeroAddress){
+      out = { pool: null, stable: stableSym, tokenAddr: t.address, stableAddr: st.address, checkedAt: Date.now() };
+    } else {
+      var pair = new ethers.Contract(pairAddr, PAIR_ABI, getReadProvider());
+      var res = await withTimeout(pair.getReserves(), 20000, 'stable reserves');
+      var t0 = (await withTimeout(pair.token0(), 20000, 'stable token0')).toLowerCase();
+      var lps = await withTimeout(pair.totalSupply(), 20000, 'stable lp supply');
+      var tokFirst = t0 === t.address.toLowerCase();
+      out = { pool: pairAddr, stable: stableSym, tokenAddr: t.address, stableAddr: st.address,
+        resTokenWei: tokFirst ? res[0] : res[1],
+        resStableWei: tokFirst ? res[1] : res[0],
+        lpSupplyWei: lps, checkedAt: Date.now() };
+    }
+    t.stablePools[stableSym] = out;
+    return out;
+  })();
+  t._spLoading[stableSym] = p;
+  try{ return await p; } finally { delete t._spLoading[stableSym]; }
+}
+function stableTokenPriceUsd(t, sp){
+  if(!sp || !sp.pool || sp.resStableWei <= 0n || sp.resTokenWei <= 0n) return 0;
+  return Number(weiToRaw(sp.resStableWei, 6)) / Number(weiToRaw(sp.resTokenWei, 18));
+}
+/* ---------- Gen-5 pairs beyond the stable ones (xStock / stable,
+   xStock / LOOP, xStock / xStock, tUSDC / tUSDT) ----------
+   A Gen-5 pair is discovered lazily via the corrected factory's getPair
+   and cached on the token object, mirroring stablePools. The record is
+   always normalised to the owning token's side: resTokenWei is the
+   owner's reserve, resOtherWei the other side's. Graduated/stable pairs
+   live in stablePools, not here. */
+async function ensureGen5Pair(t, otherSym){
+  if(!t.gen5Pairs) t.gen5Pairs = {};
+  var gp = t.gen5Pairs[otherSym];
+  if(gp && gp.pool) return gp;
+  if(gp && !gp.pool && Date.now() - (gp.checkedAt || 0) < 300000) return gp;
+  if(!t._g5Loading) t._g5Loading = {};
+  if(t._g5Loading[otherSym]) return t._g5Loading[otherSym];
+  var p = (async function(){
+    var otherAddr = sideAddr(otherSym);
+    var fac = new ethers.Contract(CFG.factoryCorrected, FACTORY_ABI, getReadProvider());
+    var pairAddr = await withTimeout(fac.getPair(sideAddr(t.symbol), otherAddr), 20000, 'gen5 getPair');
+    var out;
+    if(!pairAddr || pairAddr === ethers.ZeroAddress){
+      out = { pool: null, other: otherSym, tokenAddr: sideAddr(t.symbol), otherAddr: otherAddr, checkedAt: Date.now() };
+    } else {
+      var pair = new ethers.Contract(pairAddr, PAIR_ABI, getReadProvider());
+      var res = await withTimeout(pair.getReserves(), 20000, 'gen5 reserves');
+      var t0 = (await withTimeout(pair.token0(), 20000, 'gen5 token0')).toLowerCase();
+      var lps = await withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply');
+      var tokFirst = t0 === sideAddr(t.symbol).toLowerCase();
+      out = { pool: pairAddr, other: otherSym, tokenAddr: sideAddr(t.symbol), otherAddr: otherAddr,
+        resTokenWei: tokFirst ? res[0] : res[1],
+        resOtherWei: tokFirst ? res[1] : res[0],
+        lpSupplyWei: lps, checkedAt: Date.now() };
+    }
+    t.gen5Pairs[otherSym] = out;
+    return out;
+  })();
+  t._g5Loading[otherSym] = p;
+  try{ return await p; } finally { delete t._g5Loading[otherSym]; }
+}
+/* Store one discovered pair on BOTH token objects (per-side view). */
+function storeGen5Pair(aSym, bSym, poolAddr, res, t0Lower, lps){
+  var a = TOKENS[aSym], b = TOKENS[bSym];
+  if(!a || !b) return;
+  var aFirst = t0Lower === sideAddr(aSym).toLowerCase();
+  if(!a.gen5Pairs) a.gen5Pairs = {};
+  a.gen5Pairs[bSym] = { pool: poolAddr, other: bSym, tokenAddr: sideAddr(aSym), otherAddr: sideAddr(bSym),
+    resTokenWei: aFirst ? res[0] : res[1], resOtherWei: aFirst ? res[1] : res[0],
+    lpSupplyWei: lps, checkedAt: Date.now() };
+  if(!b.gen5Pairs) b.gen5Pairs = {};
+  b.gen5Pairs[aSym] = { pool: poolAddr, other: aSym, tokenAddr: sideAddr(bSym), otherAddr: sideAddr(aSym),
+    resTokenWei: aFirst ? res[1] : res[0], resOtherWei: aFirst ? res[0] : res[1],
+    lpSupplyWei: lps, checkedAt: Date.now() };
+}
+/* Enumerate every pair the corrected factory knows about. Cheap: the
+   factory has few pairs, so one allPairs(i) call per pair beats probing
+   every symbol combination. Unknown-token pairs are skipped. */
+var discoverGen5Running = false;
+async function discoverGen5Pairs(){
+  if(!window.ethers || discoverGen5Running) return;
+  discoverGen5Running = true;
+  try{
+    var rp = getReadProvider();
+    var fac = new ethers.Contract(CFG.factoryCorrected, FACTORY_ABI, rp);
+    var n = Number(await withTimeout(fac.allPairsLength(), 20000, 'gen5 allPairsLength'));
+    var addrToSym = {};
+    Object.keys(TOKENS).forEach(function(s){ var a = TOKENS[s].address; if(a && a !== 'NATIVE') addrToSym[a.toLowerCase()] = s; });
+    addrToSym[CFG.wloop.toLowerCase()] = 'LOOP';
+    for(var i = 0; i < n; i++){
+      try{
+        var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen5 allPairs');
+        var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
+        var t0 = (await withTimeout(pair.token0(), 20000, 'gen5 token0')).toLowerCase();
+        var t1 = (await withTimeout(pair.token1(), 20000, 'gen5 token1')).toLowerCase();
+        var s0 = addrToSym[t0], s1 = addrToSym[t1];
+        if(!s0 || !s1) continue;
+        /* Graduated/stable pairs live in stablePools, not gen5Pairs. */
+        if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) continue;
+        var res = await withTimeout(pair.getReserves(), 20000, 'gen5 reserves');
+        var lps = await withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply');
+        storeGen5Pair(s0, s1, pAddr, res, t0, lps);
+      }catch(e){ /* skip this pair */ }
+    }
+  }catch(e){ /* discovery unavailable; the forms say so */ }
+  discoverGen5Running = false;
+}
+function stableRqKey(sp, amount, fromToken){ return 's:' + sp.pool.toLowerCase() + ':' + (fromToken ? 's' : 'b') + ':' + amount.toString(); }
+function stableRqKeyIn(sp, amount, fromToken){ return 'si:' + sp.pool.toLowerCase() + ':' + (fromToken ? 's' : 'b') + ':' + amount.toString(); }
+function stableQuoteOut(sp, amountIn, fromToken){
+  var q = sp._rq;
+  return (q && q.amountIn === amountIn && q.fromToken === fromToken) ? q.amountOut : null;
+}
+function stableQuoteIn(sp, amountOut, fromToken){
+  var q = sp._rqi;
+  return (q && q.amountOut === amountOut && q.fromToken === fromToken) ? q.amountIn : null;
+}
+var stableRqInFlight = {};
+function fetchStableQuote(sp, amountIn, fromToken){
+  var key = stableRqKey(sp, amountIn, fromToken);
+  if(stableRqInFlight[key] || sp._rqFail === key) return;
+  stableRqInFlight[key] = true;
+  var path = fromToken ? [sp.tokenAddr, sp.stableAddr] : [sp.stableAddr, sp.tokenAddr];
+  routerAmountsOutPath(CFG.routerCorrected, amountIn, path).then(function(out){
+    sp._rq = { amountIn: amountIn, fromToken: fromToken, amountOut: out };
+    if(sp._rqFail === key) delete sp._rqFail;
+  }).catch(function(){ sp._rqFail = key; }).then(function(){
+    delete stableRqInFlight[key];
+    if(typeof updateSwap === 'function') updateSwap();
+  });
+}
+function fetchStableQuoteIn(sp, amountOut, fromToken){
+  var key = stableRqKeyIn(sp, amountOut, fromToken);
+  if(stableRqInFlight[key] || sp._rqiFail === key) return;
+  stableRqInFlight[key] = true;
+  var path = fromToken ? [sp.tokenAddr, sp.stableAddr] : [sp.stableAddr, sp.tokenAddr];
+  routerAmountsInPath(CFG.routerCorrected, amountOut, path).then(function(ain){
+    sp._rqi = { amountOut: amountOut, fromToken: fromToken, amountIn: ain };
+    if(sp._rqiFail === key) delete sp._rqiFail;
+  }).catch(function(){ sp._rqiFail = key; }).then(function(){
+    delete stableRqInFlight[key];
+    if(typeof updateSwap === 'function') updateSwap();
+  });
+}
+async function freshStableQuoteOut(sp, amountIn, fromToken){
+  var pair = new ethers.Contract(sp.pool, PAIR_ABI, getReadProvider());
+  var res = await withTimeout(pair.getReserves(), 20000, 'stable recheck');
+  var t0 = (await withTimeout(pair.token0(), 20000, 'stable token0')).toLowerCase();
+  var tokFirst = t0 === sp.tokenAddr.toLowerCase();
+  sp.resTokenWei = tokFirst ? res[0] : res[1];
+  sp.resStableWei = tokFirst ? res[1] : res[0];
+  sp.lpSupplyWei = await withTimeout(pair.totalSupply(), 20000, 'stable lp supply');
+  var path = fromToken ? [sp.tokenAddr, sp.stableAddr] : [sp.stableAddr, sp.tokenAddr];
+  var out = await routerAmountsOutPath(CFG.routerCorrected, amountIn, path);
+  sp._rq = { amountIn: amountIn, fromToken: fromToken, amountOut: out };
+  return out;
+}
+/* Discover Gen-5 stable pairs for the Pools page and Liquidity. */
+async function loadStablePairs(){
+  if(!window.ethers) return;
+  await Promise.all(TOKEN_LIST.map(async function(sym){
+    var t = TOKENS[sym];
+    await Promise.all(STABLE_LIST.map(async function(stSym){
+      try{ await ensureStablePair(t, stSym); }catch(e){ /* stays undiscovered; the form says so */ }
+    }));
+  }));
+  try{ await discoverGen5Pairs(); }catch(e){ /* Gen-5 discovery stays empty; the form says so */ }
+  renderPairs();
+  if(state.account) refreshBalances();
+}
+/* Which venue a swap uses. Peg when BOTH sides are peg assets; the
+   LOOP pool when one side is LOOP; a Gen-5 stable pair when a graduated
+   token meets a stablecoin; 'none' when no pool exists for the pair
+   (xStock vs a graduated token, or two graduated tokens). */
+function swapRoute(){
+  var f = state.swap.from, t = state.swap.to;
+  if(!f || !t || f === t) return { kind:'none' };
+  if(isPegAsset(f) && isPegAsset(t)) return { kind:'peg' };
+  if(f === 'LOOP' || t === 'LOOP'){
+    var pair = pairTokenOf(f, t);
+    return (pair && pair.pool) ? { kind:'v2loop', pair: pair } : { kind:'none' };
+  }
+  var tokSym = isGraduated(f) ? f : (isGraduated(t) ? t : null);
+  var stSym = isStable(f) ? f : (isStable(t) ? t : null);
+  if(tokSym && stSym) return { kind:'v2stable', token: TOKENS[tokSym], stableSym: stSym, fromToken: f === tokSym };
+  return { kind:'none' };
+}
+
 async function freshQuoteOut(pair, amountIn, fromLoop){
   var rp = getReadProvider();
   var c = new ethers.Contract(pair.pool, PAIR_ABI, rp);
@@ -3644,7 +4850,8 @@ async function freshQuoteOut(pair, amountIn, fromLoop){
    simulation reverts on the allowance instead of the swap itself. */
 var SWAP_SIM_ABI = [
   'function swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256) payable',
-  'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)'
+  'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)',
+  'function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)'
 ];
 async function simulateSwapEthCall(routerAddr, fromLoop, amountIn, minOut, pair, deadline){
   var bp = new ethers.BrowserProvider(window.ethereum);
@@ -3669,6 +4876,10 @@ async function doSwap(){
   if(state.busy) return;
   if(!state.account) return connectWallet();
   if(!state.chainOk) return switchChain();
+  var _route = swapRoute();
+  if(_route.kind === 'none') return;
+  if(_route.kind === 'peg') return doPegSwap();
+  if(_route.kind === 'v2stable') return doStableSwap();
   var r = swapReserves();
   var pair = r.pair;
   var amountIn = inputWei(el('fromInput'), 18);
@@ -3781,6 +4992,10 @@ async function doAdd(){
   if(state.busy) return;
   if(!state.account) return connectWallet();
   if(!state.chainOk) return switchChain();
+  var _at = TOKENS[state.addToken];
+  if(state.addQuote === 'LOOP' && isGraduated(state.addToken) && _at.pool){ /* existing LOOP path below */ }
+  else if(isStable(state.addQuote) && isGraduated(state.addToken)) return doAddStable();
+  else return doAddGen5();
   var t = TOKENS[state.addToken];
   var loopAmt = inputWei(el('addLoopInput'), 18);
   var tokAmt = inputWei(el('addTokenInput'), 18);
@@ -3820,6 +5035,10 @@ async function doRemove(){
   if(state.busy) return;
   if(!state.account) return connectWallet();
   if(!state.chainOk) return switchChain();
+  var _rt = TOKENS[state.remToken];
+  if(state.remQuote === 'LOOP' && isGraduated(state.remToken) && _rt.pool){ /* existing LOOP path below */ }
+  else if(isStable(state.remQuote) && isGraduated(state.remToken)) return doRemoveStable();
+  else return doRemoveGen5();
   var t = TOKENS[state.remToken];
   var lpAmt = inputWei(el('remLpInput'), 18);
   if(lpAmt <= 0n) return;
@@ -3845,6 +5064,209 @@ async function doRemove(){
     var tw = toast('Transaction sent — waiting for confirmation…', tx.hash, true);
     await tx.wait(); tw.remove();
     toast('Liquidity removed: ±' + fmtWei(outLoop, 18, 5) + ' LOOP + ±' + fmtWei(outTok, 18, 2) + ' ' + t.symbol + '.', tx.hash);
+    el('remLpInput').value = '';
+    state.busy = false;
+    refreshLive(); refreshBalances(); updateRemove();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateRemove();
+    showErr('remErr', 'Remove liquidity failed: ' + txErr(e));
+  }
+}
+
+/* ================= TX: ADD / REMOVE STABLE-PAIR LIQUIDITY =================
+   ERC20/ERC20 via the corrected router's addLiquidity / removeLiquidity
+   (no WLOOP wrapping). Approves both tokens first. If the pair does not
+   exist yet, the router creates it — the user sets the initial price. */
+async function doAddStable(){
+  var t = TOKENS[state.addToken];
+  var st = TOKENS[state.addQuote];
+  var tokAmt = inputWei(el('addTokenInput'), 18);
+  var stAmt = inputWei(el('addLoopInput'), 6);
+  if(tokAmt <= 0n || stAmt <= 0n) return;
+  var routerAddr = CFG.routerCorrected;
+  state.busy = true; updateAdd();
+  try{
+    var signer = await getSigner();
+    var addrs = [t.address, st.address], amts = [tokAmt, stAmt], syms = [t.symbol, st.symbol];
+    for(var i = 0; i < 2; i++){
+      var erc = new ethers.Contract(addrs[i], ERC20_ABI, signer);
+      var allow = await erc.allowance(state.account, routerAddr);
+      if(allow < amts[i]){
+        var t0 = toast('Approve ' + syms[i] + ' for the router — confirm in your wallet…', null, true);
+        var atx = await erc.approve(routerAddr, amts[i]);
+        t0.remove();
+        var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+        await atx.wait(); t0b.remove();
+      }
+    }
+    var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+    var t1 = toast('Waiting for add-liquidity confirmation…', null, true);
+    var tx = await router.addLiquidity(t.address, st.address, tokAmt, stAmt, applySlip(tokAmt), applySlip(stAmt), state.account, deadlineTs());
+    t1.remove();
+    var tw = toast('Transaction sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Liquidity added to the ' + t.symbol + ' / ' + st.symbol + ' pool. The LP went to your wallet.', tx.hash);
+    el('addLoopInput').value = ''; el('addTokenInput').value = '';
+    if(t.stablePools) delete t.stablePools[st.symbol];
+    state.busy = false;
+    refreshLive(); refreshBalances(); updateAdd();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateAdd();
+    showErr('addErr', 'Add liquidity failed: ' + txErr(e));
+  }
+}
+/* ================= TX: ADD GENERIC GEN-5 LIQUIDITY =================
+   ERC20/ERC20 via the corrected router's addLiquidity; when one side is
+   LOOP, the corrected router's addLiquidityETH takes native LOOP as
+   msg.value (no wrapping). Approves the ERC20 side(s) first. If the pair
+   does not exist yet, the router creates it at the user's ratio. */
+async function doAddGen5(){
+  var t = TOKENS[state.addToken];
+  var q = TOKENS[state.addQuote];
+  var amtA = inputWei(el('addTokenInput'), t.decimals);
+  var amtB = inputWei(el('addLoopInput'), q.decimals);
+  if(amtA <= 0n || amtB <= 0n) return;
+  var routerAddr = CFG.routerCorrected;
+  state.busy = true; updateAdd();
+  try{
+    var signer = await getSigner();
+    var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+    var tx;
+    if(state.addQuote === 'LOOP'){
+      var ercA = new ethers.Contract(t.address, ERC20_ABI, signer);
+      var allowA = await ercA.allowance(state.account, routerAddr);
+      if(allowA < amtA){
+        var t0 = toast('Approve ' + t.symbol + ' for the router — confirm in your wallet…', null, true);
+        var atx = await ercA.approve(routerAddr, amtA);
+        t0.remove();
+        var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+        await atx.wait(); t0b.remove();
+      }
+      var t1 = toast('Waiting for add-liquidity confirmation…', null, true);
+      tx = await router.addLiquidityETH(t.address, amtA, applySlip(amtA), applySlip(amtB), state.account, deadlineTs(), { value: amtB });
+      t1.remove();
+    } else if(state.addToken === 'LOOP'){
+      /* Defensive only: LOOP is not offered as the token side in the
+         picker, but the same ETH path covers it if it ever is. */
+      var ercB = new ethers.Contract(q.address, ERC20_ABI, signer);
+      var allowB = await ercB.allowance(state.account, routerAddr);
+      if(allowB < amtB){
+        var u0 = toast('Approve ' + q.symbol + ' for the router — confirm in your wallet…', null, true);
+        var uatx = await ercB.approve(routerAddr, amtB);
+        u0.remove();
+        var u0b = toast('Approve sent — waiting for confirmation…', uatx.hash, true);
+        await uatx.wait(); u0b.remove();
+      }
+      var u1 = toast('Waiting for add-liquidity confirmation…', null, true);
+      tx = await router.addLiquidityETH(q.address, amtB, applySlip(amtB), applySlip(amtA), state.account, deadlineTs(), { value: amtA });
+      u1.remove();
+    } else {
+      var addrs = [t.address, q.address], amts = [amtA, amtB], syms = [t.symbol, q.symbol];
+      for(var i = 0; i < 2; i++){
+        var erc = new ethers.Contract(addrs[i], ERC20_ABI, signer);
+        var allow = await erc.allowance(state.account, routerAddr);
+        if(allow < amts[i]){
+          var v0 = toast('Approve ' + syms[i] + ' for the router — confirm in your wallet…', null, true);
+          var vatx = await erc.approve(routerAddr, amts[i]);
+          v0.remove();
+          var v0b = toast('Approve sent — waiting for confirmation…', vatx.hash, true);
+          await vatx.wait(); v0b.remove();
+        }
+      }
+      var v1 = toast('Waiting for add-liquidity confirmation…', null, true);
+      tx = await router.addLiquidity(t.address, q.address, amtA, amtB, applySlip(amtA), applySlip(amtB), state.account, deadlineTs());
+      v1.remove();
+    }
+    var tw = toast('Transaction sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Liquidity added to the ' + t.symbol + ' / ' + q.symbol + ' pool. The LP went to your wallet.', tx.hash);
+    el('addLoopInput').value = ''; el('addTokenInput').value = '';
+    if(t.gen5Pairs) delete t.gen5Pairs[state.addQuote];
+    if(q.gen5Pairs) delete q.gen5Pairs[state.addToken];
+    state.busy = false;
+    refreshLive(); refreshBalances(); updateAdd();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateAdd();
+    showErr('addErr', 'Add liquidity failed: ' + txErr(e));
+  }
+}
+async function doRemoveStable(){
+  var t = TOKENS[state.remToken];
+  var st = TOKENS[state.remQuote];
+  var sp = t.stablePools ? t.stablePools[state.remQuote] : null;
+  var lpAmt = inputWei(el('remLpInput'), 18);
+  if(lpAmt <= 0n || !sp || !sp.pool) return;
+  var routerAddr = CFG.routerCorrected;
+  var outTok = sp.lpSupplyWei > 0n ? lpAmt * sp.resTokenWei / sp.lpSupplyWei : 0n;
+  var outSt = sp.lpSupplyWei > 0n ? lpAmt * sp.resStableWei / sp.lpSupplyWei : 0n;
+  state.busy = true; updateRemove();
+  try{
+    var signer = await getSigner();
+    var pairC = new ethers.Contract(sp.pool, PAIR_ABI, signer);
+    var allow = await pairC.allowance(state.account, routerAddr);
+    if(allow < lpAmt){
+      var t0 = toast('Approve LP for the router — confirm in your wallet…', null, true);
+      var atx = await pairC.approve(routerAddr, lpAmt);
+      t0.remove();
+      var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+      await atx.wait(); t0b.remove();
+    }
+    var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+    var t1 = toast('Waiting for remove-liquidity confirmation…', null, true);
+    var tx = await router.removeLiquidity(t.address, st.address, lpAmt, applySlip(outTok), applySlip(outSt), state.account, deadlineTs());
+    t1.remove();
+    var tw = toast('Transaction sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Liquidity removed: ±' + fmtWei(outTok, 18, 5) + ' ' + t.symbol + ' + ±' + fmtWei(outSt, 6, 2) + ' ' + st.symbol + '.', tx.hash);
+    el('remLpInput').value = '';
+    state.busy = false;
+    refreshLive(); refreshBalances(); updateRemove();
+  }catch(e){
+    clearToasts();
+    state.busy = false; updateRemove();
+    showErr('remErr', 'Remove liquidity failed: ' + txErr(e));
+  }
+}
+
+/* ================= TX: REMOVE GENERIC GEN-5 LIQUIDITY ================= */
+async function doRemoveGen5(){
+  var t = TOKENS[state.remToken];
+  var q = TOKENS[state.remQuote];
+  var gp = gen5PairOf(t, state.remQuote);
+  var lpAmt = inputWei(el('remLpInput'), 18);
+  if(lpAmt <= 0n || !gp || !gp.pool) return;
+  var routerAddr = CFG.routerCorrected;
+  var outA = gp.lpSupplyWei > 0n ? lpAmt * gp.resTokenWei / gp.lpSupplyWei : 0n;
+  var outB = gp.lpSupplyWei > 0n ? lpAmt * gp.resOtherWei / gp.lpSupplyWei : 0n;
+  state.busy = true; updateRemove();
+  try{
+    var signer = await getSigner();
+    var pairC = new ethers.Contract(gp.pool, PAIR_ABI, signer);
+    var allow = await pairC.allowance(state.account, routerAddr);
+    if(allow < lpAmt){
+      var t0 = toast('Approve LP for the router — confirm in your wallet…', null, true);
+      var atx = await pairC.approve(routerAddr, lpAmt);
+      t0.remove();
+      var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+      await atx.wait(); t0b.remove();
+    }
+    var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
+    var t1 = toast('Waiting for remove-liquidity confirmation…', null, true);
+    var tx;
+    if(state.remQuote === 'LOOP'){
+      tx = await router.removeLiquidityETH(t.address, lpAmt, applySlip(outA), applySlip(outB), state.account, deadlineTs());
+    } else if(state.remToken === 'LOOP'){
+      tx = await router.removeLiquidityETH(q.address, lpAmt, applySlip(outB), applySlip(outA), state.account, deadlineTs());
+    } else {
+      tx = await router.removeLiquidity(t.address, q.address, lpAmt, applySlip(outA), applySlip(outB), state.account, deadlineTs());
+    }
+    t1.remove();
+    var tw = toast('Transaction sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Liquidity removed: ±' + fmtWei(outA, t.decimals, 5) + ' ' + t.symbol + ' + ±' + fmtWei(outB, q.decimals, 2) + ' ' + q.symbol + '.', tx.hash);
     el('remLpInput').value = '';
     state.busy = false;
     refreshLive(); refreshBalances(); updateRemove();
@@ -4093,7 +5515,7 @@ function syncMevUI(){
    Orders/plans live in the contracts, not in this tab: creating one is a
    wallet transaction, cancelling is a contract call that refunds in full,
    and the lists below are read back with getOrder / getPlan. A keeper
-   executes when the condition holds and takes 0.25% of the swap output.
+   executes when the condition holds and takes 1% of the trade value in LOOP.
    Every order/plan records the per-vintage router of its token's pair
    (routerOf — read from the pair's vintage), never one router for all. */
 var LIMIT_ABI = [
@@ -4228,8 +5650,8 @@ function updateLimit(){
   var det = el('limitDetails');
   if(target > 0 && amt > 0n){
     det.style.display = 'block';
-    if(buy) el('limEstOut').textContent = '≈ ' + fmtNum(Number(weiToRaw(amt, 18)) / target, 4) + ' ' + t.symbol + ' (before pool fee, price impact & the 0.25% keeper fee)';
-    else el('limEstOut').textContent = '≈ ' + fmtUSD(Number(weiToRaw(amt, 18)) * target * loopUsd) + ' (before pool fee, price impact & the 0.25% keeper fee)';
+    if(buy) el('limEstOut').textContent = '≈ ' + fmtNum(Number(weiToRaw(amt, 18)) / target, 4) + ' ' + t.symbol + ' (before pool fee, price impact & the 1% keeper fee in LOOP)';
+    else el('limEstOut').textContent = '≈ ' + fmtUSD(Number(weiToRaw(amt, 18)) * target * loopUsd) + ' (before pool fee, price impact & the 1% keeper fee in LOOP)';
     el('limTrigger').textContent = (buy ? 'Market cap falls to ' : 'Market cap rises to ') + (tMc === null ? 'the target' : fmtCompactUSD(tMc)) + ' (' + fmtUSDPrice(target * loopUsd) + ' per ' + t.symbol + ')';
     var reached = state.limit.mcPct === 0 || (buy ? state.limit.mcPct < 0 : state.limit.mcPct > 0);
     el('limDist').textContent = (state.limit.mcPct > 0 ? '+' : '') + fmtNum(state.limit.mcPct, state.limit.mcPct % 1 ? 1 : 0) + '%' + (reached && state.limit.mcPct !== 0 ? ' — target already reached, executable as soon as a keeper runs' : state.limit.mcPct === 0 ? ' — at the current price, executable as soon as a keeper runs' : '');
@@ -4290,7 +5712,7 @@ async function onLimitAction(){
     await tx.wait(); tw.remove();
     el('limitAmountInput').value = '';
     state.ordersLoadedFor = null;
-    toast('Limit order created on-chain: ' + (buy ? 'buy' : 'sell') + ' ' + t.symbol + ' at target MC ' + (limitTargetMc() === null ? '—' : fmtCompactUSD(limitTargetMc())) + ' via ' + vintageOf(t).routerLabel + '. Your funds are held by the contract — a keeper fills it at the target (0.25% keeper fee) and you can cancel any time for a full refund.', tx.hash);
+    toast('Limit order created on-chain: ' + (buy ? 'buy' : 'sell') + ' ' + t.symbol + ' at target MC ' + (limitTargetMc() === null ? '—' : fmtCompactUSD(limitTargetMc())) + ' via ' + vintageOf(t).routerLabel + '. Your funds are held by the contract — a keeper fills it at the target (1% keeper fee in LOOP) and you can cancel any time for a full refund.', tx.hash);
     await loadOnChainOrders();
     refreshBalances();
   }catch(e){
@@ -4392,8 +5814,8 @@ function renderOrders(){
       '<br/>Target MC ' + (o.targetMc === null || o.targetMc === undefined ? '—' : fmtCompactUSD(o.targetMc)) + ' · ' + fmtUSDPrice(o.target * loopUsd) + ' per ' + esc(o.sym) + (p > 0 ? ' · now ' + fmtUSDPrice(p * loopUsd) : '') +
       '<br/>Created ' + new Date(o.createdAt).toLocaleString('en-US');
     if(o.router) h += '<br/>Router: ' + routerLabelFor(o.router) + ' · ' + shortAddr(o.router);
-    h += '<br/>Held by SakuraLimitOrder · ' + shortAddr(CFG.limitOrder) + ' · keeper fee 0.25% of output on execution';
-    if(o.status === 'open') h += '<br/>' + (o.executable ? 'Target reached — the order fills as soon as a keeper executes it (a 24/7 keeper is not running yet, so this can wait).' : 'Waiting for the target price. A keeper executes it when the target is reached.');
+    h += '<br/>Held by SakuraLimitOrder · ' + shortAddr(CFG.limitOrder) + ' · keeper fee 1% in LOOP on execution';
+    if(o.status === 'open') h += '<br/>' + (o.executable ? 'Target reached — the order fills as soon as a keeper executes it (a 24/7 keeper is running, so it fills automatically).' : 'Waiting for the target price. A keeper executes it when the target is reached.');
     if(o.note) h += '<br/>' + esc(o.note);
     h += '</div>';
     if(o.status === 'open') h += '<div class="ord-actions"><button type="button" data-cancel="' + o.id + '">Cancel order (full refund)</button></div>';
@@ -4406,7 +5828,7 @@ function renderOrders(){
 
 /* ================= DCA (Jupiter-style: Sell total → Buy, Every × Over orders) =================
    Plans live in the SakuraDCA contract: the budget is deposited up front,
-   slots are executed by a keeper (0.25% of each swap's output), and the
+   slots are executed by a keeper (1% of each swap, in LOOP), and the
    list below is read back with getPlan — nothing here runs in the tab. */
 function dcaFromSym(){ return state.dca.dir === 'buy' ? 'LOOP' : state.dca.token; }
 function dcaToSym(){ return state.dca.dir === 'buy' ? state.dca.token : 'LOOP'; }
@@ -4491,7 +5913,7 @@ function updateDca(){
     el('dcaSummaryText').textContent = fmtWei(per, 18, 6) + ' ' + fromSym + ' (' + fmtUSD(perUsd) + ') per order · runs for ' + fmtRunFor((count - 1) * dcaIntervalMs());
     det.style.display = 'block';
     el('dcaTotal').textContent = (fromSym === 'LOOP' ? fmtLoopUSD(total) : fmtUSD(Number(weiToRaw(total, 18)) * tokenPriceUsd(t))) + ' (' + fmtWei(total, 18, 6) + ' ' + fromSym + ' total)';
-    el('dcaEst').textContent = p > 0 ? (state.dca.dir === 'buy' ? ('≈ ' + fmtNum(Number(weiToRaw(per, 18)) / p, 4) + ' ' + t.symbol) : ('≈ ' + fmtUSD(Number(weiToRaw(per, 18)) * tokenPriceUsd(t)) + ' worth of LOOP')) + ' (before pool fee, price impact & the 0.25% keeper fee)' : '—';
+    el('dcaEst').textContent = p > 0 ? (state.dca.dir === 'buy' ? ('≈ ' + fmtNum(Number(weiToRaw(per, 18)) / p, 4) + ' ' + t.symbol) : ('≈ ' + fmtUSD(Number(weiToRaw(per, 18)) * tokenPriceUsd(t)) + ' worth of LOOP')) + ' (before pool fee, price impact & the 1% keeper fee in LOOP)' : '—';
     el('dcaRoute').textContent = fromSym + ' → ' + dcaToSym() + ' · ' + vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else { sum.style.display = 'none'; det.style.display = 'none'; }
   showErr('dcaErr', rangeBad ? 'The minimum price is above the maximum price — fix the price range.' : '');
@@ -4536,10 +5958,10 @@ function renderDca(){
         var h = '<div class="ord-item"><div class="ord-head"><span>' + (plan.isBuy ? 'Buy ' : 'Sell ') + esc(plan.sym) + ' · ' + fmtWei(plan.amountPerOrder, 18, 6) + ' ' + esc(fromSym) + ' (' + fmtUSD(perUsd) + ') per order · ' + esc(fmtIntervalLabel(plan.intervalSec)) + '</span><span class="ord-status open">Active</span></div>';
         h += '<div class="ord-meta">Plan #' + plan.id + ' · Progress: ' + plan.executedOrders + ' of ' + plan.totalOrders + ' orders · remaining ' + fmtWei(plan.remaining, 18, 6) + ' ' + esc(fromSym) + ' of ' + fmtWei(plan.totalAmount, 18, 6) + ' ' + esc(fromSym) + ' · started ' + new Date(plan.startTime * 1000).toLocaleString('en-US');
         if(plan.router) h += '<br/>Router: ' + routerLabelFor(plan.router) + ' · ' + shortAddr(plan.router);
-        h += '<br/>Held by SakuraDCA · ' + shortAddr(CFG.dcaContract) + ' · keeper fee 0.25% of each swap\'s output';
+        h += '<br/>Held by SakuraDCA · ' + shortAddr(CFG.dcaContract) + ' · keeper fee 1% in LOOP per swap';
         if(plan.minPrice > 0n || plan.maxPrice > 0n) h += '<br/>Price range: ' + (plan.minPrice > 0n ? fmtUSDPrice(priceWeiToUsd(plan.minPrice)) : 'no min') + ' – ' + (plan.maxPrice > 0n ? fmtUSDPrice(priceWeiToUsd(plan.maxPrice)) : 'no max') + ' per ' + esc(plan.sym);
         if(planStatus(plan) === 'active'){
-          if(plan.due) h += '<br/>Next order is due — it executes as soon as a keeper runs it (a 24/7 keeper is not running yet, so this can wait).';
+          if(plan.due) h += '<br/>Next order is due — it executes automatically — a 24/7 keeper is running.';
           else if(plan.nextAt) h += '<br/>Next order: ' + fmtCountdown(plan.nextAt * 1000 - Date.now()) + ' (' + new Date(plan.nextAt * 1000).toLocaleString('en-US') + ') — executed by the keeper.';
         }
         h += '</div>';
@@ -4681,7 +6103,7 @@ async function onDcaAction(){
     await tx.wait(); tw.remove();
     el('dcaAmountInput').value = '';
     state.plansLoadedFor = null;
-    toast('DCA plan created on-chain: ' + count + ' orders of ' + fmtWei(per, 18, 6) + ' ' + dcaFromSym() + ' into ' + dcaToSym() + ' via ' + vintageOf(t).routerLabel + '. The SakuraDCA contract holds the budget — a keeper runs each order when due (0.25% keeper fee per swap).', tx.hash);
+    toast('DCA plan created on-chain: ' + count + ' orders of ' + fmtWei(per, 18, 6) + ' ' + dcaFromSym() + ' into ' + dcaToSym() + ' via ' + vintageOf(t).routerLabel + '. The SakuraDCA contract holds the budget — a keeper runs each order when due (1% keeper fee in LOOP per swap).', tx.hash);
     await loadOnChainPlans();
     refreshBalances();
   }catch(e){
@@ -4878,7 +6300,7 @@ function bindEvents(){
       var pct = BigInt(b.getAttribute('data-pct'));
       var v = bal * pct / 100n;
       if(state.swap.from === 'LOOP' && pct === 100n){ var buf = toWei('0.005', 18); v = bal > buf ? bal - buf : 0n; }
-      setInputFromWei(el('fromInput'), v, 18);
+      setInputFromWei(el('fromInput'), v, TOKENS[state.swap.from].decimals);
       state.swap.lastEdited = 'from'; updateSwap();
     });
   });
@@ -4914,13 +6336,24 @@ function bindEvents(){
   el('addLoopInput').addEventListener('input', function(){ updateAdd('loop'); });
   el('addTokenInput').addEventListener('input', function(){ updateAdd('token'); });
   el('addTokenBtn').addEventListener('click', function(){ openTokenModal('add'); });
+  el('addQuoteBtn').addEventListener('click', function(){ openTokenModal('addQuote'); });
   el('addAction').addEventListener('click', doAdd);
+  Array.prototype.forEach.call(el('addQuoteRow').querySelectorAll('button[data-q]'), function(b){
+    b.addEventListener('click', function(){
+      state.addQuote = b.getAttribute('data-q');
+      syncAddQuoteButton(); renderBalances(); updateAdd();
+    });
+  });
   /* Remove */
   el('remTokenBtn').addEventListener('click', function(){ openTokenModal('remove'); });
+  Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q-more]'), function(b){
+    b.addEventListener('click', function(){ openTokenModal('remQuote'); });
+  });
   el('remLpInput').addEventListener('input', updateRemove);
   Array.prototype.forEach.call(el('remPctRow').querySelectorAll('button'), function(b){
     b.addEventListener('click', function(){
-      var lp = state.lpBalances[TOKENS[state.remToken].pool.toLowerCase()];
+      var lpPool = remLpPool();
+      var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
       if(!state.account){ toast('Connect your wallet first.'); return; }
       if(lp === undefined){ toast('LP balance not loaded yet — please wait a moment.'); return; }
       setInputFromWei(el('remLpInput'), lp * BigInt(b.getAttribute('data-pct')) / 100n, 18);
@@ -4928,6 +6361,12 @@ function bindEvents(){
     });
   });
   el('remAction').addEventListener('click', doRemove);
+  Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q]'), function(b){
+    b.addEventListener('click', function(){
+      state.remQuote = b.getAttribute('data-q');
+      syncRemQuoteButton(); renderBalances(); updateRemove();
+    });
+  });
   /* Pools search */
   el('poolSearch').addEventListener('input', function(){
     state.poolFilter = el('poolSearch').value;
@@ -4969,9 +6408,8 @@ function bindEvents(){
   el('tokenModal').addEventListener('click', function(e){ if(e.target === el('tokenModal')) closeTokenModal(); });
   el('tokenSearch').addEventListener('input', function(){ renderTokenList(el('tokenSearch').value); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeTokenModal(); el('settingsPanel').classList.remove('open'); } });
-  /* Fixed LOOP button in Add */
-  var fixed = document.querySelector('[data-fixed="LOOP"]');
-  if(fixed) fixed.innerHTML = tokenBtnHtml(TOKENS.LOOP);
+  /* Quote-asset buttons in Add / Remove (LOOP, tUSDC, tUSDT) */
+  syncAddQuoteButton(); syncRemQuoteButton();
   /* Wallet events */
   if(window.ethereum && window.ethereum.on){
     window.ethereum.on('accountsChanged', function(accs){
@@ -5208,6 +6646,7 @@ renderHomeExtras();
 loadHomeActivity();
 renderUsdRateBar();
 fetchLoopUsd();
+fetchPegPrices();
 setInterval(fetchLoopUsd, 60000);
 </script>
 <script>
