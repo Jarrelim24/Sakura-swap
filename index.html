@@ -373,6 +373,14 @@ body[data-view="analytics"] .panel-positions{display:none}
 .rem-pos .rp-lp{text-align:right;font-size:13px;font-weight:800;white-space:nowrap}
 .rem-pos .rp-lp small{display:block;color:var(--muted);font-weight:500;font-size:11px}
 .empty-note{color:var(--muted);font-weight:500;font-size:14px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:14px;line-height:1.6;margin-top:10px}
+/* Clean Liquidity redesign: small pink-outline MAX pill (Add + Remove) */
+.max-btn{border:1px solid var(--pink);background:transparent;color:var(--pink-dark);border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;flex:none;min-height:28px}
+.max-btn:hover{background:var(--pink-pale)}
+.max-btn:disabled{opacity:.45;cursor:default}
+/* Remove tab: search box + scroll-capped positions list (max ~4-5 rows
+   visible; more positions scroll inside the card, never grow the page) */
+.rem-pos-search{margin-top:8px}
+.rem-pos-list-scroll{max-height:260px;overflow-y:auto;padding-right:2px}
 /* Pairs table */
 .pairs-table{width:100%;border-collapse:collapse;font-size:14px}
 .pairs-table th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px}
@@ -784,7 +792,6 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   </div>
   <div class="page-head" id="headLiquidity" hidden>
     <h1>Liquidity</h1>
-    <p>Add and remove liquidity in one place — use the Add Liquidity and Remove tabs on the card below. Add to a pool to receive LP tokens, or withdraw your own LP at any time. Graduation LP is permanently locked in the locker and cannot be withdrawn by anyone — only your own LP appears here.</p>
   </div>
   <div class="page-head" id="headPools" hidden>
     <h1>Pools</h1>
@@ -1082,16 +1089,11 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
       <!-- ADD LIQUIDITY MODE -->
       <div id="modeAdd">
         <div class="card-head"><h2>Add Liquidity</h2></div>
-        <p class="card-desc">Deposit two assets at the pool ratio and receive LP as proof of your share. Pair with LOOP, tUSDC, tUSDT, xStocks or any graduated token — new pairs use the Gen-7 router.</p>
-        <div class="pct-row" id="addQuoteRow" style="margin-top:12px"><span style="align-self:center;font-weight:700;color:var(--muted);font-size:13px">Pair with</span>
-          <button type="button" data-q="LOOP" class="sel">LOOP</button>
-          <button type="button" data-q="tUSDC">tUSDC</button>
-          <button type="button" data-q="tUSDT">tUSDT</button>
-        </div>
         <div class="tbox">
           <div class="tb-top"><label for="addLoopInput" id="addQuoteLabel">LOOP amount</label><span class="bal" id="addLoopBalance"></span></div>
           <div class="tb-row">
             <input id="addLoopInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/>
+            <button type="button" class="max-btn" id="maxAddLoop">MAX</button>
             <button class="token-btn" id="addQuoteBtn" type="button"></button>
           </div>
           <div class="usd" id="addLoopUsd"></div>
@@ -1101,6 +1103,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="tb-top"><label for="addTokenInput">Token amount</label><span class="bal" id="addTokenBalance"></span></div>
           <div class="tb-row">
             <input id="addTokenInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/>
+            <button type="button" class="max-btn" id="maxAddToken">MAX</button>
             <button class="token-btn" id="addTokenBtn" type="button"></button>
           </div>
           <div class="usd" id="addTokenUsd"></div>
@@ -1111,39 +1114,23 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Your pool share</span><strong id="aShare"></strong></div>
           <div class="drow"><span>Router</span><strong id="aRoute"></strong></div>
         </div>
-        <div class="slip-row" id="addSlipRow" style="margin-top:12px"><span style="font-size:12px;font-weight:700;color:var(--muted)">Slippage</span>
-          <button type="button" data-slip="0.1">0.1%</button>
-          <button type="button" data-slip="0.5" class="sel">0.5%</button>
-          <button type="button" data-slip="1">1%</button>
-          <label class="slip-custom"><input id="addSlipCustom" inputmode="decimal" placeholder="Custom"/><span>%</span></label>
-        </div>
         <div class="thin-warn" id="addOracleWarn" role="alert"></div>
         <div class="form-err" id="addErr"></div>
         <button class="btn btn-primary" id="addAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note">Both amounts follow the current pool reserve ratio. LP you receive from adding your own liquidity <strong>can be withdrawn at any time</strong> — unlike graduation LP, which is permanently locked in the locker.</p>
       </div>
 
       <!-- REMOVE LIQUIDITY MODE -->
       <div id="modeRemove" style="display:none">
         <div class="card-head"><h2>Remove Liquidity</h2></div>
-        <p class="card-desc">Burn your LP and receive your share of the pair back according to your pool share.</p>
-        <div class="pct-row" id="remQuoteRow" style="margin-top:12px"><span style="align-self:center;font-weight:700;color:var(--muted);font-size:13px">Pair with</span>
-          <button type="button" data-q="LOOP" class="sel">LOOP</button>
-          <button type="button" data-q="tUSDC">tUSDC</button>
-          <button type="button" data-q="tUSDT">tUSDT</button>
-          <button type="button" data-q-more="1">More…</button>
-        </div>
         <div id="remPositionsWrap" style="margin-top:12px">
           <div class="tb-top" style="margin-bottom:2px"><label>Your LP Positions</label></div>
-          <div id="remPositionsList"></div>
-          <p class="form-note" style="margin-top:6px">Only positions you hold are listed — LP &gt; 0, or claimable Gen-7 fees. Tap a position to remove it. The pair picker below still works for any other pair.</p>
-        </div>
-        <div class="tbox">
-          <div class="tb-top"><label>Pair</label><span class="bal" id="remLpBalance"></span></div>
-          <div class="tb-row">
-            <button class="token-btn" id="remTokenBtn" type="button" style="width:100%;justify-content:flex-start"></button>
+          <div class="search-box rem-pos-search">
+            <svg class="ic" viewBox="0 0 24 24" style="width:17px;height:17px"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="remPosSearch" placeholder="Search LP..." autocomplete="off" aria-label="Search your LP positions"/>
           </div>
+          <div class="rem-pos-list-scroll"><div id="remPositionsList"></div></div>
         </div>
+        <div class="empty-note" id="remNoPosNote" style="display:none">Select a position above to remove liquidity.</div>
         <div class="pct-row" id="remPctRow">
           <button type="button" data-pct="25">25%</button>
           <button type="button" data-pct="50">50%</button>
@@ -1156,7 +1143,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         </div>
         <div class="tbox" style="margin-top:10px">
           <div class="tb-top"><label for="remLpInput">LP amount to burn</label></div>
-          <div class="tb-row"><input id="remLpInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/></div>
+          <div class="tb-row"><input id="remLpInput" inputmode="decimal" placeholder="0.0" autocomplete="off"/><button type="button" class="max-btn" id="remMaxBtn">MAX</button></div>
         </div>
         <div class="details" id="remDetails" style="display:none">
           <div class="drow"><span id="rOutLoopLabel">You receive LOOP</span><strong id="rOutLoop"></strong></div>
@@ -1166,8 +1153,6 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         </div>
         <div class="form-err" id="remErr"></div>
         <button class="btn btn-primary" id="remAction" type="button" style="margin-top:14px">Connect Wallet</button>
-        <p class="form-note"><strong>Unclaimed fees stay claimable after a full remove</strong> — the ledger keeps them. Claim anytime, no need to remove.</p>
-        <p class="form-note">Only your own LP can be withdrawn. The graduation LP of every Sakura token is permanently locked in the locker and cannot be withdrawn by anyone.</p>
       </div>
 
     </section>
@@ -1209,12 +1194,12 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     <div class="home-grid">
       <section class="card" aria-label="Featured liquidity pools">
         <div class="card-head"><h2>Liquidity Pools</h2><button type="button" class="btn btn-soft btn-sm" data-goto="pools">All Pools →</button></div>
-        <p class="card-desc">Uniswap V2 pools of tokens that have graduated. Provide liquidity and earn a share of the pool's trading fees.</p>
+        <p class="card-desc">Uniswap V2 pools — new Gen-7 pools first. Provide liquidity and earn a share of the pool's trading fees.</p>
         <div id="homePools"><div class="empty-note">Loading pools from the chain…</div></div>
       </section>
       <section class="card" aria-label="Trending tokens">
         <div class="card-head"><h2>Trending Tokens</h2><span class="soon-tag">Largest pools</span></div>
-        <p class="card-desc">Graduated tokens sorted by pool value. Prices in USD, calculated from current V2 pool reserves and the LOOP/USD rate.</p>
+        <p class="card-desc">Tokens sorted by pool value — new Gen-7 pools first. Prices in USD, calculated from current V2 pool reserves and the LOOP/USD rate.</p>
         <div id="trendingList"><div class="empty-note">Loading tokens…</div></div>
       </section>
     </div>
@@ -1229,7 +1214,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
         <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-11M21 21v-4"/></svg></span><small>Total TVL</small><strong id="statTvl">…</strong><span>in USD, from all pool reserves</span></div>
         <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span><small>Volume ±24h</small><strong id="statVol">Scanning…</strong><span>total swaps across all pools, in USD</span></div>
         <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 4 12L16 12h5"/></svg></span><small>Trades ±24h</small><strong id="statTrades">…</strong><span>on-chain swaps across all pools</span></div>
-        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.8-.8.8-2.1 0-2.9a2.05 2.05 0 0 0-3-.1z"/><path d="m12 15-3-3c1-4.5 3.5-8.5 10-10.5C20.5 8 18 12.5 12 15z"/><circle cx="15" cy="9" r="2"/></svg></span><small>Graduated Tokens</small><strong id="statTokens">…</strong><span>migrated to Uniswap V2 pools</span></div>
+        <div class="stat-card"><span class="sic"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.8-.8.8-2.1 0-2.9a2.05 2.05 0 0 0-3-.1z"/><path d="m12 15-3-3c1-4.5 3.5-8.5 10-10.5C20.5 8 18 12.5 12 15z"/><circle cx="15" cy="9" r="2"/></svg></span><small>Tokens in Pools</small><strong id="statTokens">…</strong><span>with live Uniswap V2 pools</span></div>
       </div>
     </div>
   </section>
@@ -1793,13 +1778,15 @@ var state = {
         viewAddr: null, wBalances: {}, wLpBalances: {}, wBalFor: null, wBalLoading: false,
         wErrors: {}, wBalSettledFor: null },
   balErrors: {}, lpErrors: {}, balSettledFor: null, balLoading: false,
-  discoveryHadErrors: false, lastDiscoveryAt: 0, /* pair discovery: set by loadStablePairs; engineTick retries while hadErrors */
+  discoveryHadErrors: false, lastDiscoveryAt: 0, firstDiscoveryDone: false, /* pair discovery: set by loadStablePairs; engineTick retries while hadErrors; firstDiscoveryDone flips true after the first full run (success or failure) */
   slippage: 0.5, deadline: 20, mev: true,
   limit: { dir:'buy', token:'MESIAH', mcPct:0, exact:false }, orders: [], ordersLoadedFor: null, ordersLoading: false,
   dca: { token:'MESIAH', dir:'buy' }, dcaPlans: [], plansLoadedFor: null, plansLoading: false, dcaPlan: null, dcaHistory: [],
   swap: { from:'LOOP', to:'MESIAH', lastEdited:'from' },
   addToken: 'MESIAH', remToken: 'MESIAH', addQuote: 'LOOP', remQuote: 'LOOP',
-  remPool: null,       /* explicit pool address picked from the "Your LP Positions" list in the Remove tab — overrides the token/quote pair resolution so a pair that exists on two factories can be picked exactly; cleared whenever the token picker or quote buttons change the pair */
+  remPool: null,       /* explicit pool address picked from the "Your LP Positions" list in the Remove tab — overrides the token/quote pair resolution so a pair that exists on two factories can be picked exactly; cleared when the position leaves the list or the wallet disconnects */
+  remPosQuery: '',     /* Remove tab search query — filters "Your LP Positions" only; the remove form follows state.remPool, never the filter */
+  remPoolHeld: false,  /* true when state.remPool came from a HELD position (list tap / auto-select); false when it was pinned by pool-detail navigation (openRemoveForPool) for a pair the wallet may not hold — auto-select must never override that explicit pin */
   lockToken: 'MESIAH', lockDays: 90,
   chartSym: 'MESIAH', poolFilter: '', poolSort: 'vol', poolCat: 'all', poolDetail: null,
   rateFlipped: false, selectingFor: 'swapFrom'
@@ -1901,6 +1888,14 @@ function fmtCompactUSD(usd){
 function loopWeiToUsd(wei){ return Number(weiToRaw(wei, 18)) * loopUsd; }
 function fmtLoopUSD(wei, maxFrac){ return fmtUSD(loopWeiToUsd(wei), maxFrac); }
 function tokenPriceUsd(t){
+  /* Peg assets trade at the USD oracle price (TestAssetPeg v2) — their
+     registered entries carry no LOOP-pool reserves, so the LOOP-pool
+     computation below cannot price them. A missing oracle price still
+     falls through to the stable-pair / discovered-pair paths and shows "—". */
+  if(t && isPegAsset(t.symbol)){
+    var pp = pegUsdPrice(t.symbol);
+    if(pp !== undefined && pp > 0) return pp;
+  }
   var p = priceLoopPerToken(t) * loopUsd;
   if(p > 0) return p;
   /* No LOOP pool — price from the token's stable pair (stablecoin = $1).
@@ -2135,10 +2130,16 @@ TOKEN_LIST.forEach(function(sym){
   t.lpLockedWei = toWei(t.lpLocked, 18);
 });
 function priceLoopPerToken(t){ /* float for display */
+  /* Peg assets (tUSDC/tUSDT/xStocks) and LOOP/WLOOP carry no LOOP-pool
+     reserves in their registered entries — without this guard the
+     calculation threw on the missing fields (caught by the Home gen-7
+     tests: Trending now prices peg assets via tokenPriceUsd). */
+  if(!t || t.resLoopWei === undefined || t.resTokenWei === undefined) return 0;
   var l = Number(weiToRaw(t.resLoopWei, 18)), k = Number(weiToRaw(t.resTokenWei, 18));
   return k > 0 ? l / k : 0;
 }
 function priceTokenPerLoop(t){
+  if(!t || t.resLoopWei === undefined || t.resTokenWei === undefined) return 0;
   var l = Number(weiToRaw(t.resLoopWei, 18)), k = Number(weiToRaw(t.resTokenWei, 18));
   return l > 0 ? k / l : 0;
 }
@@ -2280,7 +2281,7 @@ var poolActivityByAddr = {}; /* pair address (lowercase) -> { volUsd: number|nul
    both factories appears twice (Legacy + New) — each is a real pool. */
 function collectPools(){
   var byAddr = {};
-  function add(pool, tokenSym, quoteSym, vintage, lpSupplyWei, resAWei, resBWei){
+  function add(pool, tokenSym, quoteSym, vintage, lpSupplyWei, resAWei, resBWei, lpLockedWei){
     if(!pool) return;
     var key = pool.toLowerCase();
     if(byAddr[key]) return;
@@ -2290,11 +2291,12 @@ function collectPools(){
     try{ rec = claimableOf(pool); }catch(e){ rec = null; }
     byAddr[key] = { pool: pool, tokenSym: tokenSym, quoteSym: quoteSym, vintage: vintage,
       taxBps: (rec && rec.taxBps) ? rec.taxBps : 0,
-      lpSupplyWei: lpSupplyWei || 0n, resAWei: resAWei || 0n, resBWei: resBWei || 0n };
+      lpSupplyWei: lpSupplyWei || 0n, resAWei: resAWei || 0n, resBWei: resBWei || 0n,
+      lpLockedWei: (lpLockedWei === undefined || lpLockedWei === null) ? null : lpLockedWei };
   }
   TOKEN_LIST.forEach(function(sym){
     var t = TOKENS[sym];
-    add(t.pool, sym, 'LOOP', t.vintage || 'current', t.lpSupplyWei, t.resTokenWei, t.resLoopWei);
+    add(t.pool, sym, 'LOOP', t.vintage || 'current', t.lpSupplyWei, t.resTokenWei, t.resLoopWei, t.lpLockedWei);
     if(t.stablePools) STABLE_LIST.forEach(function(stSym){
       var sp = t.stablePools[stSym];
       if(sp && sp.pool) add(sp.pool, sym, stSym, sp.vintage || 'corrected', sp.lpSupplyWei, sp.resTokenWei, sp.resStableWei);
@@ -2356,6 +2358,21 @@ function renderPairs(){
   var body = el('pairsBody');
   if(!body) return;
   var pools = collectPools();
+  /* Honest discovery status: factory enumeration is async and (before
+     this fix) took minutes on a slow phone RPC, so the table showed
+     legacy-only rows with no hint that Gen-7 rows were still coming.
+     While the first enumeration has never completed, say so; if it
+     finished with errors and no Gen-7 pool was found, say it is
+     retrying (engineTick re-runs it). The row disappears as soon as
+     enumeration lands — renderPairs is re-called by loadStablePairs. */
+  var discPending = !state.firstDiscoveryDone;
+  var discFailed = !discPending && state.discoveryHadErrors &&
+    !pools.some(function(p){ return p.vintage === 'gen7'; });
+  var statusRow = discPending
+    ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:14px">Discovering pools from the factories… Gen-7 (New) pools appear here as soon as enumeration finishes.</td></tr>'
+    : (discFailed
+      ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:14px">Pool discovery hit RPC errors — retrying automatically. Pools found so far are listed below.</td></tr>'
+      : '');
   var f = (state.poolFilter || '').trim().toLowerCase();
   if(f) pools = pools.filter(function(p){
     var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
@@ -2393,10 +2410,10 @@ function renderPairs(){
     th.classList.toggle('sel', th.getAttribute('data-sort') === key);
   });
   if(!pools.length){
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">' + (state.poolCat === 'mine' && !state.account ? 'Connect your wallet to see your positions.' : 'No pools match this filter yet.') + '</td></tr>';
+    body.innerHTML = statusRow + '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">' + (state.poolCat === 'mine' && !state.account ? 'Connect your wallet to see your positions.' : 'No pools match this filter yet.') + '</td></tr>';
     return;
   }
-  body.innerHTML = pools.map(function(p){
+  body.innerHTML = statusRow + pools.map(function(p){
     var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
     var label = (p.vintage === 'gen7') ? 'New' : 'Legacy';
     var feesTvl = (p._fees !== null && p._tvl !== null && p._tvl > 0) ? fmtNum(p._fees / p._tvl * 100, 2) + '%' : '—';
@@ -2688,6 +2705,9 @@ function openRemoveForPool(poolAddr){
     state.remToken = row.tokenSym;
     state.remQuote = row.quoteSym;
   }
+  var _lpH = state.lpBalances[poolAddr.toLowerCase()];
+  var _clH = claimableOf(poolAddr);
+  state.remPoolHeld = (_lpH !== undefined && _lpH !== null && _lpH > 0n) || (_clH && _clH.amount > 0n);
   el('remLpInput').value = '';
   syncRemTokenButton(); syncRemQuoteButton();
   renderRemovePositions(); updateRemove();
@@ -2963,13 +2983,14 @@ function renderPositions(){
   });
 }
 /* ---------- Remove tab: "Your LP Positions" (PancakeSwap V2 style) ----------
-   The list is the PRIMARY selector in the Remove tab: only the LP
-   contracts the connected wallet actually holds — LP > 0 OR claimable
-   Gen-7 fees > 0 — across ALL vintages (legacy, fee-split, Gen-5,
-   Gen-7), one row per pool. Tap a row to load that exact pair into the
-   Remove form (state.remPool pins the pool, so a pair that exists on two
-   factories is never ambiguous). The token-pair picker below stays as a
-   manual fallback; picking there clears state.remPool. */
+   The list is the PRIMARY (and only) selector in the Remove tab: only
+   the LP contracts the connected wallet actually holds — LP > 0 OR
+   claimable Gen-7 fees > 0 — across ALL vintages (legacy, fee-split,
+   Gen-5, Gen-7), one row per pool. Tap a row to load that exact pair
+   into the Remove form (state.remPool pins the pool, so a pair that
+   exists on two factories is never ambiguous). There is no generic
+   pair picker in the Remove tab anymore — a pair the user does not
+   hold can never be loaded into the form. */
 function collectUserPositions(){
   var out = [];
   var addr = state.account;
@@ -3047,16 +3068,46 @@ function collectUserPositions(){
 function renderRemovePositions(){
   var wrap = el('remPositionsList');
   if(!wrap) return;
-  if(!state.account){ wrap.innerHTML = '<div class="empty-note">Connect your wallet to see your LP positions.</div>'; return; }
+  if(!state.account){ /* do NOT clear a pinned remPool here — pool-detail
+     navigation (openRemoveForPool) pins a pool before any wallet is
+     connected, and the pin must survive this render */ wrap.innerHTML = '<div class="empty-note">Connect your wallet to see your LP positions.</div>'; if(typeof updateRemove === 'function') updateRemove(); return; }
   var pos = collectUserPositions();
   if(!pos.length){
+    /* Clear only a HELD selection that has vanished; a pool-detail pin
+       (remPoolHeld === false) for an unheld pair survives. */
+    if(state.remPoolHeld){ state.remPool = null; state.remPoolHeld = false; }
     var anyLoaded = Object.keys(state.lpBalances).length > 0;
     var anyFailed = Object.keys(state.lpErrors).length > 0;
     wrap.innerHTML = anyFailed ? '<div class="empty-note">Some balances failed to load — retrying automatically…</div>'
       : (anyLoaded ? '<div class="empty-note">You don\'t have LP in any pool yet.</div>' : '<div class="empty-note">Loading your positions…</div>');
+    if(typeof updateRemove === 'function') updateRemove();
     return;
   }
-  wrap.innerHTML = pos.map(function(p){
+  /* Auto-select the first held position when nothing is selected, or
+     when the selected pool is no longer in the list (LP fully removed).
+     An explicit selection that is still in the list is never overridden
+     by later re-renders (30s refresh). */
+  var stillThere = state.remPool && pos.some(function(pp){ return pp.pool.toLowerCase() === state.remPool.toLowerCase(); });
+  /* Auto-select only when nothing is selected, or when the selected
+     HELD position left the list. A pool pinned by pool-detail
+     navigation (remPoolHeld === false) is an explicit pin for a pair
+     the wallet may not hold — never override it here. */
+  if(!state.remPool || (state.remPoolHeld && !stillThere)){
+    var first = pos[0];
+    var rec0 = genPairByPool(first.pool);
+    if(rec0){ state.remPool = rec0.gp.pool; state.remToken = rec0.tokenSym; state.remQuote = rec0.quoteSym; }
+    else { state.remPool = first.pool; state.remToken = first.tokenSym; state.remQuote = first.quoteSym; }
+    state.remPoolHeld = true;
+    var inp0 = el('remLpInput'); if(inp0) inp0.value = '';
+  }
+  /* Search filter: token/quote symbol, case-insensitive substring.
+     The filter only changes which rows are shown — the remove form
+     follows state.remPool, so filtering can never hide the selected
+     position's controls. */
+  var q = (state.remPosQuery || '').trim().toLowerCase();
+  var shown = q ? pos.filter(function(pp){ return pp.tokenSym.toLowerCase().indexOf(q) >= 0 || pp.quoteSym.toLowerCase().indexOf(q) >= 0; }) : pos;
+  if(!shown.length){ wrap.innerHTML = '<div class="empty-note">No LP found</div>'; if(typeof updateRemove === 'function') updateRemove(); return; }
+  wrap.innerHTML = shown.map(function(p){
     var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
     var claimTxt = '';
     if(p.claimable && p.claimable.amount > 0n) claimTxt = ' · claimable ' + fmtWei(p.claimable.amount, claimAssetDecimals(p.claimable.asset), 6) + ' ' + p.claimable.assetSym;
@@ -3087,12 +3138,14 @@ function renderRemovePositions(){
       state.remPool = rec.gp.pool;
       state.remToken = rec.tokenSym;
       state.remQuote = rec.quoteSym;
+      state.remPoolHeld = true;
       el('remLpInput').value = '';
       syncRemTokenButton(); syncRemQuoteButton();
       renderRemovePositions(); updateRemove();
       showErr('remErr', '');
     });
   });
+  if(typeof updateRemove === 'function') updateRemove();
 }
 /* ---------- Portfolio: effective address — the connected wallet when one
    is connected, otherwise the pasted read-only "View a Wallet" address.
@@ -3831,11 +3884,17 @@ function renderAll(){
 function renderBalances(){
   el('fromBalance').innerHTML = state.account ? esc(balText(state.swap.from)) + ' <button type="button" id="maxFrom">MAX</button>' : '';
   el('toBalance').textContent = state.account ? balText(state.swap.to) : '';
-  el('addLoopBalance').innerHTML = state.account ? esc(balText(state.addQuote)) + ' <button type="button" id="maxAddLoop">MAX</button>' : '';
-  el('addTokenBalance').innerHTML = state.account ? esc(balText(state.addToken)) + ' <button type="button" id="maxAddToken">MAX</button>' : '';
-  var lpPool = remLpPool();
-  var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
-  el('remLpBalance').textContent = state.account ? ('Your LP: ' + (lp === undefined ? '…' : (lp === null ? 'unavailable' : fmtLp(lp)))) : '';
+  el('addLoopBalance').innerHTML = state.account ? esc(balText(state.addQuote)) : '';
+  el('addTokenBalance').innerHTML = state.account ? esc(balText(state.addToken)) : '';
+  /* Clean redesign: the MAX buttons are static pills inside the amount
+     boxes (see modeAdd markup). The "Your LP" line lived in the removed
+     generic Pair box, so it is gone too — the positions list shows LP. */
+  var rlb = el('remLpBalance');
+  if(rlb){
+    var lpPool = remLpPool();
+    var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
+    rlb.textContent = state.account ? ('Your LP: ' + (lp === undefined ? '…' : (lp === null ? 'unavailable' : fmtLp(lp)))) : '';
+  }
   el('lockBalance').textContent = state.account ? balText(state.lockToken) : '';
   var mx = el('maxFrom');
   if(mx) mx.addEventListener('click', function(){
@@ -3853,23 +3912,23 @@ function renderBalances(){
      at the oracle-implied ratio). The LOOP side keeps a 0.01 LOOP gas
      reserve so the add transaction itself cannot run out of gas. */
   var mxL = el('maxAddLoop');
-  if(mxL) mxL.addEventListener('click', function(){
+  if(mxL && !mxL._maxBound){ mxL._maxBound = true; mxL.addEventListener('click', function(){
     var b = balanceOf(state.addQuote);
     if(b === undefined || b === null) return;
     var v = b;
     if(state.addQuote === 'LOOP'){ var buf = toWei('0.01', 18); v = b > buf ? b - buf : 0n; }
     setInputFromWei(el('addLoopInput'), v, TOKENS[state.addQuote].decimals);
     updateAdd('loop');
-  });
+  }); }
   var mxT = el('maxAddToken');
-  if(mxT) mxT.addEventListener('click', function(){
+  if(mxT && !mxT._maxBound){ mxT._maxBound = true; mxT.addEventListener('click', function(){
     var b = balanceOf(state.addToken);
     if(b === undefined || b === null) return;
     var v = b;
     if(state.addToken === 'LOOP'){ var buf = toWei('0.01', 18); v = b > buf ? b - buf : 0n; }
     setInputFromWei(el('addTokenInput'), v, TOKENS[state.addToken].decimals);
     updateAdd('token');
-  });
+  }); }
 }
 </script>
 
@@ -4606,19 +4665,30 @@ function updateAddGen5(source){
 }
 /* ================= REMOVE LIQUIDITY UI ================= */
 function syncRemTokenButton(){
+  /* Clean redesign: the generic Pair button was removed — the positions
+     list is the only Remove selector now. Kept as a no-op (guarded) so
+     every existing caller keeps working. */
+  var b = el('remTokenBtn');
+  if(!b) return;
   var t = TOKENS[state.remToken];
-  el('remTokenBtn').innerHTML = avatarHtml(t, 32) + '<span>' + esc(t.symbol) + ' / ' + esc(state.remQuote) + '</span><svg class="ic" viewBox="0 0 24 24" style="margin-left:auto"><path d="m6 9 6 6 6-6"/></svg>';
+  b.innerHTML = avatarHtml(t, 32) + '<span>' + esc(t.symbol) + ' / ' + esc(state.remQuote) + '</span><svg class="ic" viewBox="0 0 24 24" style="margin-left:auto"><path d="m6 9 6 6 6-6"/></svg>';
 }
 function syncAddQuoteButton(){
   var q = TOKENS[state.addQuote];
   el('addQuoteBtn').innerHTML = tokenBtnHtml(q);
   el('addQuoteLabel').textContent = q.symbol + ' amount';
-  Array.prototype.forEach.call(el('addQuoteRow').querySelectorAll('button[data-q]'), function(b){
+  /* Clean redesign: the "Pair with" pills row was removed; the quote
+     asset is still chosen via the #addQuoteBtn token modal. */
+  var row = el('addQuoteRow');
+  if(!row) return;
+  Array.prototype.forEach.call(row.querySelectorAll('button[data-q]'), function(b){
     b.classList.toggle('sel', b.getAttribute('data-q') === state.addQuote);
   });
 }
 function syncRemQuoteButton(){
-  Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q]'), function(b){
+  /* Clean redesign: the "Pair with" row was removed from the Remove tab. */
+  var row = el('remQuoteRow');
+  if(row) Array.prototype.forEach.call(row.querySelectorAll('button[data-q]'), function(b){
     b.classList.toggle('sel', b.getAttribute('data-q') === state.remQuote);
   });
   syncRemTokenButton();
@@ -4626,6 +4696,29 @@ function syncRemQuoteButton(){
   if(lbl) lbl.textContent = state.remQuote === 'LOOP' ? 'You receive LOOP' : ('You receive ' + state.remQuote);
 }
 function updateRemove(){
+  /* Clean redesign: the form only ever removes a position picked from
+     "Your LP Positions". With no position selected (no LP, or not
+     connected) the controls are disabled and a short note is shown —
+     the default MESIAH/LOOP pair is never presented as if held. */
+  if(!state.remPool){
+    var det0 = el('remDetails'); if(det0) det0.style.display = 'none';
+    var note0 = el('remNoPosNote'); if(note0) note0.style.display = state.account ? 'block' : 'none';
+    var sl0 = el('remSlider'); if(sl0) sl0.disabled = true;
+    var li0 = el('remLpInput'); if(li0) li0.disabled = true;
+    var pr0 = el('remPctRow'); if(pr0) Array.prototype.forEach.call(pr0.querySelectorAll('button'), function(b){ b.disabled = true; });
+    var mx0 = el('remMaxBtn'); if(mx0) mx0.disabled = true;
+    var act0 = el('remAction');
+    if(act0){
+      if(!state.account){ act0.disabled = false; act0.textContent = 'Connect Wallet'; }
+      else { act0.disabled = true; act0.textContent = 'Select a position above'; }
+    }
+    return;
+  }
+  var note1 = el('remNoPosNote'); if(note1) note1.style.display = 'none';
+  var sl1 = el('remSlider'); if(sl1) sl1.disabled = false;
+  var li1 = el('remLpInput'); if(li1) li1.disabled = false;
+  var pr1 = el('remPctRow'); if(pr1) Array.prototype.forEach.call(pr1.querySelectorAll('button'), function(b){ b.disabled = false; });
+  var mx1 = el('remMaxBtn'); if(mx1) mx1.disabled = false;
   var t = TOKENS[state.remToken];
   if(!((state.remQuote === 'LOOP' && isGraduated(state.remToken) && t.pool) || (isStable(state.remQuote) && isGraduated(state.remToken)))){
     return updateRemoveGen5();
@@ -5520,6 +5613,11 @@ async function fetchPegPrices(){
     var prices = await Promise.all(addrs.map(function(a){ return withTimeout(peg.priceUsdX18(a), 20000, 'peg price'); }));
     addrs.forEach(function(a, i){ pegPrices[a.toLowerCase()] = Number(prices[i]) / 1e18; });
     pegPricesLoaded = true;
+    /* USD values (Pools TVL, Home stats) depend on these oracle prices —
+       re-render the tables now that they exist, instead of leaving "—"
+       until CoinGecko or the next live refresh happens to re-render. */
+    if(typeof renderPairs === 'function') renderPairs();
+    if(typeof renderHomeExtras === 'function') renderHomeExtras();
     if(typeof updateSwap === 'function') updateSwap();
     if(typeof updateAdd === 'function') updateAdd();
     if(el('tokenModal') && el('tokenModal').classList.contains('open')) renderTokenList(el('tokenSearch').value);
@@ -6283,27 +6381,39 @@ async function discoverGen5Pairs(){
     var addrToSym = {};
     Object.keys(TOKENS).forEach(function(s){ var a = TOKENS[s].address; if(a && a !== 'NATIVE') addrToSym[a.toLowerCase()] = s; });
     addrToSym[CFG.wloop.toLowerCase()] = 'LOOP';
-    for(var i = 0; i < n; i++){
-      try{
-        var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen5 allPairs');
-        var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
-        var t0raw = await withTimeout(pair.token0(), 20000, 'gen5 token0');
-        var t1raw = await withTimeout(pair.token1(), 20000, 'gen5 token1');
-        var t0 = t0raw.toLowerCase(), t1 = t1raw.toLowerCase();
-        /* Unknown tokens get a lightweight discovered entry (never in
-           TOKEN_LIST) so the pair still shows in the Pools table. */
-        var s0 = addrToSym[t0] || await ensureDiscoveredToken(t0raw, rp);
-        var s1 = addrToSym[t1] || await ensureDiscoveredToken(t1raw, rp);
-        if(s0) addrToSym[t0] = s0;
-        if(s1) addrToSym[t1] = s1;
-        if(!s0 || !s1) continue;
-        /* Graduated/stable pairs live in stablePools, not gen5Pairs. */
-        if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) continue;
-        var res = await withTimeout(pair.getReserves(), 20000, 'gen5 reserves');
-        var lps = await withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply');
-        storeGen5Pair(s0, s1, pAddr, res, t0, lps);
-      }catch(e){ pairErrors++; /* skip this pair */ }
-    }
+    /* Pairs are fetched IN PARALLEL (was: one pair at a time, each
+       needing ~5 sequential RPC calls at ~2-3s each on a slow phone
+       RPC — the whole factory took minutes, so the Pools table showed
+       legacy-only rows long after load). Per-pair errors still only
+       skip that pair; stores happen after all fetches settle. */
+    var results = await Promise.all(Array.from({ length: n }, function(_, i){
+      return (async function(){
+        try{
+          var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen5 allPairs');
+          var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
+          var parts = await Promise.all([
+            withTimeout(pair.token0(), 20000, 'gen5 token0'),
+            withTimeout(pair.token1(), 20000, 'gen5 token1'),
+            withTimeout(pair.getReserves(), 20000, 'gen5 reserves'),
+            withTimeout(pair.totalSupply(), 20000, 'gen5 lp supply')
+          ]);
+          var t0 = String(parts[0]).toLowerCase(), t1 = String(parts[1]).toLowerCase();
+          /* Unknown tokens get a lightweight discovered entry (never in
+             TOKEN_LIST) so the pair still shows in the Pools table. */
+          var s0 = addrToSym[t0] || await ensureDiscoveredToken(parts[0], rp);
+          var s1 = addrToSym[t1] || await ensureDiscoveredToken(parts[1], rp);
+          if(!s0 || !s1) return null;
+          /* Graduated/stable pairs live in stablePools, not gen5Pairs. */
+          if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) return null;
+          return { s0: s0, s1: s1, pAddr: pAddr, res: parts[2], t0: t0, lps: parts[3] };
+        }catch(e){ return { error: true }; }
+      })();
+    }));
+    results.forEach(function(r){
+      if(!r) return;
+      if(r.error){ pairErrors++; return; }
+      storeGen5Pair(r.s0, r.s1, r.pAddr, r.res, r.t0, r.lps);
+    });
   }catch(e){ pairErrors++; /* discovery unavailable; the forms say so */ }
   discoverGen5Running = false;
   return pairErrors === 0;
@@ -6370,27 +6480,39 @@ async function discoverGen7Pairs(){
     var addrToSym = {};
     Object.keys(TOKENS).forEach(function(s){ var a = TOKENS[s].address; if(a && a !== 'NATIVE') addrToSym[a.toLowerCase()] = s; });
     addrToSym[CFG.wloop.toLowerCase()] = 'LOOP';
-    for(var i = 0; i < n; i++){
-      try{
-        var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen7 allPairs');
-        var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
-        var t0raw = await withTimeout(pair.token0(), 20000, 'gen7 token0');
-        var t1raw = await withTimeout(pair.token1(), 20000, 'gen7 token1');
-        var t0 = t0raw.toLowerCase(), t1 = t1raw.toLowerCase();
-        /* Unknown tokens get a lightweight discovered entry (never in
-           TOKEN_LIST) so the pair still shows in the Pools table. */
-        var s0 = addrToSym[t0] || await ensureDiscoveredToken(t0raw, rp);
-        var s1 = addrToSym[t1] || await ensureDiscoveredToken(t1raw, rp);
-        if(s0) addrToSym[t0] = s0;
-        if(s1) addrToSym[t1] = s1;
-        if(!s0 || !s1) continue;
-        /* Graduated/stable pairs live in stablePools, not gen7Pairs. */
-        if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) continue;
-        var res = await withTimeout(pair.getReserves(), 20000, 'gen7 reserves');
-        var lps = await withTimeout(pair.totalSupply(), 20000, 'gen7 lp supply');
-        storeGen7Pair(s0, s1, pAddr, res, t0, lps);
-      }catch(e){ pairErrors++; /* skip this pair */ }
-    }
+    /* Pairs are fetched IN PARALLEL (was: one pair at a time — 7 pairs
+       x ~5 sequential RPC calls at ~2-3s each = minutes on a slow phone
+       RPC, so the Pools table showed legacy-only rows long after load).
+       Per-pair errors still only skip that pair; stores happen after
+       all fetches settle. */
+    var results = await Promise.all(Array.from({ length: n }, function(_, i){
+      return (async function(){
+        try{
+          var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen7 allPairs');
+          var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
+          var parts = await Promise.all([
+            withTimeout(pair.token0(), 20000, 'gen7 token0'),
+            withTimeout(pair.token1(), 20000, 'gen7 token1'),
+            withTimeout(pair.getReserves(), 20000, 'gen7 reserves'),
+            withTimeout(pair.totalSupply(), 20000, 'gen7 lp supply')
+          ]);
+          var t0 = String(parts[0]).toLowerCase(), t1 = String(parts[1]).toLowerCase();
+          /* Unknown tokens get a lightweight discovered entry (never in
+             TOKEN_LIST) so the pair still shows in the Pools table. */
+          var s0 = addrToSym[t0] || await ensureDiscoveredToken(parts[0], rp);
+          var s1 = addrToSym[t1] || await ensureDiscoveredToken(parts[1], rp);
+          if(!s0 || !s1) return null;
+          /* Graduated/stable pairs live in stablePools, not gen7Pairs. */
+          if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) return null;
+          return { s0: s0, s1: s1, pAddr: pAddr, res: parts[2], t0: t0, lps: parts[3] };
+        }catch(e){ return { error: true }; }
+      })();
+    }));
+    results.forEach(function(r){
+      if(!r) return;
+      if(r.error){ pairErrors++; return; }
+      storeGen7Pair(r.s0, r.s1, r.pAddr, r.res, r.t0, r.lps);
+    });
   }catch(e){ pairErrors++; /* discovery unavailable; the forms say so */ }
   discoverGen7Running = false;
   return pairErrors === 0;
@@ -6683,21 +6805,51 @@ async function loadStablePairs(){
   if(!window.ethers || loadStablePairsRunning) return;
   loadStablePairsRunning = true;
   var hadErr = false;
+  var gen7Before = 0;
+  try{ gen7Before = collectPools().filter(function(p){ return p.vintage === 'gen7'; }).length; }catch(e){}
   try{
-    await Promise.all(TOKEN_LIST.map(async function(sym){
-      var t = TOKENS[sym];
-      await Promise.all(STABLE_LIST.map(async function(stSym){
-        try{ await ensureStablePair(t, stSym); }catch(e){ hadErr = true; /* stays undiscovered; retried by engineTick */ }
+    /* The four stages are independent (different TOKENS fields) — run
+       them IN PARALLEL. They used to run strictly one after another:
+       stable probes, then Gen-5 enumeration, then Gen-7 enumeration,
+       then the stable-stable fallback — on a slow phone RPC the whole
+       run took minutes, so the Pools table showed legacy-only rows
+       long after load and Home never saw a Gen-7 pool. */
+    var stableStage = (async function(){
+      var err = false;
+      await Promise.all(TOKEN_LIST.map(async function(sym){
+        var t = TOKENS[sym];
+        await Promise.all(STABLE_LIST.map(async function(stSym){
+          try{ await ensureStablePair(t, stSym); }catch(e){ err = true; /* stays undiscovered; retried by engineTick */ }
+        }));
       }));
-    }));
-    try{ if(!await discoverGen5Pairs()) hadErr = true; }catch(e){ hadErr = true; /* Gen-5 discovery stays empty; retried by engineTick */ }
-    try{ if(!await discoverGen7Pairs()) hadErr = true; }catch(e){ hadErr = true; /* Gen-7 discovery stays empty; retried by engineTick */ }
-    try{ if(!await discoverStableStablePair()) hadErr = true; }catch(e){ hadErr = true; }
+      return err;
+    })();
+    var r = await Promise.allSettled([stableStage, discoverGen5Pairs(), discoverGen7Pairs(), discoverStableStablePair()]);
+    if(r[0].status === 'rejected' || r[0].value) hadErr = true;
+    if(r[1].status === 'rejected' || r[1].value === false) hadErr = true; /* Gen-5 discovery stays empty; retried by engineTick */
+    if(r[2].status === 'rejected' || r[2].value === false) hadErr = true; /* Gen-7 discovery stays empty; retried by engineTick */
+    if(r[3].status === 'rejected' || r[3].value === false) hadErr = true;
     renderPairs();
+    if(typeof renderHomeExtras === 'function') renderHomeExtras();
     refreshBalancesAfterDiscovery();
+    /* Newly discovered pools need their 24h volume scanned and the
+       Home activity re-scanned too — the regular scans only cover
+       pools known when they ran, so without this a Gen-7 pool would
+       sit at "—" until the next 2-minute cycle. Only when new Gen-7
+       pools actually appeared, to avoid re-scanning on every run. */
+    var gen7After = 0;
+    try{ gen7After = collectPools().filter(function(p){ return p.vintage === 'gen7'; }).length; }catch(e){}
+    if(gen7After > gen7Before){
+      if(typeof loadPoolActivityByAddr === 'function'){ try{ loadPoolActivityByAddr(); }catch(e){} }
+      if(typeof loadHomeActivity === 'function' && typeof lastHomeActScan !== 'undefined'){
+        lastHomeActScan = 0; /* force a re-scan with the full pool list */
+        loadHomeActivity();
+      }
+    }
   }finally{
     state.discoveryHadErrors = hadErr;
     state.lastDiscoveryAt = Date.now();
+    state.firstDiscoveryDone = true;
     loadStablePairsRunning = false;
   }
 }
@@ -8297,15 +8449,19 @@ function bindEvents(){
       syncSlipUI(); updateSwap(); updateRemove();
     }
   });
-  /* Add Liquidity slippage (same shared setting as Swap) */
-  Array.prototype.forEach.call(el('addSlipRow').querySelectorAll('button[data-slip]'), function(b){
+  /* Add Liquidity slippage row was removed in the clean redesign —
+     slippage stays shared via the Swap settings gear (state.slippage).
+     Guarded so the page never throws on the missing row. */
+  var asr = el('addSlipRow');
+  if(asr) Array.prototype.forEach.call(asr.querySelectorAll('button[data-slip]'), function(b){
     b.addEventListener('click', function(){
       setSlippage(parseFloat(b.getAttribute('data-slip')));
       el('addSlipCustom').value = '';
       syncSlipUI(); updateSwap(); updateAdd(); updateRemove();
     });
   });
-  el('addSlipCustom').addEventListener('input', function(){
+  var asc = el('addSlipCustom');
+  if(asc) asc.addEventListener('input', function(){
     var v = parseFloat(parseInput(el('addSlipCustom').value));
     if(!isNaN(v) && v > 0 && v <= 50){
       setSlippage(v);
@@ -8322,17 +8478,40 @@ function bindEvents(){
   el('addTokenBtn').addEventListener('click', function(){ openTokenModal('add'); });
   el('addQuoteBtn').addEventListener('click', function(){ openTokenModal('addQuote'); });
   el('addAction').addEventListener('click', doAdd);
-  Array.prototype.forEach.call(el('addQuoteRow').querySelectorAll('button[data-q]'), function(b){
+  /* "Pair with" pills were removed in the clean redesign — the quote
+     asset is still chosen via the #addQuoteBtn token modal. */
+  var aqr = el('addQuoteRow');
+  if(aqr) Array.prototype.forEach.call(aqr.querySelectorAll('button[data-q]'), function(b){
     b.addEventListener('click', function(){
       state.addQuote = b.getAttribute('data-q');
       syncAddQuoteButton(); renderBalances(); updateAdd();
     });
   });
-  /* Remove */
-  el('remTokenBtn').addEventListener('click', function(){ openTokenModal('remove'); });
-  Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q-more]'), function(b){
+  /* Remove — clean redesign: no generic pair picker anymore. The list
+     is the only selector; search filters it, MAX fills the full LP. */
+  var rtb = el('remTokenBtn');
+  if(rtb) rtb.addEventListener('click', function(){ openTokenModal('remove'); });
+  var rqr = el('remQuoteRow');
+  if(rqr) Array.prototype.forEach.call(rqr.querySelectorAll('button[data-q-more]'), function(b){
     b.addEventListener('click', function(){ openTokenModal('remQuote'); });
   });
+  var rps = el('remPosSearch');
+  if(rps) rps.addEventListener('input', function(){
+    state.remPosQuery = rps.value;
+    renderRemovePositions();
+  });
+  var rmx = el('remMaxBtn');
+  if(rmx && !rmx._maxBound){ rmx._maxBound = true; rmx.addEventListener('click', function(){
+    var lpPool = remLpPool();
+    var lp = lpPool ? state.lpBalances[lpPool.toLowerCase()] : undefined;
+    if(!state.account){ toast('Connect your wallet first.'); return; }
+    if(lp === undefined){ toast('LP balance not loaded yet — please wait a moment.'); return; }
+    /* Same exact-amount helper as the % buttons, so a small 6-decimal
+       LP balance (e.g. 9,999,000 raw) fills in full instead of 0. */
+    setInputFromWeiFull(el('remLpInput'), lp, 18);
+    el('remSlider').value = '100';
+    updateRemove();
+  }); }
   el('remLpInput').addEventListener('input', updateRemove);
   Array.prototype.forEach.call(el('remPctRow').querySelectorAll('button'), function(b){
     b.addEventListener('click', function(){
@@ -8354,7 +8533,8 @@ function bindEvents(){
     updateRemove();
   });
   el('remAction').addEventListener('click', doRemove);
-  Array.prototype.forEach.call(el('remQuoteRow').querySelectorAll('button[data-q]'), function(b){
+  var rqr2 = el('remQuoteRow');
+  if(rqr2) Array.prototype.forEach.call(rqr2.querySelectorAll('button[data-q]'), function(b){
     b.addEventListener('click', function(){
       state.remQuote = b.getAttribute('data-q');
       state.remPool = null; /* manual pair change — the positions list selection no longer applies */
@@ -8508,7 +8688,7 @@ function showView(v, fromBack){
   if(v === 'liquidity') setMode(liqMode);
   if(v === 'locker'){ updateLock(); renderLocks(); }
   if(v === 'portfolio'){ renderPortfolio(); renderPositions(); }
-  if(v === 'pools' || v === 'analytics'){ loadPoolActivity(); }
+  if(v === 'pools' || v === 'analytics'){ if(typeof renderPairs === 'function') renderPairs(); loadPoolActivity(); }
   if(v === 'pool'){ renderPoolDetail(); }
   if(v === 'home'){ if(typeof renderHomeExtras === 'function') renderHomeExtras(); if(typeof loadHomeActivity === 'function') loadHomeActivity(); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -8561,54 +8741,105 @@ Array.prototype.forEach.call(document.querySelectorAll('.main-nav button'), func
    Every figure on Home comes from the same data as the Pools page:
    graduated-token pool reserves (snapshot, then refreshed live)
    and on-chain Swap event scans. No made-up numbers. */
-function sortedByPool(){
-  return TOKEN_LIST.slice().sort(function(a, b){
-    var x = TOKENS[a].resLoopWei, y = TOKENS[b].resLoopWei;
-    return x === y ? 0 : (x > y ? -1 : 1);
+/* One list for Home AND Pools — collectPools() (factory enumeration +
+   TOKEN_LIST pools), Gen-7 ("New") always above Legacy, then by USD
+   pool value inside each tier. A pool with no price yet (null TVL)
+   sorts last inside its tier and shows "—" — never a made-up number. */
+function homePoolsSorted(){
+  var pools = collectPools();
+  pools.forEach(function(p){ p._tvl = poolTvlUsd(p); });
+  pools.sort(function(a, b){
+    var aNew = a.vintage === 'gen7' ? 0 : 1;
+    var bNew = b.vintage === 'gen7' ? 0 : 1;
+    if(aNew !== bNew) return aNew - bNew;
+    if(a._tvl === null && b._tvl === null) return 0;
+    if(a._tvl === null) return 1;
+    if(b._tvl === null) return -1;
+    return b._tvl - a._tvl;
   });
+  return pools;
+}
+/* One entry per token that has a live pool (LOOP itself excluded — it is
+   the quote, not a trending token): value = its largest pool's TVL,
+   tier = that pool's vintage. Sorted Gen-7 first, then by pool value. */
+function homeTokensSorted(){
+  var bySym = {};
+  homePoolsSorted().forEach(function(p){
+    [p.tokenSym, p.quoteSym].forEach(function(sym){
+      if(sym === 'LOOP') return;
+      var cur = bySym[sym];
+      var v = (p._tvl === null || p._tvl === undefined) ? null : p._tvl;
+      if(!cur || (v !== null && (cur.value === null || v > cur.value))){
+        bySym[sym] = { sym: sym, value: v, vintage: p.vintage };
+      }
+    });
+  });
+  var list = Object.keys(bySym).map(function(k){ return bySym[k]; });
+  list.sort(function(a, b){
+    var aNew = a.vintage === 'gen7' ? 0 : 1;
+    var bNew = b.vintage === 'gen7' ? 0 : 1;
+    if(aNew !== bNew) return aNew - bNew;
+    if(a.value === null && b.value === null) return 0;
+    if(a.value === null) return 1;
+    if(b.value === null) return -1;
+    return b.value - a.value;
+  });
+  return list;
 }
 function renderHomeExtras(){
   var trend = document.getElementById('trendingList');
   if(trend){
-    trend.innerHTML = sortedByPool().map(function(sym, i){
-      var t = TOKENS[sym];
+    trend.innerHTML = homeTokensSorted().slice(0, 10).map(function(entry, i){
+      var t = TOKENS[entry.sym];
       return '<div class="trend-row"><span class="rank">' + (i + 1) + '</span>' + avatarHtml(t, 36) +
         '<span class="tr-main"><strong>' + esc(t.symbol) + '</strong><span>' + esc(t.name) + '</span></span>' +
-        '<span class="tr-nums"><strong>' + fmtTokenUSD(t) + '</strong><span>Pool ' + fmtLoopUSD(t.resLoopWei * 2n) + '</span></span></div>';
+        '<span class="tr-nums"><strong>' + fmtTokenUSD(t) + '</strong><span>Pool ' + (entry.value === null ? '—' : fmtUSD(entry.value)) + '</span></span></div>';
     }).join('');
   }
   var hp = document.getElementById('homePools');
   if(hp){
-    hp.innerHTML = sortedByPool().slice(0, 3).map(function(sym){
-      var t = TOKENS[sym];
-      var lockPct = t.lpSupplyWei > 0n ? Number(t.lpLockedWei * 10000n / t.lpSupplyWei) / 100 : 0;
-      return '<div class="home-pool-row"><span class="pc-avatars">' + avatarHtml(t, 36) + avatarHtml(TOKENS.LOOP, 36) + '</span>' +
-        '<span class="hp-main"><strong>' + esc(t.symbol) + ' / LOOP</strong><span>' + esc(t.name) + '</span></span>' +
-        '<span class="hp-nums"><strong>' + fmtLoopUSD(t.resLoopWei * 2n) + '</strong><span>Locked LP ' + fmtNum(lockPct, 0) + '%</span></span>' +
-        '<button type="button" class="btn btn-primary" data-homeadd="' + sym + '">Add</button></div>';
+    hp.innerHTML = homePoolsSorted().slice(0, 3).map(function(p){
+      var t = TOKENS[p.tokenSym], q = TOKENS[p.quoteSym];
+      var lockPct = (p.lpLockedWei !== null && p.lpLockedWei !== undefined && p.lpSupplyWei > 0n)
+        ? Number(p.lpLockedWei * 10000n / p.lpSupplyWei) / 100 : null;
+      return '<div class="home-pool-row"><span class="pc-avatars">' + avatarHtml(t, 36) + avatarHtml(q, 36) + '</span>' +
+        '<span class="hp-main"><strong>' + esc(t.symbol) + ' / ' + esc(q.symbol) + '</strong><span>' + esc(t.name) + '</span></span>' +
+        '<span class="hp-nums"><strong>' + (p._tvl === null ? '—' : fmtUSD(p._tvl)) + '</strong><span>Locked LP ' + (lockPct === null ? '—' : fmtNum(lockPct, 0) + '%') + '</span></span>' +
+        '<button type="button" class="btn btn-primary" data-homeadd="' + esc(p.pool) + '">Add</button></div>';
     }).join('');
     Array.prototype.forEach.call(hp.querySelectorAll('button[data-homeadd]'), function(b){
       b.addEventListener('click', function(){
-        state.addToken = b.getAttribute('data-homeadd');
-        syncAddTokenButton(); renderBalances(); updateAdd();
-        showView('liquidity'); setMode('add');
+        /* The pool address pins the exact pair (a pair can exist on two
+           factories) — openAddForPool sets addToken + addQuote from the
+           row, so a Gen-7 tUSDC-quoted pair opens Add with tUSDC. */
+        openAddForPool(b.getAttribute('data-homeadd'));
       });
     });
   }
-  var tvl = 0n, vol = 0n, trades = 0, volKnown = true;
-  TOKEN_LIST.forEach(function(sym){
-    tvl += TOKENS[sym].resLoopWei * 2n;
-    var act = poolActivity[sym];
-    if(act && act.volWei !== undefined){ vol += BigInt(act.volWei); trades += act.tradesN || 0; }
-    else volKnown = false;
+  /* Stats across ALL enumerated pools (was: TOKEN_LIST only, so the
+     Gen-7 pools never counted). Volume/trades come from the per-address
+     Swap scan, which covers every pool in collectPools(). */
+  var pools = homePoolsSorted();
+  var tvlSum = 0, tvlKnown = false, volSum = 0, volKnown = false, trades = 0, tradesKnown = false;
+  var syms = {};
+  pools.forEach(function(p){
+    syms[p.tokenSym] = true; syms[p.quoteSym] = true;
+    if(p._tvl !== null && p._tvl !== undefined){ tvlSum += p._tvl; tvlKnown = true; }
+    var v = poolVolUsd(p);
+    if(v !== null && v !== undefined){ volSum += v; volKnown = true; }
+    var rec = poolActivityByAddr[(p.pool || '').toLowerCase()];
+    if(rec && rec.tradesN !== null && rec.tradesN !== undefined){ trades += rec.tradesN; tradesKnown = true; }
   });
   var e;
-  e = document.getElementById('statTvl'); if(e) e.textContent = fmtLoopUSD(tvl);
-  e = document.getElementById('statVol'); if(e) e.textContent = volKnown ? fmtLoopUSD(vol) : 'Scanning…';
-  e = document.getElementById('statTrades'); if(e) e.textContent = volKnown ? trades.toLocaleString('en-US') : '…';
-  e = document.getElementById('statTokens'); if(e) e.textContent = TOKEN_LIST.length + ' tokens';
+  e = document.getElementById('statTvl'); if(e) e.textContent = tvlKnown ? fmtUSD(tvlSum) : '—';
+  e = document.getElementById('statVol'); if(e) e.textContent = volKnown ? fmtUSD(volSum) : 'Scanning…';
+  e = document.getElementById('statTrades'); if(e) e.textContent = tradesKnown ? trades.toLocaleString('en-US') : '…';
+  e = document.getElementById('statTokens'); if(e) e.textContent = Object.keys(syms).length + ' tokens';
 }
-/* Recent Activity: latest swaps across pools from on-chain Swap events */
+/* Recent Activity: latest swaps across pools from on-chain Swap events.
+   Scans EVERY pool in collectPools() (was: TOKEN_LIST only, so Gen-7
+   pools never appeared). The BUY/SELL tag is relative to the pool's
+   token side: quote in / token out = BUY the token. */
 var lastHomeActScan = 0;
 async function loadHomeActivity(){
   var list = document.getElementById('homeActivity');
@@ -8624,17 +8855,24 @@ async function loadHomeActivity(){
     var rp = getReadProvider();
     var latest = await withTimeout(rp.getBlockNumber(), 30000, 'blockNumber');
     var from = Math.max(0, latest - 50000);
+    var pools = collectPools();
     var all = [];
-    await Promise.all(TOKEN_LIST.map(async function(sym){
-      var t = TOKENS[sym];
+    await Promise.all(pools.map(async function(p){
       try{
-        var pair = new ethers.Contract(t.pool, PAIR_ABI, rp);
-        var logs = await withTimeout(pair.queryFilter('Swap', from, latest), 45000, 'activity scan');
+        var pair = new ethers.Contract(p.pool, PAIR_ABI, rp);
+        var res = await Promise.all([
+          withTimeout(pair.queryFilter('Swap', from, latest), 45000, 'activity scan'),
+          withTimeout(pair.token0(), 20000, 'activity token0')
+        ]);
+        var logs = res[0];
+        var t0 = String(res[1]).toLowerCase();
+        var tAddr = (p.tokenSym === 'LOOP' ? CFG.wloop : (TOKENS[p.tokenSym].address || '')).toLowerCase();
+        var tokIs0 = t0 === tAddr;
         logs.forEach(function(lg){
           var a = lg.args;
-          var dL = t.token0IsWloop ? (a.amount0In - a.amount0Out) : (a.amount1In - a.amount1Out);
-          var dT = t.token0IsWloop ? (a.amount1In - a.amount1Out) : (a.amount0In - a.amount0Out);
-          all.push({ sym: sym, block: lg.blockNumber, hash: lg.transactionHash, dL: dL, dT: dT });
+          var dTok = tokIs0 ? (a.amount0In - a.amount0Out) : (a.amount1In - a.amount1Out);
+          var dQ = tokIs0 ? (a.amount1In - a.amount1Out) : (a.amount0In - a.amount0Out);
+          all.push({ tokenSym: p.tokenSym, quoteSym: p.quoteSym, block: lg.blockNumber, hash: lg.transactionHash, dTok: dTok, dQ: dQ });
         });
       }catch(e){}
     }));
@@ -8644,11 +8882,14 @@ async function loadHomeActivity(){
     }
     all.sort(function(a, b){ return b.block - a.block; });
     list.innerHTML = all.slice(0, 7).map(function(x){
-      var isBuy = x.dL > 0n;
-      var loopAmt = x.dL > 0n ? x.dL : -x.dL;
-      var tokAmt = x.dT > 0n ? x.dT : -x.dT;
+      var isBuy = x.dQ > 0n;
+      var qAmt = x.dQ > 0n ? x.dQ : -x.dQ;
+      var tAmt = x.dTok > 0n ? x.dTok : -x.dTok;
+      var qDec = TOKENS[x.quoteSym] ? TOKENS[x.quoteSym].decimals : 18;
+      var tDec = TOKENS[x.tokenSym] ? TOKENS[x.tokenSym].decimals : 18;
+      var qText = x.quoteSym === 'LOOP' ? fmtLoopUSD(qAmt) : fmtWei(qAmt, qDec, 2) + ' ' + esc(x.quoteSym);
       return '<li><span class="' + (isBuy ? 'tag-buy' : 'tag-sell') + '">' + (isBuy ? 'BUY' : 'SELL') + '</span>' +
-        '<span>' + fmtLoopUSD(loopAmt) + ' ⇄ ' + fmtWei(tokAmt, 18, 0) + ' ' + esc(x.sym) + '</span>' +
+        '<span>' + qText + ' ⇄ ' + fmtWei(tAmt, tDec, 2) + ' ' + esc(x.tokenSym) + '</span>' +
         '<a href="' + CFG.explorer + '/tx/' + x.hash + '" target="_blank" rel="noopener">block ' + x.block.toLocaleString('en-US') + ' ↗</a></li>';
     }).join('');
   }catch(e){
