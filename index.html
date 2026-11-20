@@ -872,10 +872,10 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
       <!-- LIMIT MODE -->
       <div id="modeLimit" style="display:none">
-        <p class="card-desc">Set a target market cap for a graduated token. When the pool reaches your target, this page prepares the swap for you.</p>
+        <p class="card-desc">Set a target market cap for a graduated token. Your funds move into the SakuraLimitOrder contract, which holds them until a keeper fills the order at your target — or you cancel and get a full refund.</p>
         <div class="lock-note">
           <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          <span><strong>How execution works — please read:</strong> there is no limit-order contract or keeper on Loop Network yet, so orders are <strong>not</strong> executed automatically on-chain. This page watches the pool price <strong>only while it stays open</strong> in your browser. When the target is hit and your wallet is connected, the swap is sent and your wallet asks you to confirm it — nothing is ever sent without your confirmation. If the page is closed, the order does not run. Orders live in this tab only and are gone when you close it.</span>
+          <span><strong>How execution works — please read:</strong> orders are created on-chain in the SakuraLimitOrder contract (<span class="mono">0x1e620F…40A494</span>) and your funds are held by that contract — <strong>an order stays live even if you close this page</strong>. It is <strong>not filled instantly</strong>: a keeper executes it once the pool price reaches your target, and the keeper takes a <strong>0.25% fee from the swap output</strong>. Execution needs a running keeper, and <strong>a 24/7 keeper is not running yet</strong>, so a reached order can wait until a keeper is active. You can cancel any open order at any time and the contract refunds your funds in full.</span>
         </div>
         <div class="dir-row" id="limitDirRow">
           <button type="button" data-dir="buy" class="active">Buy</button>
@@ -930,6 +930,8 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Trigger</span><strong id="limTrigger"></strong></div>
           <div class="drow"><span>Distance from current price</span><strong id="limDist"></strong></div>
           <div class="drow"><span>Route</span><strong id="limRoute"></strong></div>
+          <div class="drow"><span>Contract</span><strong>SakuraLimitOrder · 0x1e62…A494</strong></div>
+          <div class="drow"><span>Keeper fee</span><strong>0.25% of the swap output, paid to the keeper on execution</strong></div>
         </div>
         <div class="form-err" id="limitErr"></div>
         <button class="btn btn-primary create-order-btn" id="limitAction" type="button">Create order</button>
@@ -940,10 +942,10 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 
       <!-- DCA MODE -->
       <div id="modeDca" style="display:none">
-        <p class="card-desc">Split one total amount into equal orders on a fixed schedule, so your average entry price smooths out over time instead of depending on one moment.</p>
+        <p class="card-desc">Split one total amount into equal orders on a fixed schedule, so your average entry price smooths out over time instead of depending on one moment. The full budget moves into the SakuraDCA contract up front.</p>
         <div class="lock-note">
           <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          <span><strong>How execution works — please read:</strong> there is no DCA contract or keeper bot on Loop Network yet. The schedule runs <strong>inside this page only</strong>: an order only happens while this page is open in your browser with your wallet connected, and your wallet asks you to confirm every single order — nothing is sent without your confirmation, and nothing runs automatically on-chain. If an order comes due while the page is closed or the wallet is disconnected, it waits until you are back. If an order fails or you reject it in your wallet, that slot is marked Failed in the history and the schedule moves on — it is not retried automatically. Plans live in this tab only and are gone when you close it.</span>
+          <span><strong>How execution works — please read:</strong> plans are created on-chain in the SakuraDCA contract (<span class="mono">0xc3f635…630ef0</span>) and the contract holds the budget — <strong>a plan keeps its schedule even if you close this page</strong>. Each order is executed by a keeper when it comes due (the first order is due immediately), <strong>not instantly by this page</strong>, and the keeper takes a <strong>0.25% fee from each swap's output</strong>. Execution needs a running keeper, and <strong>a 24/7 keeper is not running yet</strong>, so due orders can wait until a keeper is active. You can cancel a plan at any time and the contract refunds whatever is left.</span>
         </div>
         <div class="tbox" style="margin-top:14px">
           <div class="tb-top"><label for="dcaAmountInput">Sell</label><span class="bal" id="dcaSellMeta"></span></div>
@@ -1001,7 +1003,9 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <div class="drow"><span>Total budget</span><strong id="dcaTotal"></strong></div>
           <div class="drow"><span>Estimated tokens per order (at current price)</span><strong id="dcaEst"></strong></div>
           <div class="drow"><span>Route</span><strong id="dcaRoute"></strong></div>
-          <div class="drow"><span>First order</span><strong>Runs immediately when the plan starts</strong></div>
+          <div class="drow"><span>First order</span><strong>Due immediately — executed by the keeper</strong></div>
+          <div class="drow"><span>Contract</span><strong>SakuraDCA · 0xc3f6…0ef0</strong></div>
+          <div class="drow"><span>Keeper fee</span><strong>0.25% of each swap's output, paid to the keeper</strong></div>
         </div>
         <div class="form-err" id="dcaErr"></div>
         <button class="btn btn-primary create-order-btn" id="dcaAction" type="button">Create DCA Plan</button>
@@ -1010,7 +1014,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
           <button type="button" class="btn btn-ghost btn-md" id="dcaShowHistory" style="flex:1">Show History</button>
         </div>
         <button class="btn btn-soft" id="dcaBackBtn" type="button" style="margin-top:10px">← Back to Swap</button>
-        <h3 class="sub-head">Active Plan</h3>
+        <h3 class="sub-head">Your Plans (on-chain)</h3>
         <div id="dcaPlanBox"></div>
         <h3 class="sub-head" id="dcaHistoryHead">History</h3>
         <div id="dcaHistoryBox"></div>
@@ -1316,7 +1320,7 @@ button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
     <div class="pf-panel" id="pfPanelActivity" hidden>
       <section class="card" aria-label="Your activity">
         <div class="card-head"><h2>Your Activity</h2></div>
-        <p class="card-desc">Your swaps, liquidity adds and removes, limit-order fills, and DCA executions. On-chain pool activity is scanned over the last ±50,000 blocks (±24 hours); limit and DCA entries are this tab's session records.</p>
+        <p class="card-desc">Your swaps, liquidity adds and removes, limit-order fills, and DCA executions. On-chain pool activity is scanned over the last ±50,000 blocks (±24 hours); limit orders and DCA plans themselves live in their contracts and are listed in the Swap tab's Limit and DCA panels, read straight from the chain.</p>
         <div id="pfActivity"><div class="empty-note">Connect your wallet to see your activity.</div></div>
       </section>
     </div>
@@ -1484,7 +1488,16 @@ var CFG = {
      at block 45270388 (tx 0xc2c394c4e90ba3d399a5e0144c5b912b5d09fcd8334c7663a064ee9b25aa88d0).
      Contract with no owner/admin: only the lock owner can withdraw, and
      only after the unlock time is reached. */
-  tokenLocker: '0xA4C46795Bc6116e0286ea13e1439622E9727B50f'
+  tokenLocker: '0xA4C46795Bc6116e0286ea13e1439622E9727B50f',
+  /* Limit Order + DCA contracts — deployed to Loop Network 2026-11-20
+     (SakuraLimitOrder block 45384813, SakuraDCA block 45384815). No owner,
+     no admin: funds are held by the contract itself, orders/plans survive
+     closing this page, and a keeper executes them when their condition is
+     met (keeper fee 0.25% of the swap output). Constructor defaults for
+     both: WLOOP (CFG.wloop) + the fee-split router (CFG.router); every
+     order/plan still records its own per-vintage router at creation. */
+  limitOrder: '0x1e620F59ef5957Dedaf5cA8563c728EbFE40A494',
+  dcaContract: '0xc3f635ed3AA857a2E17e925433d9D76be4630ef0'
 };
 var SNAPSHOT_BLOCK = 45269686;
 var SAKURA_POOL_CREATED_BLOCK = 45268585;
@@ -1532,8 +1545,8 @@ var state = {
         wErrors: {}, wBalSettledFor: null },
   balErrors: {}, lpErrors: {}, balSettledFor: null, balLoading: false,
   slippage: 0.5, deadline: 20, mev: true,
-  limit: { dir:'buy', token:'MESIAH', mcPct:0, exact:false }, orders: [], orderSeq: 0,
-  dca: { token:'MESIAH', dir:'buy' }, dcaPlan: null, dcaHistory: [],
+  limit: { dir:'buy', token:'MESIAH', mcPct:0, exact:false }, orders: [], ordersLoadedFor: null, ordersLoading: false,
+  dca: { token:'MESIAH', dir:'buy' }, dcaPlans: [], plansLoadedFor: null, plansLoading: false, dcaPlan: null, dcaHistory: [],
   swap: { from:'LOOP', to:'MESIAH', lastEdited:'from' },
   addToken: 'MESIAH', remToken: 'MESIAH',
   lockToken: 'MESIAH', lockDays: 90,
@@ -3112,6 +3125,7 @@ var ERC20_ABI = [
   'function name() view returns (string)',
   'function symbol() view returns (string)',
   'function decimals() view returns (uint8)',
+  'function totalSupply() view returns (uint256)',
   'function balanceOf(address) view returns (uint256)',
   'function allowance(address,address) view returns (uint256)',
   'function approve(address,uint256) returns (bool)',
@@ -3519,18 +3533,20 @@ async function connectWallet(){
       syncWalletBtn(); refreshAllForms();
       if(!state.chainOk){ toast('Wallet connected, but the network is not Loop Network — click the Swap button to switch.'); }
       refreshBalances();
+      loadOnChainOrders(); loadOnChainPlans();
     }
   }catch(e){ toast('Wallet connection cancelled.'); }
   walletConnecting = false; syncWalletBtn();
 }
 function disconnectWallet(){
   state.account = null; state.balances = {}; state.lpBalances = {};
+  state.orders = []; state.ordersLoadedFor = null; state.dcaPlans = []; state.plansLoadedFor = null;
   state.balErrors = {}; state.lpErrors = {}; state.balSettledFor = null; state.balLoading = false;
   state.pf.locks = null; state.pf.locksFor = null; state.pf.lockItems = null;
   state.pf.activity = null; state.pf.activityFor = null; state.pf.transfers = null; state.pf.transfersFor = null;
   state.pf.history = []; state.pf.lastSampleAt = 0;
   var rb = el('pfReceiveBox'); if(rb) rb.hidden = true;
-  syncWalletBtn(); renderAll(); refreshAllForms(); renderLocks();
+  syncWalletBtn(); renderAll(); refreshAllForms(); renderLocks(); renderOrders();
   toast('Wallet disconnected.');
 }
 function deadlineTs(){ return Math.floor(Date.now() / 1000) + state.deadline * 60; }
@@ -4072,63 +4088,89 @@ function syncMevUI(){
   updateSwap(); updateRemove();
 }
 
-/* ================= SHARED SWAP EXECUTION (Limit & DCA) =================
-   Same routers, same fee-on-transfer swap functions, same always-on fresh
-   re-quote and eth_call simulation as the Swap tab.
-   The caller manages order/plan state; this only sends one swap. */
-async function executeSwap(spec){
-  var pair = spec.pair;
-  var fromLoop = spec.fromSym === 'LOOP';
-  /* Reference quote from the stored reserves, taken BEFORE the fresh
-     re-quote updates them. Corrected pairs get no vanilla reference at
-     all — their only valid quote is the corrected router's own. */
-  var shownOut = isCorrected(pair) ? 0n : quoteOut(spec.amountIn, fromLoop ? pair.resLoopWei : pair.resTokenWei, fromLoop ? pair.resTokenWei : pair.resLoopWei);
-  /* Always re-quote fresh right before sending (not only with Anti-MEV on),
-     and simulate with eth_call before sending — the same rules as the Swap
-     tab, so Limit/DCA fills cannot die with "missing revert data" either.
-     For corrected pairs freshQuoteOut returns the router's own
-     direction-aware quote (net-of-skim on sells). */
-  var freshOut = await freshQuoteOut(pair, spec.amountIn, fromLoop);
-  if(freshOut <= 0n) throw new Error('Amount too small — the swap output is below pool precision.');
-  if(!isCorrected(pair) && shownOut > 0n && freshOut < applySlip(shownOut)) throw new Error('Price moved — re-quote: the price moved beyond your slippage since the quote, so the swap was cancelled and nothing was sent.');
-  var amountOut = freshOut;
-  var minOut = applySlip(amountOut);
-  /* The router is the per-vintage router fixed when the order/plan was
-     created (spec.router); fall back to the pair's current selection. */
-  var routerAddr = spec.router || routerOf(pair);
-  var deadline = swapDeadlineTs();
-  var signer = await getSigner();
-  var router = new ethers.Contract(routerAddr, ROUTER_ABI, signer);
-  var tx;
-  state.busy = true; updateSwap();
+/* ================= LIMIT + DCA CONTRACTS (on-chain) =================
+   SakuraLimitOrder + SakuraDCA, deployed on Loop Network (see CFG).
+   Orders/plans live in the contracts, not in this tab: creating one is a
+   wallet transaction, cancelling is a contract call that refunds in full,
+   and the lists below are read back with getOrder / getPlan. A keeper
+   executes when the condition holds and takes 0.25% of the swap output.
+   Every order/plan records the per-vintage router of its token's pair
+   (routerOf — read from the pair's vintage), never one router for all. */
+var LIMIT_ABI = [
+  'function createBuyOrder(address token, uint256 targetPrice, uint256 maxSlippageBps, address router) payable returns (uint256 orderId)',
+  'function createSellOrder(address token, uint256 amountIn, uint256 targetPrice, uint256 maxSlippageBps, address router) returns (uint256 orderId)',
+  'function cancelOrder(uint256 orderId)',
+  'function executeOrder(uint256 orderId)',
+  'function orderCount() view returns (uint256)',
+  'function getOrder(uint256 orderId) view returns (tuple(address owner, address token, address router, bool isBuy, uint256 amountIn, uint256 targetPrice, uint256 maxSlippageBps, uint256 createdAt, bool executed, bool cancelled, uint256 feeBps))',
+  'function isExecutable(uint256 orderId) view returns (bool executable, uint256 price)',
+  'function spotPrice(address token, address router) view returns (uint256)',
+  'function KEEPER_FEE_BPS() view returns (uint256)',
+  'event OrderCreated(uint256 indexed orderId, address indexed owner, address indexed token, address router, bool isBuy, uint256 amountIn, uint256 targetPrice, uint256 maxSlippageBps)',
+  'event OrderCancelled(uint256 indexed orderId, address indexed owner)',
+  'event OrderExecuted(uint256 indexed orderId, address indexed owner, address indexed keeper, uint256 amountOut, uint256 keeperFee)'
+];
+var DCA_ABI = [
+  'function createBuyPlan(address token, uint256 amountPerOrder, uint256 totalOrders, uint256 interval, uint256 minPrice, uint256 maxPrice, uint256 maxSlippageBps, address router) payable returns (uint256 planId)',
+  'function createSellPlan(address token, uint256 amountPerOrder, uint256 totalOrders, uint256 interval, uint256 minPrice, uint256 maxPrice, uint256 maxSlippageBps, address router) returns (uint256 planId)',
+  'function cancelPlan(uint256 planId)',
+  'function executePlan(uint256 planId)',
+  'function planCount() view returns (uint256)',
+  'function getPlan(uint256 planId) view returns (tuple(address owner, address token, address router, bool isBuy, uint256 amountPerOrder, uint256 totalAmount, uint256 remaining, uint256 interval, uint256 totalOrders, uint256 executedOrders, uint256 startTime, uint256 minPrice, uint256 maxPrice, uint256 maxSlippageBps, bool cancelled, uint256 feeBps))',
+  'function isDue(uint256 planId) view returns (bool)',
+  'function nextExecutionTime(uint256 planId) view returns (uint256)',
+  'function spotPrice(address token, address router) view returns (uint256)',
+  'function KEEPER_FEE_BPS() view returns (uint256)',
+  'event PlanCreated(uint256 indexed planId, address indexed owner, address indexed token, address router, bool isBuy, uint256 amountPerOrder, uint256 totalOrders, uint256 interval)',
+  'event PlanCancelled(uint256 indexed planId, address indexed owner, uint256 refunded)',
+  'event PlanExecuted(uint256 indexed planId, address indexed owner, address indexed keeper, uint256 slot, uint256 amountOut, uint256 keeperFee)',
+  'event PlanCompleted(uint256 indexed planId, address indexed owner)'
+];
+function limitRead(){ return new ethers.Contract(CFG.limitOrder, LIMIT_ABI, getReadProvider()); }
+function dcaRead(){ return new ethers.Contract(CFG.dcaContract, DCA_ABI, getReadProvider()); }
+function symByAddress(addr){
+  var a = String(addr || '').toLowerCase();
+  for(var s in TOKENS){ if(TOKENS[s].address && TOKENS[s].address.toLowerCase() === a) return s; }
+  return null;
+}
+function vintageByRouter(routerAddr){
+  var r = String(routerAddr || '').toLowerCase();
+  for(var k in VINTAGES){ if(VINTAGES[k].router.toLowerCase() === r) return k; }
+  return null;
+}
+function routerLabelFor(addr){
+  var v = vintageByRouter(addr);
+  return v ? VINTAGES[v].routerLabel : 'Router02';
+}
+/* The contract's targetPrice: LOOP per 1 token, scaled by 1e18.
+   MC target conversion (per the contract README):
+     targetPrice = targetMC_USD / (LOOP_USD x totalSupply)
+   because MC = price_USD x supply and price_LOOP = price_USD / LOOP_USD. */
+function targetPriceWeiFromMc(targetMcUsd, t){
+  if(!usdAvailable() || !(targetMcUsd > 0) || !t || !t.totalSupply) return 0n;
+  var supply = Number(t.totalSupply);
+  if(!(supply > 0)) return 0n;
+  var priceLoop = targetMcUsd / (loopUsd * supply);
+  if(!(priceLoop > 0) || !isFinite(priceLoop)) return 0n;
+  return BigInt(Math.round(priceLoop * 1e18));
+}
+function usdPriceToWei(usdPrice){ /* DCA price range: USD/token -> LOOP/token, 1e18 scale */
+  if(!usdAvailable() || !(usdPrice > 0)) return 0n;
+  var p = usdPrice / loopUsd;
+  if(!(p > 0) || !isFinite(p)) return 0n;
+  return BigInt(Math.round(p * 1e18));
+}
+function priceWeiToUsd(wei){ /* contract price (LOOP/token, 1e18) -> USD/token float */
+  return (Number(wei) / 1e18) * loopUsd;
+}
+async function ensureTotalSupply(t){
+  if(t.totalSupply) return true;
   try{
-    if(!fromLoop){
-      var erc = new ethers.Contract(pair.address, ERC20_ABI, signer);
-      var allow = await erc.allowance(state.account, routerAddr);
-      if(allow < spec.amountIn){
-        var t0 = toast('Approve ' + pair.symbol + ' for the router — confirm in your wallet…', null, true);
-        var atx = await erc.approve(routerAddr, spec.amountIn);
-        t0.remove();
-        var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
-        await atx.wait(); t0b.remove();
-      }
-    }
-    try{
-      await simulateSwapEthCall(routerAddr, fromLoop, spec.amountIn, minOut, pair, deadline);
-    }catch(simErr){
-      if(isInsufficientOutput(revertReason(simErr))) throw new Error('Price moved — re-quote: simulation shows the output would fall below the minimum received (' + revertReason(simErr) + '), so nothing was sent.');
-      throw new Error('Swap simulation failed — nothing was sent. The router said: ' + txErr(simErr));
-    }
-    if(fromLoop){
-      tx = await router.swapExactETHForTokensSupportingFeeOnTransferTokens(minOut, [CFG.wloop, pair.address], state.account, deadline, { value: spec.amountIn });
-    } else {
-      tx = await router.swapExactTokensForETHSupportingFeeOnTransferTokens(spec.amountIn, minOut, [pair.address, CFG.wloop], state.account, deadline);
-    }
-    await tx.wait();
-  } finally {
-    state.busy = false; updateSwap();
-  }
-  return { txHash: tx.hash, amountOut: amountOut };
+    var erc = new ethers.Contract(t.address, ERC20_ABI, getReadProvider());
+    var ts = await withTimeout(erc.totalSupply(), 20000, 'totalSupply');
+    t.totalSupply = (Number(ts) / 1e18).toString();
+    return Number(t.totalSupply) > 0;
+  }catch(e){ return false; }
 }
 
 /* ================= LIMIT ORDERS (GMGN-style, target by Market Cap) ================= */
@@ -4145,6 +4187,15 @@ function limitTargetPrice(){
 function limitTargetMc(){
   var mc = marketCapUsd(TOKENS[state.limit.token]);
   return mc === null ? null : mc * (1 + state.limit.mcPct / 100);
+}
+function limitTargetPriceWei(){
+  var tMc = limitTargetMc();
+  return tMc === null ? 0n : targetPriceWeiFromMc(tMc, TOKENS[state.limit.token]);
+}
+function limitSlipBps(){
+  /* EXACT on = 0 bps extra slippage: the contract's target-price floor is
+     the only fill condition. Off = the swap slippage setting applies. */
+  return state.limit.exact ? 0n : slipBps();
 }
 function updateLimit(){
   syncLimitTokenButton();
@@ -4177,16 +4228,16 @@ function updateLimit(){
   var det = el('limitDetails');
   if(target > 0 && amt > 0n){
     det.style.display = 'block';
-    if(buy) el('limEstOut').textContent = '≈ ' + fmtNum(Number(weiToRaw(amt, 18)) / target, 4) + ' ' + t.symbol + ' (before pool fee & price impact)';
-    else el('limEstOut').textContent = '≈ ' + fmtUSD(Number(weiToRaw(amt, 18)) * target * loopUsd) + ' (before pool fee & price impact)';
+    if(buy) el('limEstOut').textContent = '≈ ' + fmtNum(Number(weiToRaw(amt, 18)) / target, 4) + ' ' + t.symbol + ' (before pool fee, price impact & the 0.25% keeper fee)';
+    else el('limEstOut').textContent = '≈ ' + fmtUSD(Number(weiToRaw(amt, 18)) * target * loopUsd) + ' (before pool fee, price impact & the 0.25% keeper fee)';
     el('limTrigger').textContent = (buy ? 'Market cap falls to ' : 'Market cap rises to ') + (tMc === null ? 'the target' : fmtCompactUSD(tMc)) + ' (' + fmtUSDPrice(target * loopUsd) + ' per ' + t.symbol + ')';
     var reached = state.limit.mcPct === 0 || (buy ? state.limit.mcPct < 0 : state.limit.mcPct > 0);
-    el('limDist').textContent = (state.limit.mcPct > 0 ? '+' : '') + fmtNum(state.limit.mcPct, state.limit.mcPct % 1 ? 1 : 0) + '%' + (reached && state.limit.mcPct !== 0 ? ' — target already reached, executes on the next price check' : state.limit.mcPct === 0 ? ' — at the current price, executes on the next price check' : '');
+    el('limDist').textContent = (state.limit.mcPct > 0 ? '+' : '') + fmtNum(state.limit.mcPct, state.limit.mcPct % 1 ? 1 : 0) + '%' + (reached && state.limit.mcPct !== 0 ? ' — target already reached, executable as soon as a keeper runs' : state.limit.mcPct === 0 ? ' — at the current price, executable as soon as a keeper runs' : '');
     el('limRoute').textContent = (buy ? 'LOOP → ' + t.symbol : t.symbol + ' → LOOP') + ' · ' + vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else det.style.display = 'none';
   var btn = el('limitAction');
   btn.classList.remove('btn-buy', 'btn-sell');
-  if(state.busy || engineBusy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
+  if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
   if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
   if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
   if(!(target > 0)){ btn.disabled = true; btn.textContent = state.limit.mcPct <= -100 ? 'A $0 target can never trigger' : 'Waiting for the pool price…'; return; }
@@ -4196,64 +4247,167 @@ function updateLimit(){
   btn.disabled = false; btn.textContent = 'Create order';
   btn.classList.add(buy ? 'btn-buy' : 'btn-sell');
 }
-function onLimitAction(){
+async function onLimitAction(){
+  if(state.busy) return;
   if(!state.account) return connectWallet();
   if(!state.chainOk) return switchChain();
-  var target = limitTargetPrice();
+  var t = TOKENS[state.limit.token];
+  var buy = state.limit.dir === 'buy';
   var amt = inputWei(el('limitAmountInput'), 18);
-  if(!(target > 0) || amt <= 0n) return;
-  state.orderSeq++;
-  state.orders.unshift({
-    id: state.orderSeq, dir: state.limit.dir, sym: state.limit.token, target: target,
-    targetMc: limitTargetMc(), mcPct: state.limit.mcPct, exact: !!state.limit.exact,
-    router: routerOf(TOKENS[state.limit.token]), vintage: TOKENS[state.limit.token].vintage,
-    amountIn: amt, status: 'open', createdAt: Date.now(), note: '', alerted: false, txHash: null, filledOut: null
-  });
-  el('limitAmountInput').value = '';
-  renderOrders(); updateLimit();
-  toast('Limit order #' + state.orderSeq + ' created: ' + state.limit.dir + ' ' + state.limit.token + ' at target MC ' + (state.orders[0].targetMc === null ? '—' : fmtCompactUSD(state.orders[0].targetMc)) + ' (' + fmtUSDPrice(target * loopUsd) + ' per token' + (state.limit.exact ? ', EXACT on' : '') + '). Keep this page open — it executes when the target is reached and your wallet confirms.');
+  if(amt <= 0n) return;
+  showErr('limitErr', '');
+  state.busy = true; updateLimit();
+  try{
+    if(!t.totalSupply) await ensureTotalSupply(t);
+    var targetWei = limitTargetPriceWei();
+    if(targetWei <= 0n) throw new Error('the target price could not be computed (the USD rate or the token supply is unavailable).');
+    /* Per-vintage router for this token's pair — the contract validates
+       that this router's factory really has a pair for the token. */
+    var router = routerOf(t);
+    var slip = limitSlipBps();
+    var signer = await getSigner();
+    var c = new ethers.Contract(CFG.limitOrder, LIMIT_ABI, signer);
+    var tx;
+    if(buy){
+      var t1 = toast('Create buy order — confirm in your wallet…', null, true);
+      tx = await c.createBuyOrder(t.address, targetWei, slip, router, { value: amt });
+      t1.remove();
+    } else {
+      var erc = new ethers.Contract(t.address, ERC20_ABI, signer);
+      var allow = await erc.allowance(state.account, CFG.limitOrder);
+      if(allow < amt){
+        var t0 = toast('Approve ' + t.symbol + ' for the limit contract — confirm in your wallet…', null, true);
+        var atx = await erc.approve(CFG.limitOrder, amt);
+        t0.remove();
+        var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+        await atx.wait(); t0b.remove();
+      }
+      var t2 = toast('Create sell order — confirm in your wallet…', null, true);
+      tx = await c.createSellOrder(t.address, amt, targetWei, slip, router);
+      t2.remove();
+    }
+    var tw = toast('Order sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    el('limitAmountInput').value = '';
+    state.ordersLoadedFor = null;
+    toast('Limit order created on-chain: ' + (buy ? 'buy' : 'sell') + ' ' + t.symbol + ' at target MC ' + (limitTargetMc() === null ? '—' : fmtCompactUSD(limitTargetMc())) + ' via ' + vintageOf(t).routerLabel + '. Your funds are held by the contract — a keeper fills it at the target (0.25% keeper fee) and you can cancel any time for a full refund.', tx.hash);
+    await loadOnChainOrders();
+    refreshBalances();
+  }catch(e){
+    clearToasts();
+    showErr('limitErr', 'Create order failed: ' + txErr(e));
+  }
+  state.busy = false; updateLimit(); renderOrders();
+}
+async function cancelOnChainOrder(id){
+  if(state.busy) return;
+  if(!state.account) return connectWallet();
+  if(!state.chainOk) return switchChain();
+  state.busy = true; updateLimit();
+  try{
+    var signer = await getSigner();
+    var c = new ethers.Contract(CFG.limitOrder, LIMIT_ABI, signer);
+    var t1 = toast('Cancel order #' + id + ' — confirm in your wallet…', null, true);
+    var tx = await c.cancelOrder(BigInt(id));
+    t1.remove();
+    var tw = toast('Cancel sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Order #' + id + ' cancelled — the contract refunded your funds in full.', tx.hash);
+    state.ordersLoadedFor = null;
+    await loadOnChainOrders();
+    refreshBalances();
+  }catch(e){
+    clearToasts();
+    showErr('limitErr', 'Cancel failed: ' + txErr(e));
+  }
+  state.busy = false; updateLimit(); renderOrders();
+}
+var ORDER_SCAN_CAP = 500;
+async function loadOnChainOrders(){
+  if(!state.account || !window.ethers || state.ordersLoading) return;
+  if(state.ordersLoadedFor === state.account) { renderOrders(); return; }
+  state.ordersLoading = true;
+  try{
+    var c = limitRead();
+    var count = Number(await withTimeout(c.orderCount(), 30000, 'orderCount'));
+    var start = Math.max(0, count - ORDER_SCAN_CAP);
+    var mine = [];
+    for(var i = start; i < count; i++){
+      var o = await withTimeout(c.getOrder(BigInt(i)), 30000, 'getOrder ' + i);
+      if(!o || String(o.owner).toLowerCase() !== state.account.toLowerCase()) continue;
+      var sym = symByAddress(o.token);
+      var tpFloat = Number(o.targetPrice) / 1e18;
+      var t = sym ? TOKENS[sym] : null;
+      var item = {
+        id: i, dir: o.isBuy ? 'buy' : 'sell', sym: sym || shortAddr(String(o.token)), tokenAddr: String(o.token),
+        target: tpFloat, targetPriceWei: o.targetPrice,
+        targetMc: (t && t.totalSupply && usdAvailable()) ? tpFloat * loopUsd * Number(t.totalSupply) : null,
+        amountIn: o.amountIn, status: o.cancelled ? 'cancelled' : (o.executed ? 'done' : 'open'),
+        createdAt: Number(o.createdAt) * 1000, router: String(o.router), vintage: vintageByRouter(o.router),
+        executable: false, note: '', txHash: null, filledOut: null
+      };
+      if(item.status === 'open'){
+        try{
+          var ex = await withTimeout(c.isExecutable(BigInt(i)), 20000, 'isExecutable ' + i);
+          item.executable = !!ex[0];
+        }catch(e2){}
+      }
+      mine.push(item);
+    }
+    mine.sort(function(a, b){ return b.id - a.id; });
+    state.orders = mine;
+    state.ordersLoadedFor = state.account;
+  }catch(e){
+    /* keep whatever list we already have; the next poll retries */
+    state.ordersLoadedFor = null;
+  }
+  state.ordersLoading = false;
+  renderOrders();
 }
 function orderStatusChip(o){
-  if(o.status === 'open') return '<span class="ord-status open">Watching</span>';
-  if(o.status === 'executing') return '<span class="ord-status open">Executing…</span>';
+  if(o.status === 'open') return o.executable ? '<span class="ord-status open">Target reached · waiting for keeper</span>' : '<span class="ord-status open">Watching</span>';
   if(o.status === 'done') return '<span class="ord-status done">Filled</span>';
-  if(o.status === 'failed') return '<span class="ord-status failed">Failed</span>';
   return '<span class="ord-status off">Cancelled</span>';
 }
 function renderOrders(){
   var box = el('limitOrders');
   if(!box) return;
+  if(!state.account){
+    box.innerHTML = '<div class="empty-note">Connect your wallet to see your on-chain limit orders. Orders are held by the SakuraLimitOrder contract, so they stay live even when this page is closed.</div>';
+    return;
+  }
+  if(state.ordersLoading && !state.orders.length){
+    box.innerHTML = '<div class="empty-note">Loading your orders from the SakuraLimitOrder contract…</div>';
+    return;
+  }
   if(!state.orders.length){
-    box.innerHTML = '<div class="empty-note">No limit orders yet. Create one above — it stays in this tab and is watched while the page is open.</div>';
+    box.innerHTML = '<div class="empty-note">No on-chain limit orders for this wallet yet. Create one above — it is held by the contract, not by this tab.</div>';
     return;
   }
   box.innerHTML = state.orders.map(function(o){
-    var t = TOKENS[o.sym];
+    var t = o.tokenAddr ? (symByAddress(o.tokenAddr) ? TOKENS[symByAddress(o.tokenAddr)] : null) : TOKENS[o.sym];
     var p = t ? priceLoopPerToken(t) : 0;
-    var h = '<div class="ord-item"><div class="ord-head"><span>' + (o.dir === 'buy' ? 'Buy' : 'Sell') + ' ' + esc(o.sym) + '</span>' + orderStatusChip(o) + (o.exact ? '<span class="ord-status open">EXACT</span>' : '') + '</div>';
+    var h = '<div class="ord-item"><div class="ord-head"><span>' + (o.dir === 'buy' ? 'Buy' : 'Sell') + ' ' + esc(o.sym) + '</span>' + orderStatusChip(o) + '</div>';
     h += '<div class="ord-meta">Order #' + o.id + ' · ' + fmtWei(o.amountIn, 18, 6) + ' ' + (o.dir === 'buy' ? 'LOOP (' + fmtLoopUSD(o.amountIn) + ')' : esc(o.sym)) +
       '<br/>Target MC ' + (o.targetMc === null || o.targetMc === undefined ? '—' : fmtCompactUSD(o.targetMc)) + ' · ' + fmtUSDPrice(o.target * loopUsd) + ' per ' + esc(o.sym) + (p > 0 ? ' · now ' + fmtUSDPrice(p * loopUsd) : '') +
       '<br/>Created ' + new Date(o.createdAt).toLocaleString('en-US');
-    if(o.router) h += '<br/>Router: ' + (VINTAGES[o.vintage] ? VINTAGES[o.vintage].routerLabel : 'Router02') + ' · ' + shortAddr(o.router);
-    if(o.status === 'done' && o.filledOut !== null && o.filledOut !== undefined){
-      h += '<br/>Filled: received ±' + fmtWei(o.filledOut, 18, 6) + ' ' + (o.dir === 'buy' ? esc(o.sym) : 'LOOP') +
-        (o.txHash ? ' · <a href="' + CFG.explorer + '/tx/' + o.txHash + '" target="_blank" rel="noopener">View tx ↗</a>' : '');
-    }
+    if(o.router) h += '<br/>Router: ' + routerLabelFor(o.router) + ' · ' + shortAddr(o.router);
+    h += '<br/>Held by SakuraLimitOrder · ' + shortAddr(CFG.limitOrder) + ' · keeper fee 0.25% of output on execution';
+    if(o.status === 'open') h += '<br/>' + (o.executable ? 'Target reached — the order fills as soon as a keeper executes it (a 24/7 keeper is not running yet, so this can wait).' : 'Waiting for the target price. A keeper executes it when the target is reached.');
     if(o.note) h += '<br/>' + esc(o.note);
     h += '</div>';
-    if(o.status === 'open') h += '<div class="ord-actions"><button type="button" data-cancel="' + o.id + '">Cancel order</button></div>';
+    if(o.status === 'open') h += '<div class="ord-actions"><button type="button" data-cancel="' + o.id + '">Cancel order (full refund)</button></div>';
     return h + '</div>';
   }).join('');
   Array.prototype.forEach.call(box.querySelectorAll('button[data-cancel]'), function(b){
-    b.addEventListener('click', function(){
-      var id = parseInt(b.getAttribute('data-cancel'), 10);
-      state.orders.forEach(function(o){ if(o.id === id && o.status === 'open'){ o.status = 'cancelled'; o.note = 'Cancelled by you.'; } });
-      renderOrders();
-    });
+    b.addEventListener('click', function(){ cancelOnChainOrder(parseInt(b.getAttribute('data-cancel'), 10)); });
   });
 }
 
-/* ================= DCA (Jupiter-style: Sell total → Buy, Every × Over orders) ================= */
+/* ================= DCA (Jupiter-style: Sell total → Buy, Every × Over orders) =================
+   Plans live in the SakuraDCA contract: the budget is deposited up front,
+   slots are executed by a keeper (0.25% of each swap's output), and the
+   list below is read back with getPlan — nothing here runs in the tab. */
 function dcaFromSym(){ return state.dca.dir === 'buy' ? 'LOOP' : state.dca.token; }
 function dcaToSym(){ return state.dca.dir === 'buy' ? state.dca.token : 'LOOP'; }
 function syncDcaButtons(){
@@ -4295,11 +4449,19 @@ function dcaIntervalMs(){
   if(isNaN(n) || n < 1) return 0;
   return n * unit;
 }
+function dcaIntervalSec(){ return Math.floor(dcaIntervalMs() / 1000); }
 function dcaRangeValues(){
   if(el('dcaRangeBox').style.display === 'none') return { min: null, max: null };
   var mn = parseFloat(parseInput(el('dcaMinPrice').value));
   var mx = parseFloat(parseInput(el('dcaMaxPrice').value));
   return { min: isNaN(mn) ? null : mn, max: isNaN(mx) ? null : mx };
+}
+function fmtIntervalLabel(sec){
+  if(sec % 604800 === 0) return 'Every ' + (sec / 604800) + (sec === 604800 ? ' week' : ' weeks');
+  if(sec % 86400 === 0) return 'Every ' + (sec / 86400) + (sec === 86400 ? ' day' : ' days');
+  if(sec % 3600 === 0) return 'Every ' + (sec / 3600) + (sec === 3600 ? ' hour' : ' hours');
+  if(sec % 60 === 0) return 'Every ' + (sec / 60) + (sec === 60 ? ' minute' : ' minutes');
+  return 'Every ' + sec + ' seconds';
 }
 function updateDca(){
   renderDca();
@@ -4329,194 +4491,226 @@ function updateDca(){
     el('dcaSummaryText').textContent = fmtWei(per, 18, 6) + ' ' + fromSym + ' (' + fmtUSD(perUsd) + ') per order · runs for ' + fmtRunFor((count - 1) * dcaIntervalMs());
     det.style.display = 'block';
     el('dcaTotal').textContent = (fromSym === 'LOOP' ? fmtLoopUSD(total) : fmtUSD(Number(weiToRaw(total, 18)) * tokenPriceUsd(t))) + ' (' + fmtWei(total, 18, 6) + ' ' + fromSym + ' total)';
-    el('dcaEst').textContent = p > 0 ? (state.dca.dir === 'buy' ? ('≈ ' + fmtNum(Number(weiToRaw(per, 18)) / p, 4) + ' ' + t.symbol) : ('≈ ' + fmtUSD(Number(weiToRaw(per, 18)) * tokenPriceUsd(t)) + ' worth of LOOP')) + ' (before pool fee & price impact)' : '—';
+    el('dcaEst').textContent = p > 0 ? (state.dca.dir === 'buy' ? ('≈ ' + fmtNum(Number(weiToRaw(per, 18)) / p, 4) + ' ' + t.symbol) : ('≈ ' + fmtUSD(Number(weiToRaw(per, 18)) * tokenPriceUsd(t)) + ' worth of LOOP')) + ' (before pool fee, price impact & the 0.25% keeper fee)' : '—';
     el('dcaRoute').textContent = fromSym + ' → ' + dcaToSym() + ' · ' + vintageOf(t).routerLabel + ' · ' + shortAddr(routerOf(t));
   } else { sum.style.display = 'none'; det.style.display = 'none'; }
   showErr('dcaErr', rangeBad ? 'The minimum price is above the maximum price — fix the price range.' : '');
   var btn = el('dcaAction');
   btn.classList.remove('btn-buy', 'btn-sell');
-  if(state.dcaPlan && state.dcaPlan.status === 'active'){ btn.disabled = true; btn.textContent = 'A plan is already running'; return; }
-  if(state.busy || engineBusy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
+  if(state.busy){ btn.disabled = true; btn.textContent = 'Processing…'; return; }
   if(!state.account){ btn.disabled = false; btn.textContent = 'Connect Wallet'; return; }
   if(!state.chainOk){ btn.disabled = false; btn.textContent = 'Switch to Loop Network'; return; }
   if(total <= 0n){ btn.disabled = true; btn.textContent = 'Enter a total amount'; return; }
   if(isNaN(count) || count < 1 || count > 100){ btn.disabled = true; btn.textContent = 'Enter 1–100 orders'; return; }
-  if(dcaIntervalMs() <= 0){ btn.disabled = true; btn.textContent = 'Enter an interval'; return; }
+  if(dcaIntervalSec() <= 0){ btn.disabled = true; btn.textContent = 'Enter an interval'; return; }
   if(rangeBad){ btn.disabled = true; btn.textContent = 'Fix the price range'; return; }
   var bal = balanceOf(fromSym);
   if(bal !== undefined && bal < total){ btn.disabled = true; btn.textContent = 'Insufficient balance'; return; }
   btn.disabled = false; btn.textContent = 'Create DCA Plan';
   btn.classList.add(state.dca.dir === 'sell' ? 'btn-sell' : 'btn-buy');
 }
+function planStatus(plan){
+  if(plan.cancelled) return 'cancelled';
+  if(plan.executedOrders >= plan.totalOrders) return 'completed';
+  return 'active';
+}
 function renderDca(){
   var pb = el('dcaPlanBox');
   if(!pb) return;
-  var plan = state.dcaPlan;
-  if(!plan){
-    pb.innerHTML = '<div class="empty-note">No DCA plan yet. Start one above — it runs in this tab while the page stays open.</div>';
-  } else {
-    var chip = plan.status === 'active' ? '<span class="ord-status open">Active</span>' : plan.status === 'completed' ? '<span class="ord-status done">Completed</span>' : '<span class="ord-status off">Cancelled</span>';
-    var perUsd = plan.fromSym === 'LOOP' ? loopWeiToUsd(plan.amountWei) : Number(weiToRaw(plan.amountWei, 18)) * tokenPriceUsd(TOKENS[plan.sym]);
-    var h = '<div class="ord-item"><div class="ord-head"><span>' + (plan.dir === 'buy' ? 'Buy ' : 'Sell ') + esc(plan.sym) + ' · ' + fmtWei(plan.amountWei, 18, 6) + ' ' + esc(plan.fromSym) + ' (' + fmtUSD(perUsd) + ') per order · ' + esc(plan.intervalLabel) + '</span>' + chip + '</div>';
-    h += '<div class="ord-meta">Progress: ' + plan.done + ' of ' + plan.total + ' orders · total budget ' + fmtWei(plan.totalWei, 18, 6) + ' ' + esc(plan.fromSym) + ' · started ' + new Date(plan.startedAt).toLocaleString('en-US');
-    if(plan.router) h += '<br/>Router: ' + (VINTAGES[plan.vintage] ? VINTAGES[plan.vintage].routerLabel : 'Router02') + ' · ' + shortAddr(plan.router);
-    if(plan.minUsd !== null || plan.maxUsd !== null) h += '<br/>Price range: ' + (plan.minUsd !== null ? fmtUSDPrice(plan.minUsd) : 'no min') + ' – ' + (plan.maxUsd !== null ? fmtUSDPrice(plan.maxUsd) : 'no max') + ' per ' + esc(plan.sym);
-    if(plan.status === 'active'){
-      if(plan.waitingRange) h += '<br/>Current price is outside the price range — waiting, no order slot used.';
-      else h += '<br/>Next order: ' + (plan.waiting ? 'due — waiting for your wallet to be connected on Loop Network' : fmtCountdown(plan.nextDue - Date.now()) + ' (' + new Date(plan.nextDue).toLocaleString('en-US') + ')');
-    }
-    h += '</div>';
-    if(plan.status === 'active') h += '<div class="ord-actions"><button type="button" id="dcaCancelBtn">Cancel plan</button></div>';
-    pb.innerHTML = h + '</div>';
-    var cb = el('dcaCancelBtn');
-    if(cb) cb.addEventListener('click', function(){
-      if(state.dcaPlan && state.dcaPlan.status === 'active'){ state.dcaPlan.status = 'cancelled'; state.dcaPlan.waiting = false; }
-      renderDca(); updateDca();
-      toast('DCA plan cancelled. Orders already done stay in the history below.');
-    });
-  }
   var hb = el('dcaHistoryBox');
-  if(!hb) return;
-  if(!state.dcaHistory.length){
-    hb.innerHTML = '<div class="empty-note">No DCA orders yet — completed and failed orders will be listed here.</div>';
+  if(!state.account){
+    pb.innerHTML = '<div class="empty-note">Connect your wallet to see your on-chain DCA plans. Plans are held by the SakuraDCA contract, so they keep running to schedule even when this page is closed.</div>';
+    if(hb) hb.innerHTML = '<div class="empty-note">Completed and cancelled plans will be listed here.</div>';
     return;
   }
-  hb.innerHTML = state.dcaHistory.map(function(x){
-    var chip = x.status === 'Done' ? '<span class="ord-status done">Done</span>' : '<span class="ord-status failed">Failed</span>';
-    var h = '<div class="ord-item"><div class="ord-head"><span>Order #' + x.n + ' · ' + esc(x.sym) + '</span>' + chip + '</div>';
-    h += '<div class="ord-meta">' + new Date(x.time).toLocaleString('en-US') + ' · spent ' + fmtWei(x.amtWei, 18, 6) + ' ' + esc(x.fromSym || 'LOOP');
-    if(x.status === 'Done'){
-      h += ' · received ±' + fmtWei(x.outAmt, 18, 6) + ' ' + esc(x.toSym || 'LOOP') +
-        (x.txHash ? ' · <a href="' + CFG.explorer + '/tx/' + x.txHash + '" target="_blank" rel="noopener">View tx ↗</a>' : '');
+  if(state.plansLoading && !state.dcaPlans.length){
+    pb.innerHTML = '<div class="empty-note">Loading your plans from the SakuraDCA contract…</div>';
+  } else {
+    var active = state.dcaPlans.filter(function(pl){ return planStatus(pl) === 'active'; });
+    if(!active.length){
+      pb.innerHTML = '<div class="empty-note">No active DCA plan on-chain for this wallet. Create one above — the SakuraDCA contract holds the budget and a keeper runs the schedule.</div>';
+    } else {
+      pb.innerHTML = active.map(function(plan){
+        var fromSym = plan.isBuy ? 'LOOP' : plan.sym;
+        var perUsd = plan.isBuy ? loopWeiToUsd(plan.amountPerOrder) : Number(weiToRaw(plan.amountPerOrder, 18)) * (TOKENS[plan.sym] ? tokenPriceUsd(TOKENS[plan.sym]) : 0);
+        var h = '<div class="ord-item"><div class="ord-head"><span>' + (plan.isBuy ? 'Buy ' : 'Sell ') + esc(plan.sym) + ' · ' + fmtWei(plan.amountPerOrder, 18, 6) + ' ' + esc(fromSym) + ' (' + fmtUSD(perUsd) + ') per order · ' + esc(fmtIntervalLabel(plan.intervalSec)) + '</span><span class="ord-status open">Active</span></div>';
+        h += '<div class="ord-meta">Plan #' + plan.id + ' · Progress: ' + plan.executedOrders + ' of ' + plan.totalOrders + ' orders · remaining ' + fmtWei(plan.remaining, 18, 6) + ' ' + esc(fromSym) + ' of ' + fmtWei(plan.totalAmount, 18, 6) + ' ' + esc(fromSym) + ' · started ' + new Date(plan.startTime * 1000).toLocaleString('en-US');
+        if(plan.router) h += '<br/>Router: ' + routerLabelFor(plan.router) + ' · ' + shortAddr(plan.router);
+        h += '<br/>Held by SakuraDCA · ' + shortAddr(CFG.dcaContract) + ' · keeper fee 0.25% of each swap\'s output';
+        if(plan.minPrice > 0n || plan.maxPrice > 0n) h += '<br/>Price range: ' + (plan.minPrice > 0n ? fmtUSDPrice(priceWeiToUsd(plan.minPrice)) : 'no min') + ' – ' + (plan.maxPrice > 0n ? fmtUSDPrice(priceWeiToUsd(plan.maxPrice)) : 'no max') + ' per ' + esc(plan.sym);
+        if(planStatus(plan) === 'active'){
+          if(plan.due) h += '<br/>Next order is due — it executes as soon as a keeper runs it (a 24/7 keeper is not running yet, so this can wait).';
+          else if(plan.nextAt) h += '<br/>Next order: ' + fmtCountdown(plan.nextAt * 1000 - Date.now()) + ' (' + new Date(plan.nextAt * 1000).toLocaleString('en-US') + ') — executed by the keeper.';
+        }
+        h += '</div>';
+        h += '<div class="ord-actions"><button type="button" data-cancel-plan="' + plan.id + '">Cancel plan (refund remainder)</button></div>';
+        return h + '</div>';
+      }).join('');
+      Array.prototype.forEach.call(pb.querySelectorAll('button[data-cancel-plan]'), function(b){
+        b.addEventListener('click', function(){ cancelOnChainPlan(parseInt(b.getAttribute('data-cancel-plan'), 10)); });
+      });
     }
-    if(x.note) h += '<br/>' + esc(x.note);
+  }
+  if(!hb) return;
+  var donePlans = state.dcaPlans.filter(function(pl){ return planStatus(pl) !== 'active'; });
+  if(!donePlans.length){
+    hb.innerHTML = '<div class="empty-note">No finished plans yet — completed and cancelled plans will be listed here.</div>';
+    return;
+  }
+  hb.innerHTML = donePlans.map(function(plan){
+    var st = planStatus(plan);
+    var chip = st === 'completed' ? '<span class="ord-status done">Completed</span>' : '<span class="ord-status off">Cancelled</span>';
+    var fromSym = plan.isBuy ? 'LOOP' : plan.sym;
+    var h = '<div class="ord-item"><div class="ord-head"><span>Plan #' + plan.id + ' · ' + (plan.isBuy ? 'Buy ' : 'Sell ') + esc(plan.sym) + '</span>' + chip + '</div>';
+    h += '<div class="ord-meta">Executed ' + plan.executedOrders + ' of ' + plan.totalOrders + ' orders · ' + fmtWei(plan.amountPerOrder, 18, 6) + ' ' + esc(fromSym) + ' per order · started ' + new Date(plan.startTime * 1000).toLocaleString('en-US');
+    if(plan.router) h += '<br/>Router: ' + routerLabelFor(plan.router) + ' · ' + shortAddr(plan.router);
     return h + '</div></div>';
   }).join('');
 }
-function onDcaAction(){
+async function loadOnChainPlans(){
+  if(!state.account || !window.ethers || state.plansLoading) return;
+  if(state.plansLoadedFor === state.account){ renderDca(); return; }
+  state.plansLoading = true;
+  try{
+    var c = dcaRead();
+    var count = Number(await withTimeout(c.planCount(), 30000, 'planCount'));
+    var start = Math.max(0, count - ORDER_SCAN_CAP);
+    var mine = [];
+    for(var i = start; i < count; i++){
+      var p = await withTimeout(c.getPlan(BigInt(i)), 30000, 'getPlan ' + i);
+      if(!p || String(p.owner).toLowerCase() !== state.account.toLowerCase()) continue;
+      var sym = symByAddress(p.token);
+      var item = {
+        id: i, sym: sym || shortAddr(String(p.token)), tokenAddr: String(p.token), isBuy: !!p.isBuy,
+        amountPerOrder: p.amountPerOrder, totalAmount: p.totalAmount, remaining: p.remaining,
+        intervalSec: Number(p.interval), totalOrders: Number(p.totalOrders), executedOrders: Number(p.executedOrders),
+        startTime: Number(p.startTime), minPrice: p.minPrice, maxPrice: p.maxPrice,
+        router: String(p.router), cancelled: !!p.cancelled, due: false, nextAt: 0
+      };
+      if(planStatus(item) === 'active'){
+        try{
+          item.nextAt = Number(await withTimeout(c.nextExecutionTime(BigInt(i)), 20000, 'nextExecutionTime ' + i));
+          item.due = !!await withTimeout(c.isDue(BigInt(i)), 20000, 'isDue ' + i);
+        }catch(e2){}
+      }
+      mine.push(item);
+    }
+    mine.sort(function(a, b){ return b.id - a.id; });
+    state.dcaPlans = mine;
+    state.plansLoadedFor = state.account;
+  }catch(e){
+    state.plansLoadedFor = null;
+  }
+  state.plansLoading = false;
+  renderDca();
+}
+async function cancelOnChainPlan(id){
+  if(state.busy) return;
   if(!state.account) return connectWallet();
   if(!state.chainOk) return switchChain();
+  state.busy = true; updateDca();
+  try{
+    var signer = await getSigner();
+    var c = new ethers.Contract(CFG.dcaContract, DCA_ABI, signer);
+    var t1 = toast('Cancel plan #' + id + ' — confirm in your wallet…', null, true);
+    var tx = await c.cancelPlan(BigInt(id));
+    t1.remove();
+    var tw = toast('Cancel sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    toast('Plan #' + id + ' cancelled — the contract refunded the remaining budget.', tx.hash);
+    state.plansLoadedFor = null;
+    await loadOnChainPlans();
+    refreshBalances();
+  }catch(e){
+    clearToasts();
+    showErr('dcaErr', 'Cancel plan failed: ' + txErr(e));
+  }
+  state.busy = false; updateDca();
+}
+async function onDcaAction(){
+  if(state.busy) return;
+  if(!state.account) return connectWallet();
+  if(!state.chainOk) return switchChain();
+  var t = TOKENS[state.dca.token];
+  var buy = state.dca.dir === 'buy';
   var total = inputWei(el('dcaAmountInput'), 18);
   var count = parseInt(el('dcaCountInput').value, 10);
-  var everyNum = parseInt(el('dcaEveryNum').value, 10);
-  var unitSel = el('dcaEveryUnit');
   var range = dcaRangeValues();
-  if(total <= 0n || isNaN(count) || count < 1 || count > 100 || dcaIntervalMs() <= 0) return;
+  if(total <= 0n || isNaN(count) || count < 1 || count > 100 || dcaIntervalSec() <= 0) return;
   if(range.min !== null && range.max !== null && range.min > range.max) return;
-  state.dcaPlan = {
-    sym: state.dca.token, dir: state.dca.dir, fromSym: dcaFromSym(), toSym: dcaToSym(),
-    router: routerOf(TOKENS[state.dca.token]), vintage: TOKENS[state.dca.token].vintage,
-    totalWei: total, amountWei: total / BigInt(count), intervalMs: dcaIntervalMs(),
-    intervalLabel: 'Every ' + everyNum + ' ' + unitSel.options[unitSel.selectedIndex].textContent,
-    total: count, done: 0, startedAt: Date.now(), nextDue: Date.now(), status: 'active', waiting: false, waitingRange: false,
-    minUsd: range.min, maxUsd: range.max
-  };
-  renderDca(); updateDca();
-  toast('DCA plan started: ' + count + ' orders of ' + fmtWei(state.dcaPlan.amountWei, 18, 6) + ' ' + state.dcaPlan.fromSym + ' into ' + state.dcaPlan.toSym + '. The first order runs now — confirm it in your wallet. Keep this page open for the rest of the schedule.');
-  engineTick();
-}
-
-/* ================= ORDER / DCA ENGINE =================
-   Runs only inside this open page — there is no keeper or order contract.
-   A triggered order/buy is sent to the user's wallet for confirmation. */
-var engineBusy = false;
-async function checkLimitOrders(){
-  if(engineBusy || state.busy) return;
-  for(var i = 0; i < state.orders.length; i++){
-    var o = state.orders[i];
-    if(o.status !== 'open') continue;
-    var t = TOKENS[o.sym];
-    if(!t) continue;
-    var p = priceLoopPerToken(t);
-    if(!(p > 0)) continue;
-    var hit = o.dir === 'buy' ? (p <= o.target) : (p >= o.target);
-    if(!hit) continue;
-    if(!state.account || !state.chainOk){
-      if(!o.alerted){
-        o.alerted = true;
-        o.note = 'Target reached — waiting for a connected wallet on Loop Network to execute.';
-        renderOrders();
-        toast('Limit order #' + o.id + ' hit its target price, but no wallet is connected. Connect your wallet on Loop Network to execute it.');
-      }
-      continue;
-    }
-    o.status = 'executing'; o.note = ''; renderOrders(); updateLimit();
-    engineBusy = true;
-    try{
-      if(o.exact){
-        var fq = await freshQuoteOut(t, o.amountIn, o.dir === 'buy');
-        var inN = Number(weiToRaw(o.amountIn, 18)), outN = Number(weiToRaw(fq, 18));
-        var implied = o.dir === 'buy' ? (outN > 0 ? inN / outN : Infinity) : (inN > 0 ? outN / inN : 0);
-        var okExact = o.dir === 'buy' ? implied <= o.target : implied >= o.target;
-        if(!okExact) throw new Error('EXACT: the price is no longer at your target, so the order was not filled at a worse price.');
-      }
-      var res = await executeSwap({
-        fromSym: o.dir === 'buy' ? 'LOOP' : o.sym,
-        toSym: o.dir === 'buy' ? o.sym : 'LOOP',
-        amountIn: o.amountIn, pair: t, router: o.router
-      });
-      o.status = 'done'; o.txHash = res.txHash; o.filledOut = res.amountOut; o.filledAt = Date.now();
-      toast('Limit order #' + o.id + ' filled: ' + (o.dir === 'buy' ? 'bought' : 'sold') + ' ' + o.sym + ' at your target price.', res.txHash);
-    }catch(e){
-      o.status = 'failed'; o.note = 'Execution failed: ' + txErr(e);
-      toast('Limit order #' + o.id + ' failed: ' + txErr(e));
-    }
-    engineBusy = false;
-    renderOrders(); updateLimit(); refreshBalances();
-    break; /* one execution per tick — no wallet popup storms */
-  }
-}
-async function checkDca(){
-  var plan = state.dcaPlan;
-  if(!plan || plan.status !== 'active' || engineBusy || state.busy) return;
-  if(Date.now() < plan.nextDue) return;
-  var t = TOKENS[plan.sym];
-  if(!t) return;
-  if(plan.minUsd !== null && plan.minUsd !== undefined || plan.maxUsd !== null && plan.maxUsd !== undefined){
-    var curUsd = tokenPriceUsd(t);
-    var outRange = !usdAvailable() || (plan.minUsd !== null && plan.minUsd !== undefined && curUsd < plan.minUsd) || (plan.maxUsd !== null && plan.maxUsd !== undefined && curUsd > plan.maxUsd);
-    if(outRange){
-      if(!plan.waitingRange){ plan.waitingRange = true; renderDca(); }
-      return;
-    }
-    plan.waitingRange = false;
-  }
-  if(!state.account || !state.chainOk){
-    if(!plan.waiting){ plan.waiting = true; renderDca(); }
+  var per = total / BigInt(count);
+  if(per <= 0n){ showErr('dcaErr', 'Each order would be 0 — increase the total or reduce the number of orders.'); return; }
+  /* The contract funds amountPerOrder x totalOrders exactly, so any wei
+     remainder from an uneven split simply stays in the wallet. */
+  var funded = per * BigInt(count);
+  var minWei = range.min !== null ? usdPriceToWei(range.min) : 0n;
+  var maxWei = range.max !== null ? usdPriceToWei(range.max) : 0n;
+  if((range.min !== null && minWei <= 0n) || (range.max !== null && maxWei <= 0n)){
+    showErr('dcaErr', 'The price range could not be converted — the USD rate is unavailable right now.');
     return;
   }
-  plan.waiting = false;
-  engineBusy = true;
-  var slot = plan.done + 1;
+  showErr('dcaErr', '');
+  state.busy = true; updateDca();
   try{
-    var res = await executeSwap({ fromSym: plan.fromSym, toSym: plan.toSym, amountIn: plan.amountWei, pair: t, router: plan.router });
-    state.dcaHistory.unshift({ n: slot, time: Date.now(), sym: plan.sym, fromSym: plan.fromSym, toSym: plan.toSym, amtWei: plan.amountWei, outAmt: res.amountOut, status: 'Done', txHash: res.txHash, note: '' });
-    toast('DCA order ' + slot + ' of ' + plan.total + ' done: ' + fmtWei(plan.amountWei, 18, 6) + ' ' + plan.fromSym + ' → ±' + fmtWei(res.amountOut, 18, 4) + ' ' + plan.toSym + '.', res.txHash);
+    /* Per-vintage router for this token's pair, recorded in the plan. */
+    var router = routerOf(t);
+    var slip = slipBps();
+    var intervalSec = BigInt(dcaIntervalSec());
+    var signer = await getSigner();
+    var c = new ethers.Contract(CFG.dcaContract, DCA_ABI, signer);
+    var tx;
+    if(buy){
+      var t1 = toast('Create DCA buy plan — confirm in your wallet…', null, true);
+      tx = await c.createBuyPlan(t.address, per, BigInt(count), intervalSec, minWei, maxWei, slip, router, { value: funded });
+      t1.remove();
+    } else {
+      var erc = new ethers.Contract(t.address, ERC20_ABI, signer);
+      var allow = await erc.allowance(state.account, CFG.dcaContract);
+      if(allow < funded){
+        var t0 = toast('Approve ' + t.symbol + ' for the DCA contract — confirm in your wallet…', null, true);
+        var atx = await erc.approve(CFG.dcaContract, funded);
+        t0.remove();
+        var t0b = toast('Approve sent — waiting for confirmation…', atx.hash, true);
+        await atx.wait(); t0b.remove();
+      }
+      var t2 = toast('Create DCA sell plan — confirm in your wallet…', null, true);
+      tx = await c.createSellPlan(t.address, per, BigInt(count), intervalSec, minWei, maxWei, slip, router);
+      t2.remove();
+    }
+    var tw = toast('Plan sent — waiting for confirmation…', tx.hash, true);
+    await tx.wait(); tw.remove();
+    el('dcaAmountInput').value = '';
+    state.plansLoadedFor = null;
+    toast('DCA plan created on-chain: ' + count + ' orders of ' + fmtWei(per, 18, 6) + ' ' + dcaFromSym() + ' into ' + dcaToSym() + ' via ' + vintageOf(t).routerLabel + '. The SakuraDCA contract holds the budget — a keeper runs each order when due (0.25% keeper fee per swap).', tx.hash);
+    await loadOnChainPlans();
+    refreshBalances();
   }catch(e){
-    state.dcaHistory.unshift({ n: slot, time: Date.now(), sym: plan.sym, fromSym: plan.fromSym, toSym: plan.toSym, amtWei: plan.amountWei, outAmt: 0n, status: 'Failed', txHash: null, note: txErr(e) });
-    toast('DCA order ' + slot + ' of ' + plan.total + ' failed: ' + txErr(e) + ' — the schedule moves on, this slot is not retried.');
+    clearToasts();
+    showErr('dcaErr', 'Create DCA plan failed: ' + txErr(e));
   }
-  plan.done++;
-  if(plan.done >= plan.total){
-    plan.status = 'completed';
-    toast('DCA plan completed — all ' + plan.total + ' orders are done. See the history below.');
-  } else {
-    plan.nextDue = Date.now() + plan.intervalMs;
-  }
-  engineBusy = false;
-  renderDca(); updateDca(); refreshBalances();
+  state.busy = false; updateDca();
 }
+
+/* ================= ORDER / DCA POLLING =================
+   There is no in-page execution engine anymore: Limit orders and DCA
+   plans live in their contracts and are executed by a keeper. This poll
+   only refreshes the on-chain lists (getOrder / getPlan) while the Limit
+   or DCA panel is open, so statuses — Watching, target reached, Filled,
+   plan progress — follow the chain instead of this tab. */
+var engineBusy = false;
 function engineTick(){
-  checkLimitOrders();
-  checkDca();
-  var watching = state.orders.some(function(o){ return o.status === 'open'; }) || (state.dcaPlan && state.dcaPlan.status === 'active');
-  if(watching){
+  if(!state.account || state.busy) return;
+  if(swapMode === 'limit'){
+    state.ordersLoadedFor = null;
+    loadOnChainOrders();
     refreshLive();
-    if(swapMode === 'limit') renderOrders();
-    if(swapMode === 'dca') renderDca();
+  } else if(swapMode === 'dca'){
+    state.plansLoadedFor = null;
+    loadOnChainPlans();
+    refreshLive();
   }
 }
-setInterval(engineTick, 15000);
+setInterval(engineTick, 30000);
 
 /* ================= LIMIT / DCA / MEV EVENTS ================= */
 el('mevToggle').addEventListener('change', function(){
@@ -4652,8 +4846,8 @@ function setMode(mode){
   el('modeSwap').style.display = mode === 'swap' ? 'block' : 'none';
   el('modeLimit').style.display = mode === 'limit' ? 'block' : 'none';
   el('modeDca').style.display = mode === 'dca' ? 'block' : 'none';
-  if(mode === 'limit'){ updateLimit(); renderOrders(); }
-  if(mode === 'dca'){ updateDca(); }
+  if(mode === 'limit'){ updateLimit(); renderOrders(); loadOnChainOrders(); }
+  if(mode === 'dca'){ updateDca(); loadOnChainPlans(); }
 }
 function bindEvents(){
   Array.prototype.forEach.call(document.querySelectorAll('.mode-tabs button'), function(b){
@@ -4783,9 +4977,10 @@ function bindEvents(){
     window.ethereum.on('accountsChanged', function(accs){
       state.account = accs && accs[0] ? accs[0] : null;
       state.balances = {}; state.lpBalances = {};
+      state.orders = []; state.ordersLoadedFor = null; state.dcaPlans = []; state.plansLoadedFor = null;
       state.balErrors = {}; state.lpErrors = {}; state.balSettledFor = null; state.balLoading = false;
       syncWalletBtn(); renderAll(); refreshAllForms(); renderLocks();
-      if(state.account) refreshBalances();
+      if(state.account){ refreshBalances(); loadOnChainOrders(); loadOnChainPlans(); }
     });
     window.ethereum.on('chainChanged', function(){ checkChain().then(function(){ syncWalletBtn(); refreshAllForms(); if(state.chainOk) refreshBalances(); }); });
   }
@@ -4799,7 +4994,7 @@ if(window.ethereum){
   window.ethereum.request({ method: 'eth_accounts' }).then(function(accs){
     if(accs && accs[0]){
       state.account = accs[0];
-      checkChain().then(function(){ syncWalletBtn(); renderAll(); refreshAllForms(); refreshBalances(); });
+      checkChain().then(function(){ syncWalletBtn(); renderAll(); refreshAllForms(); refreshBalances(); loadOnChainOrders(); loadOnChainPlans(); });
     }
   }).catch(function(){});
 }
