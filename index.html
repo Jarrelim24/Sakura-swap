@@ -1910,6 +1910,28 @@ function tokenPriceUsd(t){
       if(sp && sp.pool){ var v = stableTokenPriceUsd(t, sp); if(v > 0) return v; }
     }
   }
+  /* No LOOP pool and no stable pair — for DISCOVERED (factory-enumerated,
+     unregistered) tokens only, price from a Gen-7 / Gen-5 pair against a
+     priced quote (peg asset or LOOP): the pool's own price. Only peg/LOOP
+     quotes are accepted, so this cannot recurse through another unpriced
+     token. Registered tokens keep their oracle / LOOP-pool prices — a
+     missing oracle price still shows "—" (see test 2c). */
+  if(t._discovered){
+    var pairKeys = ['gen7Pairs', 'gen5Pairs'];
+    for(var ki = 0; ki < pairKeys.length; ki++){
+      var recs = t[pairKeys[ki]];
+      if(!recs) continue;
+      for(var oSym in recs){
+        var gp = recs[oSym];
+        if(!gp || !gp.pool || gp.resTokenWei <= 0n || gp.resOtherWei <= 0n) continue;
+        if(!isPegAsset(oSym) && oSym !== 'LOOP') continue;
+        var pq = usdPriceOf(oSym);
+        if(pq === null || pq === undefined || pq <= 0) continue;
+        var pv = Number(weiToRaw(gp.resOtherWei, TOKENS[oSym].decimals)) * pq / Number(weiToRaw(gp.resTokenWei, t.decimals));
+        if(pv > 0) return pv;
+      }
+    }
+  }
   return 0;
 }
 function fmtTokenUSD(t){ return fmtUSDPrice(tokenPriceUsd(t)); }
@@ -2227,6 +2249,30 @@ function clearToasts(){ el('toastWrap').innerHTML = ''; }
 
 /* ---------- Render: pool cards, positions, portfolio ---------- */
 var poolActivity = {}; /* sym -> { vol: string, trades: string } hasil scan event Swap */
+/* Order a pair's two sides the way the UI expects them: the non-peg
+   side first (the "token"), the peg asset second (the quote). Discovery
+   iterates TOKENS in insertion order, so without this a discovered row
+   would read "LOOP / G7GR" or "tUSDC / TSHIBA" — and openAddForPool /
+   openRemoveForPool would feed the Add/Remove forms backwards. Both
+   sides peg (e.g. tUSDC/tUSDT): the non-stable side first (xStock before
+   stable); otherwise keep the discovery order. resAWei always matches
+   the returned tokenSym. */
+function orderPairSides(sym, oSym, gp){
+  var a = sym, b = oSym, ra = gp.resTokenWei, rb = gp.resOtherWei, swap = false;
+  if(isPegAsset(a) && !isPegAsset(b)) swap = true;
+  else if(isStable(a) && !isStable(b)) swap = true;
+  if(swap){ var t = a; a = b; b = t; var tr = ra; ra = rb; rb = tr; }
+  return { tokenSym: a, quoteSym: b, resAWei: ra, resBWei: rb };
+}
+/* Same ordering for genPairByPool: when the sides swap, return a copy of
+   the pair record with the reserves swapped too, so gp.resTokenWei always
+   belongs to the returned tokenSym. */
+function orderedGenPair(gp, vintage, sym, oSym){
+  var ord = orderPairSides(sym, oSym, gp);
+  var out = ord.tokenSym === sym ? gp : { pool: gp.pool, resTokenWei: ord.resAWei, resOtherWei: ord.resBWei,
+    lpSupplyWei: gp.lpSupplyWei, factory: gp.factory, isGen5: gp.isGen5, taxBps: gp.taxBps, claimable: gp.claimable };
+  return { gp: out, vintage: vintage, tokenSym: ord.tokenSym, quoteSym: ord.quoteSym };
+}
 /* ================= POOLS TABLE (Meteora-style, Sakura theme) ================= */
 var poolActivityByAddr = {}; /* pair address (lowercase) -> { volUsd: number|null, tradesN: number|null } */
 /* One row per live pool, deduped by pair address. A pair that exists on
@@ -2265,7 +2311,8 @@ function collectPools(){
         var gp = t[key][oSym];
         if(!gp || !gp.pool) return;
         if(isGraduated(sym) && isStable(oSym)) return; /* already a stable row */
-        add(gp.pool, sym, oSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei, gp.resTokenWei, gp.resOtherWei);
+        var ord = orderPairSides(sym, oSym, gp);
+        add(gp.pool, ord.tokenSym, ord.quoteSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei, ord.resAWei, ord.resBWei);
       });
     });
   });
@@ -2952,7 +2999,8 @@ function collectUserPositions(){
         var gp = t[key][oSym];
         if(!gp || !gp.pool) return;
         if(isGraduated(sym) && isStable(oSym)) return; /* already a stable row */
-        push(gp.pool, sym, oSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei, gp.resTokenWei, gp.resOtherWei);
+        var ordP = orderPairSides(sym, oSym, gp);
+        push(gp.pool, ordP.tokenSym, ordP.quoteSym, gp.vintage || (key === 'gen7Pairs' ? 'gen7' : 'corrected'), gp.lpSupplyWei, ordP.resAWei, ordP.resBWei);
       });
     });
   });
@@ -4782,7 +4830,11 @@ async function importToken(addr){
     var quoteFirst = t0 === quoteAddr;
     var lps = await withTimeout(pair.totalSupply(), 20000, 'totalSupply');
     var key = symbol.toUpperCase().slice(0, 12);
-    if(TOKENS[key]) key = key + 'X';
+    /* A factory-discovered entry for this same token (created by
+       discoverGen7Pairs / discoverGen5Pairs) reuses its key — the import
+       replaces it with the full entry instead of forking a 'TSHIBAX'
+       duplicate. A different token sharing the symbol still gets 'X'. */
+    while(TOKENS[key] && (TOKENS[key].address || '').toLowerCase() !== String(addr).toLowerCase()) key = key + 'X';
     /* Never assume the quote is WLOOP: the entry records the quote asset
        that was actually found. A WLOOP pair keeps the classic LOOP-pool
        fields; a stable-quote pair (e.g. TSHIBA/tUSDC) keeps pool null and
@@ -6085,9 +6137,55 @@ function storeGen5Pair(aSym, bSym, poolAddr, res, t0Lower, lps){
     resTokenWei: aFirst ? res[1] : res[0], resOtherWei: aFirst ? res[0] : res[1],
     lpSupplyWei: lps, checkedAt: Date.now() };
 }
+/* ---------- Factory-enumerated tokens (not in TOKEN_LIST) ----------
+   discoverGen5Pairs / discoverGen7Pairs enumerate EVERY pair on their
+   factory — including pairs whose token is not registered in TOKENS
+   (e.g. the live Gen-7 pairs G7GR/WLOOP and TSHIBA/tUSDC). Such a token
+   gets a lightweight TOKENS entry (flagged _discovered) so the pair can
+   appear in the Pools table, pool detail and positions — but it is NEVER
+   added to TOKEN_LIST, so the swap picker is unchanged. If the on-chain
+   name/symbol read fails, the pair still shows with a truncated-address
+   symbol instead of disappearing. */
+function discoveredTokenKey(symbol, addrLower, keepCase){
+  var key = keepCase ? (symbol || '').slice(0, 12) : (symbol || '').toUpperCase().slice(0, 12);
+  if(!key) key = 'TOKEN';
+  while(TOKENS[key] && (TOKENS[key].address || '').toLowerCase() !== addrLower) key = key + 'X';
+  return key;
+}
+async function ensureDiscoveredToken(addr, rp){
+  var lower = String(addr).toLowerCase();
+  if(lower === CFG.wloop.toLowerCase()) return 'LOOP';
+  var syms = Object.keys(TOKENS);
+  for(var i = 0; i < syms.length; i++){
+    var t = TOKENS[syms[i]];
+    if(t.address && t.address !== 'NATIVE' && t.address.toLowerCase() === lower) return syms[i];
+  }
+  var name = null, symbol = null, dec = 18;
+  try{
+    var erc = new ethers.Contract(addr, ERC20_ABI, rp);
+    var meta = await Promise.allSettled([
+      withTimeout(erc.name(), 20000, 'token name'),
+      withTimeout(erc.symbol(), 20000, 'token symbol'),
+      withTimeout(erc.decimals(), 20000, 'token decimals')
+    ]);
+    if(meta[0].status === 'fulfilled' && meta[0].value) name = String(meta[0].value);
+    if(meta[1].status === 'fulfilled' && meta[1].value) symbol = String(meta[1].value);
+    if(meta[2].status === 'fulfilled' && meta[2].value !== undefined && meta[2].value !== null) dec = Number(meta[2].value);
+  }catch(e){ /* metadata unreadable — fall back to the address below */ }
+  if(!symbol){ symbol = shortAddr(addr); var key = discoveredTokenKey(symbol, lower, true); }
+  else var key = discoveredTokenKey(symbol, lower);
+  /* pool: null + zero LOOP-pool reserves: this token has no LOOP pool
+     (priceLoopPerToken must see 0n, never undefined, or it throws). */
+  TOKENS[key] = { symbol: key, name: name || key, address: addr, decimals: dec,
+    color: '#5B5B61', _discovered: true, pool: null,
+    resLoopWei: 0n, resTokenWei: 0n, lpSupplyWei: 0n, lpLockedWei: 0n };
+  return key;
+}
 /* Enumerate every pair the corrected factory knows about. Cheap: the
    factory has few pairs, so one allPairs(i) call per pair beats probing
-   every symbol combination. Unknown-token pairs are skipped. */
+   every symbol combination. Pairs whose token is not registered get a
+   lightweight discovered entry (see ensureDiscoveredToken) instead of
+   being skipped. */
 var discoverGen5Running = false;
 async function discoverGen5Pairs(){
   if(!window.ethers || discoverGen5Running) return;
@@ -6103,9 +6201,15 @@ async function discoverGen5Pairs(){
       try{
         var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen5 allPairs');
         var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
-        var t0 = (await withTimeout(pair.token0(), 20000, 'gen5 token0')).toLowerCase();
-        var t1 = (await withTimeout(pair.token1(), 20000, 'gen5 token1')).toLowerCase();
-        var s0 = addrToSym[t0], s1 = addrToSym[t1];
+        var t0raw = await withTimeout(pair.token0(), 20000, 'gen5 token0');
+        var t1raw = await withTimeout(pair.token1(), 20000, 'gen5 token1');
+        var t0 = t0raw.toLowerCase(), t1 = t1raw.toLowerCase();
+        /* Unknown tokens get a lightweight discovered entry (never in
+           TOKEN_LIST) so the pair still shows in the Pools table. */
+        var s0 = addrToSym[t0] || await ensureDiscoveredToken(t0raw, rp);
+        var s1 = addrToSym[t1] || await ensureDiscoveredToken(t1raw, rp);
+        if(s0) addrToSym[t0] = s0;
+        if(s1) addrToSym[t1] = s1;
         if(!s0 || !s1) continue;
         /* Graduated/stable pairs live in stablePools, not gen5Pairs. */
         if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) continue;
@@ -6181,9 +6285,15 @@ async function discoverGen7Pairs(){
       try{
         var pAddr = await withTimeout(fac.allPairs(i), 20000, 'gen7 allPairs');
         var pair = new ethers.Contract(pAddr, PAIR_ABI, rp);
-        var t0 = (await withTimeout(pair.token0(), 20000, 'gen7 token0')).toLowerCase();
-        var t1 = (await withTimeout(pair.token1(), 20000, 'gen7 token1')).toLowerCase();
-        var s0 = addrToSym[t0], s1 = addrToSym[t1];
+        var t0raw = await withTimeout(pair.token0(), 20000, 'gen7 token0');
+        var t1raw = await withTimeout(pair.token1(), 20000, 'gen7 token1');
+        var t0 = t0raw.toLowerCase(), t1 = t1raw.toLowerCase();
+        /* Unknown tokens get a lightweight discovered entry (never in
+           TOKEN_LIST) so the pair still shows in the Pools table. */
+        var s0 = addrToSym[t0] || await ensureDiscoveredToken(t0raw, rp);
+        var s1 = addrToSym[t1] || await ensureDiscoveredToken(t1raw, rp);
+        if(s0) addrToSym[t0] = s0;
+        if(s1) addrToSym[t1] = s1;
         if(!s0 || !s1) continue;
         /* Graduated/stable pairs live in stablePools, not gen7Pairs. */
         if((isGraduated(s0) && isStable(s1)) || (isGraduated(s1) && isStable(s0))) continue;
@@ -6270,13 +6380,13 @@ function genPairByPool(poolAddr){
     if(t.gen7Pairs){
       for(oSym in t.gen7Pairs){
         gp = t.gen7Pairs[oSym];
-        if(gp && gp.pool && gp.pool.toLowerCase() === pk) return { gp: gp, vintage: 'gen7', tokenSym: sym, quoteSym: oSym };
+        if(gp && gp.pool && gp.pool.toLowerCase() === pk) return orderedGenPair(gp, 'gen7', sym, oSym);
       }
     }
     if(t.gen5Pairs){
       for(oSym in t.gen5Pairs){
         gp = t.gen5Pairs[oSym];
-        if(gp && gp.pool && gp.pool.toLowerCase() === pk) return { gp: gp, vintage: 'corrected', tokenSym: sym, quoteSym: oSym };
+        if(gp && gp.pool && gp.pool.toLowerCase() === pk) return orderedGenPair(gp, 'corrected', sym, oSym);
       }
     }
   }
